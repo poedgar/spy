@@ -28,22 +28,32 @@ describe('SpyNet Terminal - Direct Invitation Link Flow', () => {
         const gameId = url.searchParams.get('join') || url.searchParams.get('game');
         expect(gameId).to.be.ok;
 
-        // 2. Sign out or clear session to simulate a new invited user arriving
-        cy.clearLocalStorage();
+        // DIAGNOSTIC: confirm the write actually reached Firestore, bypassing
+        // the app's own SDK, by hitting the REST API directly.
+        const restUrl = `https://firestore.googleapis.com/v1/projects/psychoplay/databases/ai-studio-spy-2bdeba50-056f-42ee-8cdf-d659acdc72a2/documents/games/${gameId}?key=AIzaSyDlAOWyRFn473weJhmLlFeE0GweuQCeeLQ`;
+        cy.wait(1500);
+        cy.request({ method: 'GET', url: restUrl, failOnStatusCode: false }).then((writeCheck) => {
+          // 2. Sign out or clear session to simulate a new invited user arriving
+          cy.clearLocalStorage();
 
-        // 3. Invited operative visits via the invite link
-        cy.visit(`/?join=${gameId}`);
-        cy.get('#invitation-banner').should('be.visible');
+          // 3. Invited operative visits via the invite link
+          cy.visit(`/?join=${gameId}`);
+          cy.get('#invitation-banner').should('be.visible');
 
-        // 4. Authenticate as the recruit
-        cy.get('#input-username').type('Recruit_Ghost');
-        cy.get('#input-password').type('GhostPassCode99!');
-        cy.get('#btn-authenticate').click();
+          // 4. Authenticate as the recruit
+          cy.get('#input-username').type('Recruit_Ghost');
+          cy.get('#input-password').type('GhostPassCode99!');
+          cy.get('#btn-authenticate').click();
 
-        // 5. Verify direct landing in the game lobby as recruit
-        cy.get('#lobby-header', { timeout: 8000 }).should('be.visible');
-        cy.contains('Operation Nightfall').should('be.visible');
-        cy.get('#operatives-roster').should('contain', 'Recruit_Ghost');
+          cy.wait(4000);
+          cy.request({ method: 'GET', url: restUrl, failOnStatusCode: false }).then((readCheck) => {
+            throw new Error(
+              `DIAGNOSTIC gameId=${gameId} ` +
+                `writeCheck(status=${writeCheck.status}, body=${JSON.stringify(writeCheck.body)}) ` +
+                `readCheck(status=${readCheck.status}, body=${JSON.stringify(readCheck.body)})`
+            );
+          });
+        });
       });
   });
 });
