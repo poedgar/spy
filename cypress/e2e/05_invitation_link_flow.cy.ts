@@ -47,11 +47,30 @@ describe('SpyNet Terminal - Direct Invitation Link Flow', () => {
 
           cy.wait(4000);
           cy.request({ method: 'GET', url: restUrl, failOnStatusCode: false }).then((readCheck) => {
-            throw new Error(
-              `DIAGNOSTIC gameId=${gameId} ` +
-                `writeCheck(status=${writeCheck.status}, body=${JSON.stringify(writeCheck.body)}) ` +
-                `readCheck(status=${readCheck.status}, body=${JSON.stringify(readCheck.body)})`
-            );
+            // Now check whether the UI actually reflects the confirmed-successful
+            // server-side join, and dump localStorage's view of the game too.
+            cy.get('body').then(($body) => {
+              const lobbyFound = $body.find('#lobby-header').length > 0;
+              cy.window().then((win) => {
+                let storedGames: unknown = null;
+                try {
+                  storedGames = JSON.parse(win.localStorage.getItem('spynet_active_games') || 'null');
+                } catch {
+                  storedGames = 'PARSE_ERROR';
+                }
+                throw new Error(
+                  `DIAGNOSTIC gameId=${gameId} lobbyHeaderFound=${lobbyFound} ` +
+                    `bodyHTMLSnippet=${$body.text().slice(0, 300)} ` +
+                    `writeCheck(status=${writeCheck.status}) ` +
+                    `readCheck(status=${readCheck.status}, players=${JSON.stringify(
+                      readCheck.body?.fields?.players?.arrayValue?.values?.map(
+                        (v: any) => v.mapValue.fields.username.stringValue
+                      )
+                    )}) ` +
+                    `localStorageGames=${JSON.stringify(storedGames)}`
+                );
+              });
+            });
           });
         });
       });
