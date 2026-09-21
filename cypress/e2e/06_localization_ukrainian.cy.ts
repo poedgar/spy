@@ -24,7 +24,7 @@ describe('Localization & Ukrainian Language Support', () => {
   it('maintains Ukrainian language across dashboard and location browsing', () => {
     // Authenticate
     cy.get('#btn-demo-credentials-007').click();
-    cy.get('#btn-authenticate').click();
+    cy.get('#btn-authenticate-submit').click();
 
     // Verify Dashboard loaded
     cy.get('#btn-create-game-trigger').should('be.visible');
@@ -58,7 +58,7 @@ describe('Localization & Ukrainian Language Support', () => {
   it('creates an operation in Ukrainian and verifies localized lobby', () => {
     // Authenticate and switch to Ukrainian
     cy.get('#btn-demo-credentials-007').click();
-    cy.get('#btn-authenticate').click();
+    cy.get('#btn-authenticate-submit').click();
     cy.get('#btn-lang-uk').click();
 
     // Open Create Game Modal
