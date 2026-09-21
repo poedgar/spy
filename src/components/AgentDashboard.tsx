@@ -13,6 +13,7 @@ import {
 import { CreateGameModal } from './CreateGameModal.tsx';
 import { GameLobbyView } from './GameLobbyView.tsx';
 import { InviteModal } from './InviteModal.tsx';
+import { LocationsGuideModal } from './LocationsGuideModal.tsx';
 import { useLanguage } from '../i18n/LanguageContext.tsx';
 import {
   ShieldCheck,
@@ -30,6 +31,7 @@ import {
   Search,
   AlertCircle,
   ExternalLink,
+  Database,
 } from 'lucide-react';
 
 interface AgentDashboardProps {
@@ -48,6 +50,7 @@ export const AgentDashboard: React.FC<AgentDashboardProps> = ({
   const [activeGame, setActiveGame] = useState<SpyGame | null>(null);
   const [isCreatingGame, setIsCreatingGame] = useState(false);
   const [inviteModalGame, setInviteModalGame] = useState<SpyGame | null>(null);
+  const [showLocationsGuide, setShowLocationsGuide] = useState(false);
   const [searchCode, setSearchCode] = useState(initialGameId || '');
   const [joinError, setJoinError] = useState<string | null>(null);
   const [copiedGameId, setCopiedGameId] = useState<string | null>(null);
@@ -228,7 +231,7 @@ export const AgentDashboard: React.FC<AgentDashboardProps> = ({
               <div className="flex items-center space-x-2">
                 <span className="inline-block w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
                 <span className="text-[10px] font-mono tracking-widest text-emerald-400 uppercase font-semibold">
-                  {t('encrypted_terminal_active')}
+                  {t('terminal_active')}
                 </span>
               </div>
               <h1 className="text-xl font-bold tracking-tight text-white flex items-center gap-2">
@@ -239,6 +242,16 @@ export const AgentDashboard: React.FC<AgentDashboardProps> = ({
           </div>
 
           <div className="flex items-center gap-3">
+            <button
+              id="btn-locations-guide-top"
+              type="button"
+              onClick={() => setShowLocationsGuide(true)}
+              className="py-1.5 px-3 rounded-lg bg-neutral-900 hover:bg-neutral-850 text-emerald-400 border border-neutral-800 font-mono text-xs flex items-center gap-1.5 transition-colors cursor-pointer"
+              title={t('locations_ref_db')}
+            >
+              <Database className="w-3.5 h-3.5" />
+              <span>{t('locations_ref_db')}</span>
+            </button>
             <span className="text-xs font-mono px-2.5 py-1 rounded bg-neutral-950 border border-neutral-800 text-neutral-400">
               {user.terminalId}
             </span>
@@ -498,6 +511,12 @@ export const AgentDashboard: React.FC<AgentDashboardProps> = ({
           game={inviteModalGame}
           onClose={() => setInviteModalGame(null)}
           onOperativeAdded={refreshGames}
+        />
+      )}
+
+      {showLocationsGuide && (
+        <LocationsGuideModal
+          onClose={() => setShowLocationsGuide(false)}
         />
       )}
     </div>

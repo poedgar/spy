@@ -32,6 +32,7 @@ export const TRANSLATIONS = {
 
     // Agent Dashboard
     terminal_active: 'ENCRYPTED TERMINAL ACTIVE',
+    encrypted_terminal_active: 'ENCRYPTED TERMINAL ACTIVE',
     operative_title: 'Operative:',
     sign_out: 'Sign Out',
     username: 'USERNAME',
@@ -295,6 +296,7 @@ export const TRANSLATIONS = {
 
     // Agent Dashboard
     terminal_active: 'ЗАШИФРОВАНИЙ ТЕРМІНАЛ АКТИВНИЙ',
+    encrypted_terminal_active: 'ЗАШИФРОВАНИЙ ТЕРМІНАЛ АКТИВНИЙ',
     operative_title: 'Оперативник:',
     sign_out: 'Вийти',
     username: 'КОРИСТУВАЧ',

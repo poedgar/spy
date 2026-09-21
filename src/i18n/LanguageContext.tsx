@@ -75,7 +75,7 @@ export const LanguageSwitcher: React.FC<{ className?: string }> = ({ className =
         onClick={() => setLanguage('en')}
         className={`px-2.5 py-1 rounded transition-colors flex items-center gap-1.5 cursor-pointer ${
           language === 'en'
-            ? 'bg-emerald-500/20 text-emerald-400 font-bold border border-emerald-500/40 shadow-sm'
+            ? 'bg-emerald-500 text-neutral-950 font-bold border border-emerald-400 shadow-sm'
             : 'text-neutral-400 hover:text-neutral-200'
         }`}
         title="Switch to English"
@@ -90,7 +90,7 @@ export const LanguageSwitcher: React.FC<{ className?: string }> = ({ className =
         onClick={() => setLanguage('uk')}
         className={`px-2.5 py-1 rounded transition-colors flex items-center gap-1.5 cursor-pointer ${
           language === 'uk'
-            ? 'bg-emerald-500/20 text-emerald-400 font-bold border border-emerald-500/40 shadow-sm'
+            ? 'bg-emerald-500 text-neutral-950 font-bold border border-emerald-400 shadow-sm'
             : 'text-neutral-400 hover:text-neutral-200'
         }`}
         title="Перемкнути на українську мову"

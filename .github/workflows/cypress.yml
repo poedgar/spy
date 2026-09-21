@@ -38,10 +38,18 @@ jobs:
           path: ~/.cache/Cypress
           key: cypress-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
 
-      - name: Run the production smoke test
+      - name: Build frontend
+        run: npm run build
+
+      - name: Start local test server
+        run: |
+          npx vite preview --port 3000 --host 0.0.0.0 &
+          node -e "const http=require('http');function check(){http.get('http://127.0.0.1:3000',r=>{console.log('Test server ready');process.exit(0)}).on('error',()=>setTimeout(check,300))};check()"
+
+      - name: Run E2E smoke tests
         run: npm run test
         env:
-          CYPRESS_BASE_URL: https://spy-ten-tau.vercel.app
+          CYPRESS_BASE_URL: http://127.0.0.1:3000
 
       - name: Upload failure screenshots
         if: failure()

@@ -190,6 +190,7 @@ export const GameLobbyView: React.FC<GameLobbyViewProps> = ({
 
         <div className="flex items-center gap-2">
           <button
+            id="btn-view-locations-guide"
             type="button"
             onClick={() => setShowLocationsGuide(true)}
             className="text-xs font-mono px-2.5 py-1 rounded bg-neutral-900 hover:bg-neutral-850 border border-neutral-800 text-emerald-400 flex items-center gap-1.5 transition-colors cursor-pointer"
@@ -206,7 +207,7 @@ export const GameLobbyView: React.FC<GameLobbyViewProps> = ({
       </div>
 
       {/* Main Operation Header Card */}
-      <div className="bg-neutral-900/90 border border-neutral-800 rounded-xl p-5 sm:p-6 backdrop-blur-md shadow-xl">
+      <div id="lobby-header" className="bg-neutral-900/90 border border-neutral-800 rounded-xl p-5 sm:p-6 backdrop-blur-md shadow-xl">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-neutral-800 pb-5">
           <div>
             <div className="flex items-center gap-2 mb-1">

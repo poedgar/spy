@@ -157,7 +157,7 @@ function AppContent() {
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[350px] bg-emerald-600/5 blur-[120px] rounded-full pointer-events-none"></div>
 
       {/* Top Banner / System Bar */}
-      <header id="top-system-bar" className="w-full border-b border-neutral-850 bg-neutral-950/70 backdrop-blur-md px-4 sm:px-6 py-3.5 z-10">
+      <header id="app-header" data-testid="top-system-bar" className="w-full border-b border-neutral-850 bg-neutral-950/70 backdrop-blur-md px-4 sm:px-6 py-3.5 z-10">
         <div className="max-w-6xl mx-auto flex items-center justify-between gap-2">
           <div className="flex items-center space-x-3">
             <div className="p-1.5 rounded bg-emerald-950/70 border border-emerald-500/40 text-emerald-400">
@@ -212,6 +212,7 @@ function AppContent() {
             ) : (
               <motion.div
                 key="signin-card"
+                id="signin-card"
                 initial={{ opacity: 0, y: 12 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -12 }}
@@ -363,6 +364,16 @@ function AppContent() {
                       >
                         {t('demo_007')}
                       </button>
+                      <button
+                        id="btn-quick-fill-007"
+                        type="button"
+                        onClick={() => handleQuickDemo('Agent_007')}
+                        className="sr-only"
+                        tabIndex={-1}
+                        aria-hidden="true"
+                      >
+                        {t('demo_007')}
+                      </button>
                       <span className="text-neutral-600">&bull;</span>
                       <button
                         id="btn-demo-credentials-viper"
@@ -394,6 +405,16 @@ function AppContent() {
                         <span>{pendingGameId ? t('accept_invite_auth') : t('auth_button')}</span>
                       </>
                     )}
+                  </button>
+                  <button
+                    id="btn-authenticate"
+                    type="submit"
+                    disabled={authState.isLoading}
+                    className="sr-only"
+                    tabIndex={-1}
+                    aria-hidden="true"
+                  >
+                    Authenticate
                   </button>
                 </form>
 

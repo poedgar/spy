@@ -33,9 +33,10 @@ export const LocationsGuideModal: React.FC<LocationsGuideModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-150">
-      <div className="relative w-full max-w-3xl max-h-[85vh] bg-neutral-900 border border-neutral-800 rounded-xl p-5 sm:p-6 shadow-2xl flex flex-col">
+      <div id="locations-guide-modal-card" className="relative w-full max-w-3xl max-h-[85vh] bg-neutral-900 border border-neutral-800 rounded-xl p-5 sm:p-6 shadow-2xl flex flex-col">
         {/* Close Button */}
         <button
+          id="btn-close-locations-guide"
           type="button"
           onClick={onClose}
           className="absolute top-4 right-4 text-neutral-400 hover:text-white p-1 rounded-lg hover:bg-neutral-800 transition-colors cursor-pointer"
@@ -58,8 +59,11 @@ export const LocationsGuideModal: React.FC<LocationsGuideModalProps> = ({
                 {t('verified_places', { count: 500 })}
               </span>
             </div>
-            <h3 className="text-lg font-bold text-white font-mono">
-              {t('locations_ref_db')}
+            <h3 className="text-lg font-bold text-white font-mono flex items-center gap-2">
+              <span>{t('locations_ref_db')}</span>
+              <span className="text-xs text-neutral-400 font-normal">
+                ({language === 'uk' ? '500 перевірених місць' : '500 Pre-existing Locations Pool'})
+              </span>
             </h3>
           </div>
         </div>
@@ -80,6 +84,7 @@ export const LocationsGuideModal: React.FC<LocationsGuideModalProps> = ({
         <div className="relative mb-3 shrink-0">
           <Search className="w-4 h-4 text-neutral-400 absolute left-3 top-1/2 -translate-y-1/2" />
           <input
+            id="input-search-locations"
             type="text"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
