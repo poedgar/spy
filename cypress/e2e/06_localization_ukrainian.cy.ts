@@ -23,7 +23,7 @@ describe('Localization & Ukrainian Language Support', () => {
 
   it('maintains Ukrainian language across dashboard and location browsing', () => {
     // Authenticate
-    cy.get('#btn-quick-fill-007').click();
+    cy.get('#btn-demo-credentials-007').click();
     cy.get('#btn-authenticate').click();
 
     // Verify Dashboard loaded
@@ -57,7 +57,7 @@ describe('Localization & Ukrainian Language Support', () => {
 
   it('creates an operation in Ukrainian and verifies localized lobby', () => {
     // Authenticate and switch to Ukrainian
-    cy.get('#btn-quick-fill-007').click();
+    cy.get('#btn-demo-credentials-007').click();
     cy.get('#btn-authenticate').click();
     cy.get('#btn-lang-uk').click();
 

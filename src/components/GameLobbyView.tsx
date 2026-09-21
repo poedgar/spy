@@ -369,7 +369,7 @@ export const GameLobbyView: React.FC<GameLobbyViewProps> = ({
             </div>
 
             <button
-              id="btn-toggle-reveal-role"
+              id="btn-toggle-classified-dossier"
               type="button"
               onClick={() => setRevealRole(!revealRole)}
               className={`text-xs font-mono flex items-center gap-1.5 py-1.5 px-3 rounded cursor-pointer transition-all ${
