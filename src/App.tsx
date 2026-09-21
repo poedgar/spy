@@ -364,16 +364,6 @@ function AppContent() {
                       >
                         {t('demo_007')}
                       </button>
-                      <button
-                        id="btn-quick-fill-007"
-                        type="button"
-                        onClick={() => handleQuickDemo('Agent_007')}
-                        className="sr-only"
-                        tabIndex={-1}
-                        aria-hidden="true"
-                      >
-                        {t('demo_007')}
-                      </button>
                       <span className="text-neutral-600">&bull;</span>
                       <button
                         id="btn-demo-credentials-viper"
