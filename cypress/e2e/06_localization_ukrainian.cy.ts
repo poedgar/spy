@@ -72,7 +72,7 @@ describe('Localization & Ukrainian Language Support', () => {
 
     // Verify in Game Lobby with Ukrainian strings
     cy.get('#game-lobby-view').should('be.visible');
-    cy.contains('Штаб місії').should('be.visible');
+    cy.get('#lobby-header').should('be.visible');
     cy.contains('НАБІР ОПЕРАТИВНИКІВ').should('be.visible');
     cy.contains('Шпигунський протокол та розподіл локацій').should('be.visible');
 

@@ -41,8 +41,8 @@ describe('SpyNet Terminal - Guessing Phase, Accusation Voting & Scoring Rules', 
 
     // Check Intel Triad Dossier
     cy.contains('DECLARED SPY (MOST ACCUSATIONS)').should('be.visible');
-    cy.contains('TRUE UNDERCOVER SPY / SPIES').should('be.visible');
-    cy.contains('CLASSIFIED LOCATION WAS').should('be.visible');
+    cy.contains('ACTUAL UNDERCOVER SPIES').should('be.visible');
+    cy.contains('CLASSIFIED LOCATION (500 POOL)').should('be.visible');
 
     // Check Votes Cast Ledger
     cy.contains('Votes Cast Ledger').should('be.visible');

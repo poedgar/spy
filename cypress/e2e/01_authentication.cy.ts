@@ -13,19 +13,19 @@ describe('SpyNet Terminal - Authentication & Sign In', () => {
     cy.contains('h1', 'Operative Sign In').should('be.visible');
     cy.get('#input-username').should('be.visible');
     cy.get('#input-password').should('be.visible');
-    cy.get('#btn-authenticate-submit').should('be.visible');
+    cy.get('#btn-authenticate').should('be.visible');
   });
 
   it('shows error validation when username is missing', () => {
     cy.get('#input-password').type('securepassword');
-    cy.get('#btn-authenticate-submit').click();
+    cy.get('#btn-authenticate').click();
     cy.get('#auth-error-banner').should('be.visible');
     cy.contains('Operative username or codename is required').should('be.visible');
   });
 
   it('shows error validation when password is missing', () => {
     cy.get('#input-username').type('Agent_Test');
-    cy.get('#btn-authenticate-submit').click();
+    cy.get('#btn-authenticate').click();
     cy.get('#auth-error-banner').should('be.visible');
     cy.contains('Passcode is required').should('be.visible');
   });
@@ -33,7 +33,7 @@ describe('SpyNet Terminal - Authentication & Sign In', () => {
   it('shows error validation when password is less than 4 characters', () => {
     cy.get('#input-username').type('Agent_Test');
     cy.get('#input-password').type('123');
-    cy.get('#btn-authenticate-submit').click();
+    cy.get('#btn-authenticate').click();
     cy.get('#auth-error-banner').should('be.visible');
     cy.contains('Passcode must contain at least 4 security characters').should('be.visible');
   });
@@ -62,7 +62,7 @@ describe('SpyNet Terminal - Authentication & Sign In', () => {
   it('authenticates successfully and loads the Agent Dashboard', () => {
     cy.get('#input-username').type('Commander_Bond');
     cy.get('#input-password').type('topsecret77');
-    cy.get('#btn-authenticate-submit').click();
+    cy.get('#btn-authenticate').click();
 
     // Verify loading state and dashboard transition
     cy.get('#dashboard-header-card', { timeout: 8000 }).should('be.visible');

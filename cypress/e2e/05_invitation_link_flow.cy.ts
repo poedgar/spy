@@ -11,7 +11,7 @@ describe('SpyNet Terminal - Direct Invitation Link Flow', () => {
     cy.get('#invitation-banner').should('be.visible');
     cy.contains('PRIORITY INVITATION DETECTED').should('be.visible');
     cy.contains('OP-TEST-7788').should('be.visible');
-    cy.get('#btn-authenticate-submit').should('contain', 'Accept Invite & Authenticate');
+    cy.get('#btn-authenticate').should('contain', 'Accept Invite & Authenticate');
   });
 
   it('allows an invited agent to authenticate and join an existing operation directly', () => {
@@ -38,7 +38,7 @@ describe('SpyNet Terminal - Direct Invitation Link Flow', () => {
         // 4. Authenticate as the recruit
         cy.get('#input-username').type('Recruit_Ghost');
         cy.get('#input-password').type('GhostPassCode99!');
-        cy.get('#btn-authenticate-submit').click();
+        cy.get('#btn-authenticate').click();
 
         // 5. Verify direct landing in the game lobby as recruit
         cy.get('#lobby-header', { timeout: 8000 }).should('be.visible');

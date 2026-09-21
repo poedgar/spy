@@ -2,7 +2,7 @@ describe('SpyNet Terminal - 3+ Players Threshold, Spy Ratio & Game Launch', () =
   beforeEach(() => {
     cy.clearLocalStorage();
     cy.loginAsAgent('Commander_Alpha', 'ClearanceAlpha!');
-    cy.createNewGame('Operation Crossfire');
+    cy.createNewGame('Operation Crossfire', 8);
   });
 
   it('prevents starting the game when there are fewer than 3 participants', () => {
@@ -66,14 +66,14 @@ describe('SpyNet Terminal - 3+ Players Threshold, Spy Ratio & Game Launch', () =
     cy.get('#classified-dossier-card').should('be.visible');
     cy.get('#classified-dossier-card').then(($card) => {
       const text = $card.text();
-      const isSpy = text.includes('UNDERCOVER SPY');
-      const isLoyal = text.includes('LOYAL OPERATIVE');
+      const isSpy = text.includes('ASSIGNED ROLE: THE SPY');
+      const isLoyal = text.includes('ASSIGNED ROLE: LOYAL OPERATIVE');
       expect(isSpy || isLoyal).to.be.true;
 
       if (isSpy) {
         expect(text).to.include('UNKNOWN // CLASSIFIED');
       } else {
-        expect(text).to.include('CONFIDENTIAL LOCATION ASSIGNMENT');
+        expect(text).to.include('SECRET LOCATION (ALL LOYAL AGENTS SHARE THIS)');
       }
     });
   });
