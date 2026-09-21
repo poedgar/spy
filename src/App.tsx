@@ -362,7 +362,7 @@ function AppContent() {
                         className="text-[11px] font-mono text-emerald-400 hover:text-emerald-300 underline underline-offset-2 cursor-pointer"
                         title="Quick demo as Agent_007"
                       >
-                        {t('demo_007')}
+                        Demo 007
                       </button>
                       <span className="text-neutral-600">&bull;</span>
                       <button
@@ -372,14 +372,14 @@ function AppContent() {
                         className="text-[11px] font-mono text-neutral-400 hover:text-emerald-300 underline underline-offset-2 cursor-pointer"
                         title="Quick demo as Operative_Viper"
                       >
-                        {t('demo_viper')}
+                        Demo Viper
                       </button>
                     </div>
                   </div>
 
                   {/* Submit Button */}
                   <button
-                    id="btn-authenticate-submit"
+                    id="btn-authenticate"
                     type="submit"
                     disabled={authState.isLoading}
                     className="w-full mt-2 py-2.5 px-4 rounded-lg bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 disabled:opacity-50 text-neutral-950 font-bold text-sm flex items-center justify-center gap-2 transition-all shadow-lg shadow-emerald-950/40 cursor-pointer"
@@ -395,16 +395,6 @@ function AppContent() {
                         <span>{pendingGameId ? t('accept_invite_auth') : t('auth_button')}</span>
                       </>
                     )}
-                  </button>
-                  <button
-                    id="btn-authenticate"
-                    type="submit"
-                    disabled={authState.isLoading}
-                    className="sr-only"
-                    tabIndex={-1}
-                    aria-hidden="true"
-                  >
-                    Authenticate
                   </button>
                 </form>
 
