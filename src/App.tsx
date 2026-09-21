@@ -356,7 +356,7 @@ function AppContent() {
                     {/* Multiple quick agent testing credentials */}
                     <div className="flex items-center gap-2">
                       <button
-                        id="btn-quick-fill-007"
+                        id="btn-demo-credentials-007"
                         type="button"
                         onClick={() => handleQuickDemo('Agent_007')}
                         className="text-[11px] font-mono text-emerald-400 hover:text-emerald-300 underline underline-offset-2 cursor-pointer"
