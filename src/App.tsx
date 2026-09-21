@@ -379,7 +379,7 @@ function AppContent() {
 
                   {/* Submit Button */}
                   <button
-                    id="btn-authenticate-submit"
+                    id="btn-authenticate"
                     type="submit"
                     disabled={authState.isLoading}
                     className="w-full mt-2 py-2.5 px-4 rounded-lg bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 disabled:opacity-50 text-neutral-950 font-bold text-sm flex items-center justify-center gap-2 transition-all shadow-lg shadow-emerald-950/40 cursor-pointer"
@@ -395,16 +395,6 @@ function AppContent() {
                         <span>{pendingGameId ? t('accept_invite_auth') : t('auth_button')}</span>
                       </>
                     )}
-                  </button>
-                  <button
-                    id="btn-authenticate"
-                    type="submit"
-                    disabled={authState.isLoading}
-                    className="sr-only"
-                    tabIndex={-1}
-                    aria-hidden="true"
-                  >
-                    Authenticate
                   </button>
                 </form>
 
