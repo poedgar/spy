@@ -1,6 +1,7 @@
 name: E2E (production)
 
 on:
+  push:
   schedule:
     - cron: '0 */24 * * *'
   workflow_dispatch: {}
