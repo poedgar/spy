@@ -1,0 +1,456 @@
+import React, { useState, useEffect } from 'react';
+import { AuthUser, SpyGame } from '../types.ts';
+import {
+  getStoredGames,
+  joinSpyGame,
+  getGameById,
+  generateInviteLink,
+} from '../utils/gameStorage.ts';
+import { CreateGameModal } from './CreateGameModal.tsx';
+import { GameLobbyView } from './GameLobbyView.tsx';
+import { InviteModal } from './InviteModal.tsx';
+import {
+  ShieldCheck,
+  LogOut,
+  Terminal,
+  UserCheck,
+  KeyRound,
+  Radio,
+  Plus,
+  Share2,
+  Users,
+  Copy,
+  Check,
+  Play,
+  Search,
+  AlertCircle,
+  ExternalLink,
+} from 'lucide-react';
+
+interface AgentDashboardProps {
+  user: AuthUser;
+  onSignOut: () => void;
+  initialGameId?: string | null;
+}
+
+export const AgentDashboard: React.FC<AgentDashboardProps> = ({
+  user,
+  onSignOut,
+  initialGameId,
+}) => {
+  const [games, setGames] = useState<SpyGame[]>(() => getStoredGames());
+  const [activeGame, setActiveGame] = useState<SpyGame | null>(null);
+  const [isCreatingGame, setIsCreatingGame] = useState(false);
+  const [inviteModalGame, setInviteModalGame] = useState<SpyGame | null>(null);
+  const [searchCode, setSearchCode] = useState(initialGameId || '');
+  const [joinError, setJoinError] = useState<string | null>(null);
+  const [copiedGameId, setCopiedGameId] = useState<string | null>(null);
+
+  // Sync games state from localStorage
+  const refreshGames = () => {
+    const loaded = getStoredGames();
+    setGames(loaded);
+
+    // If currently viewing a game, update its state too
+    if (activeGame) {
+      const refreshed = loaded.find((g) => g.id === activeGame.id);
+      if (refreshed) {
+        setActiveGame(refreshed);
+      }
+    }
+  };
+
+  useEffect(() => {
+    refreshGames();
+
+    const handleStorage = () => refreshGames();
+    window.addEventListener('storage', handleStorage);
+    window.addEventListener('spy_games_updated', handleStorage);
+
+    return () => {
+      window.removeEventListener('storage', handleStorage);
+      window.removeEventListener('spy_games_updated', handleStorage);
+    };
+  }, [activeGame?.id]);
+
+  // Handle incoming invite if initialGameId was provided
+  useEffect(() => {
+    if (initialGameId && !activeGame) {
+      const found = getGameById(initialGameId);
+      if (found) {
+        try {
+          const joined = joinSpyGame(found.id, user);
+          if (joined) {
+            setActiveGame(joined);
+          }
+        } catch (err: any) {
+          setJoinError(err?.message || 'Unable to join operation.');
+        }
+      }
+    }
+  }, [initialGameId]);
+
+  const handleCreateGameSuccess = (newGame: SpyGame) => {
+    setIsCreatingGame(false);
+    setActiveGame(newGame);
+    refreshGames();
+  };
+
+  const handleJoinByCode = (e: React.FormEvent) => {
+    e.preventDefault();
+    setJoinError(null);
+    if (!searchCode.trim()) return;
+
+    let targetCode = searchCode.trim();
+    // Support pasting full URL
+    if (targetCode.includes('game=')) {
+      const match = targetCode.match(/game=([^&]+)/);
+      if (match && match[1]) {
+        targetCode = decodeURIComponent(match[1]);
+      }
+    }
+
+    const found = getGameById(targetCode);
+    if (!found) {
+      setJoinError(`No active operation matching code "${targetCode}" was located.`);
+      return;
+    }
+
+    try {
+      const joined = joinSpyGame(found.id, user);
+      if (joined) {
+        setActiveGame(joined);
+        setSearchCode('');
+        refreshGames();
+      }
+    } catch (err: any) {
+      setJoinError(err?.message || 'Unable to join operation.');
+    }
+  };
+
+  const handleCopyLink = async (game: SpyGame, e: React.MouseEvent) => {
+    e.stopPropagation();
+    const url = generateInviteLink(game.id);
+    try {
+      await navigator.clipboard.writeText(url);
+      setCopiedGameId(game.id);
+      setTimeout(() => setCopiedGameId(null), 2000);
+    } catch {
+      setCopiedGameId(game.id);
+      setTimeout(() => setCopiedGameId(null), 2000);
+    }
+  };
+
+  // If in an active game lobby, display the lobby
+  if (activeGame) {
+    return (
+      <GameLobbyView
+        game={activeGame}
+        currentUser={user}
+        onLeave={() => setActiveGame(null)}
+        onGameUpdated={(updated) => {
+          setActiveGame(updated);
+          refreshGames();
+        }}
+      />
+    );
+  }
+
+  // Filter operations relevant to this user or available
+  const myOperations = games.filter(
+    (g) =>
+      g.hostUsername.toLowerCase() === user.username.toLowerCase() ||
+      g.players.some((p) => p.username.toLowerCase() === user.username.toLowerCase())
+  );
+
+  return (
+    <div id="agent-dashboard-container" className="w-full max-w-4xl mx-auto space-y-6">
+      {/* Operative Profile Header Bar */}
+      <div
+        id="dashboard-header-card"
+        className="bg-neutral-900/90 border border-emerald-500/30 rounded-xl p-5 sm:p-6 backdrop-blur-md shadow-2xl text-neutral-100"
+      >
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-neutral-800 pb-5">
+          <div className="flex items-center space-x-3.5">
+            <div className="p-2.5 bg-emerald-500/10 border border-emerald-500/30 rounded-lg text-emerald-400">
+              <ShieldCheck className="w-6 h-6" />
+            </div>
+            <div>
+              <div className="flex items-center space-x-2">
+                <span className="inline-block w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                <span className="text-[10px] font-mono tracking-widest text-emerald-400 uppercase font-semibold">
+                  ENCRYPTED TERMINAL ACTIVE
+                </span>
+              </div>
+              <h1 className="text-xl font-bold tracking-tight text-white flex items-center gap-2">
+                <span>Operative:</span>
+                <span className="text-emerald-400 font-mono">{user.codename}</span>
+              </h1>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-3">
+            <span className="text-xs font-mono px-2.5 py-1 rounded bg-neutral-950 border border-neutral-800 text-neutral-400">
+              {user.terminalId}
+            </span>
+            <button
+              id="btn-sign-out-top"
+              type="button"
+              onClick={onSignOut}
+              className="py-1.5 px-3 rounded-lg bg-neutral-800 hover:bg-neutral-750 text-neutral-300 border border-neutral-700 font-mono text-xs flex items-center gap-1.5 transition-colors cursor-pointer"
+              title="Terminate authenticated session"
+            >
+              <LogOut className="w-3.5 h-3.5 text-neutral-400" />
+              <span>Sign Out</span>
+            </button>
+          </div>
+        </div>
+
+        {/* Quick specs grid */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-4 text-xs font-mono">
+          <div className="bg-neutral-950/70 border border-neutral-850 p-2.5 rounded-lg">
+            <span className="text-[10px] text-neutral-500 block">USERNAME</span>
+            <span className="text-neutral-200 font-semibold truncate block">{user.username}</span>
+          </div>
+          <div className="bg-neutral-950/70 border border-neutral-850 p-2.5 rounded-lg">
+            <span className="text-[10px] text-neutral-500 block">CLEARANCE</span>
+            <span className="text-emerald-400 font-semibold truncate block">{user.clearanceLevel}</span>
+          </div>
+          <div className="bg-neutral-950/70 border border-neutral-850 p-2.5 rounded-lg">
+            <span className="text-[10px] text-neutral-500 block">ENCRYPTION</span>
+            <span className="text-neutral-200 font-semibold block">AES-256 GCM</span>
+          </div>
+          <div className="bg-neutral-950/70 border border-neutral-850 p-2.5 rounded-lg">
+            <span className="text-[10px] text-neutral-500 block">OPERATIONS</span>
+            <span className="text-emerald-300 font-semibold block">{myOperations.length} Active</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Main Operations Action Bar */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        {/* Create Operation Card */}
+        <div className="md:col-span-2 bg-neutral-900/90 border border-neutral-800 rounded-xl p-5 backdrop-blur-md flex flex-col justify-between">
+          <div>
+            <div className="flex items-center gap-2 mb-2">
+              <span className="p-1 rounded bg-emerald-500/10 text-emerald-400">
+                <Radio className="w-4 h-4" />
+              </span>
+              <h2 className="text-sm font-bold text-white font-mono uppercase tracking-wide">
+                Mission Command
+              </h2>
+            </div>
+            <p className="text-xs text-neutral-400 mb-4 leading-relaxed">
+              Launch a new classified spy game and invite fellow operatives via secure encrypted link. Select mission objectives, operative limits, and classified sectors.
+            </p>
+          </div>
+
+          <button
+            id="btn-create-game-trigger"
+            type="button"
+            onClick={() => setIsCreatingGame(true)}
+            className="w-full sm:w-auto self-start py-2.5 px-5 rounded-lg bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 text-neutral-950 font-bold text-xs font-mono flex items-center justify-center gap-2 transition-all shadow-lg shadow-emerald-950/40 cursor-pointer"
+          >
+            <Plus className="w-4 h-4" />
+            <span>Create New Spy Game</span>
+          </button>
+        </div>
+
+        {/* Join by Link / Code Card */}
+        <div className="bg-neutral-900/90 border border-neutral-800 rounded-xl p-5 backdrop-blur-md flex flex-col justify-between">
+          <div>
+            <div className="flex items-center gap-2 mb-2">
+              <span className="p-1 rounded bg-neutral-800 text-neutral-300">
+                <KeyRound className="w-4 h-4" />
+              </span>
+              <h2 className="text-sm font-bold text-white font-mono uppercase tracking-wide">
+                Join Operation
+              </h2>
+            </div>
+            <p className="text-xs text-neutral-400 mb-3">
+              Enter mission code or paste invitation link.
+            </p>
+          </div>
+
+          <form onSubmit={handleJoinByCode} className="space-y-2">
+            <div className="relative">
+              <input
+                id="input-join-code"
+                type="text"
+                value={searchCode}
+                onChange={(e) => {
+                  setSearchCode(e.target.value);
+                  if (joinError) setJoinError(null);
+                }}
+                placeholder="e.g. SPY-XXXX or paste link"
+                className="w-full bg-neutral-950 border border-neutral-750 focus:border-emerald-500 rounded-lg px-3 py-2 text-xs text-white placeholder-neutral-600 font-mono outline-none"
+              />
+            </div>
+
+            {joinError && (
+              <p className="text-[11px] text-red-400 font-mono flex items-center gap-1">
+                <AlertCircle className="w-3 h-3 shrink-0" />
+                <span>{joinError}</span>
+              </p>
+            )}
+
+            <button
+              id="btn-submit-join-code"
+              type="submit"
+              className="w-full py-2 px-3 rounded-lg bg-neutral-800 hover:bg-neutral-750 text-neutral-200 border border-neutral-700 text-xs font-mono font-medium flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+            >
+              <Search className="w-3.5 h-3.5 text-neutral-400" />
+              <span>Connect to Mission</span>
+            </button>
+          </form>
+        </div>
+      </div>
+
+      {/* Operations List */}
+      <div className="bg-neutral-900/90 border border-neutral-800 rounded-xl p-5 sm:p-6 backdrop-blur-md shadow-xl">
+        <div className="flex items-center justify-between mb-4 pb-3 border-b border-neutral-800">
+          <div className="flex items-center gap-2">
+            <Terminal className="w-5 h-5 text-emerald-400" />
+            <h2 className="text-sm font-bold text-white uppercase tracking-wider font-mono">
+              Classified Operations ({myOperations.length})
+            </h2>
+          </div>
+          <span className="text-xs font-mono text-neutral-500">Auto-synchronized</span>
+        </div>
+
+        {myOperations.length === 0 ? (
+          <div className="text-center py-10 px-4 bg-neutral-950/40 border border-dashed border-neutral-800 rounded-lg">
+            <Radio className="w-8 h-8 text-neutral-600 mx-auto mb-2.5" />
+            <h3 className="text-sm font-bold text-neutral-300 font-mono">No Active Operations Assigned</h3>
+            <p className="text-xs text-neutral-500 mt-1 max-w-sm mx-auto">
+              Initialize a spy game above to generate your first mission dispatch and invitation link.
+            </p>
+            <button
+              type="button"
+              onClick={() => setIsCreatingGame(true)}
+              className="mt-4 py-2 px-4 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-neutral-950 text-xs font-mono font-bold inline-flex items-center gap-1.5 transition-colors cursor-pointer"
+            >
+              <Plus className="w-3.5 h-3.5" />
+              <span>Create Operation</span>
+            </button>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+            {myOperations.map((game) => {
+              const isHost = game.hostUsername.toLowerCase() === user.username.toLowerCase();
+              const isCopied = copiedGameId === game.id;
+              return (
+                <div
+                  key={game.id}
+                  className="bg-neutral-950 border border-neutral-800 hover:border-neutral-700 rounded-lg p-4 flex flex-col justify-between transition-all"
+                >
+                  <div>
+                    {/* Status & Code */}
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-xs font-mono font-bold text-emerald-400 bg-emerald-950/60 border border-emerald-500/30 px-2 py-0.5 rounded">
+                        {game.id}
+                      </span>
+                      <span
+                        className={`text-[10px] font-mono uppercase px-2 py-0.5 rounded ${
+                          game.status === 'active'
+                            ? 'bg-amber-950/60 text-amber-400 border border-amber-500/30'
+                            : game.players.length >= 3
+                            ? 'bg-emerald-950/60 text-emerald-300 border border-emerald-500/30'
+                            : 'bg-neutral-850 text-neutral-400 border border-neutral-750'
+                        }`}
+                      >
+                        {game.status === 'active'
+                          ? 'Active'
+                          : game.players.length >= 3
+                          ? 'Ready (3+)'
+                          : `Needs ${3 - game.players.length} More`}
+                      </span>
+                    </div>
+
+                    {/* Title */}
+                    <h3 className="text-base font-bold text-white tracking-tight mb-1 font-mono">
+                      {game.title}
+                    </h3>
+                    <p className="text-xs text-neutral-400 line-clamp-1 mb-3 flex items-center gap-1.5">
+                      <span className="text-emerald-500/70 font-mono text-[11px]">POOL:</span>
+                      <span>500 Pre-existing Locations (Classified on Launch)</span>
+                    </p>
+
+                    {/* Meta info */}
+                    <div className="flex items-center gap-3 text-[11px] font-mono text-neutral-500 mb-4">
+                      <span className="flex items-center gap-1">
+                        <Users className="w-3 h-3 text-neutral-400" />
+                        {game.players.length}/{game.maxPlayers} Agents
+                      </span>
+                      <span>&bull;</span>
+                      <span>{isHost ? 'Host: You' : `Host: ${game.hostCodename}`}</span>
+                    </div>
+                  </div>
+
+                  {/* Action row */}
+                  <div className="pt-3 border-t border-neutral-900 flex items-center justify-between gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setActiveGame(game)}
+                      className="py-1.5 px-3 rounded bg-neutral-800 hover:bg-neutral-750 text-neutral-200 text-xs font-mono font-medium flex items-center gap-1.5 border border-neutral-700 transition-colors cursor-pointer"
+                    >
+                      <Play className="w-3 h-3 text-emerald-400" />
+                      <span>Enter Lobby</span>
+                    </button>
+
+                    <div className="flex items-center gap-1.5">
+                      <button
+                        type="button"
+                        onClick={(e) => handleCopyLink(game, e)}
+                        className="py-1.5 px-2.5 rounded bg-neutral-850 hover:bg-neutral-800 text-neutral-300 text-xs font-mono flex items-center gap-1 border border-neutral-750 transition-colors cursor-pointer"
+                        title="Copy invitation link"
+                      >
+                        {isCopied ? (
+                          <>
+                            <Check className="w-3 h-3 text-emerald-400" />
+                            <span className="text-[11px] text-emerald-400">Copied</span>
+                          </>
+                        ) : (
+                          <>
+                            <Copy className="w-3 h-3 text-neutral-400" />
+                            <span className="text-[11px]">Copy Link</span>
+                          </>
+                        )}
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => setInviteModalGame(game)}
+                        className="p-1.5 rounded bg-emerald-950/60 hover:bg-emerald-900/60 border border-emerald-500/40 text-emerald-400 transition-colors cursor-pointer"
+                        title="Open full invitation options"
+                      >
+                        <Share2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
+
+      {/* Modals */}
+      {isCreatingGame && (
+        <CreateGameModal
+          user={user}
+          onClose={() => setIsCreatingGame(false)}
+          onGameCreated={handleCreateGameSuccess}
+        />
+      )}
+
+      {inviteModalGame && (
+        <InviteModal
+          game={inviteModalGame}
+          onClose={() => setInviteModalGame(null)}
+          onOperativeAdded={refreshGames}
+        />
+      )}
+    </div>
+  );
+};

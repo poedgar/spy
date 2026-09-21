@@ -1,0 +1,6 @@
+{
+  "name": "Spy App",
+  "description": "Multiplayer social deduction spy game where players receive the same secret location from 500 places while undercover spies attempt to blend in and deduce the location.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

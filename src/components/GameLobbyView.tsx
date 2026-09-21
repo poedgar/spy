@@ -1,0 +1,1250 @@
+import React, { useState } from 'react';
+import { AuthUser, SpyGame } from '../types.ts';
+import {
+  generateInviteLink,
+  togglePlayerReady,
+  updateGameStatus,
+  addBotOperative,
+  getSpyCount,
+  startVotingPhase,
+  castVote,
+  tallyVotesAndConclude,
+  startNewRound,
+} from '../utils/gameStorage.ts';
+import { InviteModal } from './InviteModal.tsx';
+import { LocationsGuideModal } from './LocationsGuideModal.tsx';
+import {
+  Share2,
+  Copy,
+  Check,
+  Users,
+  Shield,
+  Radio,
+  Play,
+  ArrowLeft,
+  CheckCircle2,
+  AlertCircle,
+  Eye,
+  ExternalLink,
+  Database,
+  MapPin,
+  HelpCircle,
+  RotateCcw,
+  Sparkles,
+  Lock,
+  Vote,
+  Trophy,
+  Award,
+  Flame,
+  UserCheck,
+  UserX,
+} from 'lucide-react';
+
+interface GameLobbyViewProps {
+  game: SpyGame;
+  currentUser: AuthUser;
+  onLeave: () => void;
+  onGameUpdated: (updatedGame: SpyGame) => void;
+}
+
+export const GameLobbyView: React.FC<GameLobbyViewProps> = ({
+  game,
+  currentUser,
+  onLeave,
+  onGameUpdated,
+}) => {
+  const [showInviteModal, setShowInviteModal] = useState(false);
+  const [showLocationsGuide, setShowLocationsGuide] = useState(false);
+  const [copiedQuick, setCopiedQuick] = useState(false);
+  const [revealRole, setRevealRole] = useState(false);
+  const [showDebrief, setShowDebrief] = useState(false);
+  const [spyGuessFeedback, setSpyGuessFeedback] = useState<string | null>(null);
+  const [selectedSuspect, setSelectedSuspect] = useState<string>('');
+
+  const isHost = game.hostUsername.toLowerCase() === currentUser.username.toLowerCase();
+  const inviteUrl = generateInviteLink(game.id);
+  const myVote = game.votes?.[currentUser.username.toLowerCase()];
+
+  const handleQuickCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(inviteUrl);
+      setCopiedQuick(true);
+      setTimeout(() => setCopiedQuick(false), 2000);
+    } catch {
+      setCopiedQuick(true);
+      setTimeout(() => setCopiedQuick(false), 2000);
+    }
+  };
+
+  const handleToggleReady = () => {
+    const updated = togglePlayerReady(game.id, currentUser.username);
+    if (updated) onGameUpdated(updated);
+  };
+
+  const handleAddAgent = () => {
+    const updated = addBotOperative(game.id);
+    if (updated) onGameUpdated(updated);
+  };
+
+  const handleLaunchGame = () => {
+    if (game.players.length < 3) return;
+    const updated = updateGameStatus(game.id, 'active');
+    if (updated) {
+      setRevealRole(false);
+      setShowDebrief(false);
+      setSpyGuessFeedback(null);
+      setSelectedSuspect('');
+      onGameUpdated(updated);
+    }
+  };
+
+  const handleStartGuessingPhase = () => {
+    const updated = startVotingPhase(game.id);
+    if (updated) {
+      setSelectedSuspect('');
+      onGameUpdated(updated);
+    }
+  };
+
+  const handleCastVote = (suspect: string) => {
+    if (!suspect) return;
+    const updated = castVote(game.id, currentUser.username, suspect);
+    if (updated) {
+      setSelectedSuspect(suspect);
+      onGameUpdated(updated);
+    }
+  };
+
+  const handleTallyVotes = () => {
+    const updated = tallyVotesAndConclude(game.id);
+    if (updated) {
+      onGameUpdated(updated);
+    }
+  };
+
+  const handleStartNextRound = () => {
+    const updated = startNewRound(game.id);
+    if (updated) {
+      setRevealRole(false);
+      setShowDebrief(false);
+      setSpyGuessFeedback(null);
+      setSelectedSuspect('');
+      onGameUpdated(updated);
+    }
+  };
+
+  const handleResetToRecruiting = () => {
+    const updated = updateGameStatus(game.id, 'recruiting');
+    if (updated) {
+      setRevealRole(false);
+      setShowDebrief(false);
+      setSpyGuessFeedback(null);
+      setSelectedSuspect('');
+      onGameUpdated(updated);
+    }
+  };
+
+  // Determine current user's role
+  const isSpy = game.spyUsernames
+    ? game.spyUsernames.includes(currentUser.username.toLowerCase())
+    : false;
+
+  const targetLocation = game.selectedLocation || game.secretLocation || 'Palace';
+  const spyCount = game.totalSpiesCount || getSpyCount(game.players.length);
+
+  const handleSpyGuessLocation = (guessedLocation: string) => {
+    const isCorrect = guessedLocation.trim().toLowerCase() === targetLocation.trim().toLowerCase();
+    if (isCorrect) {
+      setSpyGuessFeedback(`TARGET IDENTIFIED! "${guessedLocation}" is the CORRECT secret location! Covert mission accomplished!`);
+    } else {
+      setSpyGuessFeedback(`INCORRECT GUESS. "${guessedLocation}" is not the true location. Stay undercover and keep listening!`);
+    }
+  };
+
+  return (
+    <div id="game-lobby-view" className="w-full max-w-2xl mx-auto space-y-6">
+      {/* Top Navigation */}
+      <div className="flex items-center justify-between">
+        <button
+          id="btn-back-to-hq"
+          type="button"
+          onClick={onLeave}
+          className="text-xs font-mono text-neutral-400 hover:text-neutral-200 flex items-center gap-1.5 transition-colors cursor-pointer"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          <span>Return to Headquarters</span>
+        </button>
+
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => setShowLocationsGuide(true)}
+            className="text-xs font-mono px-2.5 py-1 rounded bg-neutral-900 hover:bg-neutral-850 border border-neutral-800 text-emerald-400 flex items-center gap-1.5 transition-colors cursor-pointer"
+            title="Browse 500 possible locations"
+          >
+            <Database className="w-3.5 h-3.5" />
+            <span>500 Locations</span>
+          </button>
+
+          <span className="text-xs font-mono px-2.5 py-1 rounded bg-neutral-900 border border-neutral-800 text-neutral-400">
+            ID: <span className="text-emerald-400 font-bold">{game.id}</span>
+          </span>
+        </div>
+      </div>
+
+      {/* Main Operation Header Card */}
+      <div className="bg-neutral-900/90 border border-neutral-800 rounded-xl p-5 sm:p-6 backdrop-blur-md shadow-xl">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-neutral-800 pb-5">
+          <div>
+            <div className="flex items-center gap-2 mb-1">
+              <span
+                className={`inline-block w-2 h-2 rounded-full ${
+                  game.status === 'active'
+                    ? 'bg-amber-400 animate-ping'
+                    : game.status === 'voting'
+                    ? 'bg-purple-400 animate-pulse'
+                    : game.status === 'completed'
+                    ? 'bg-emerald-400'
+                    : 'bg-emerald-400 animate-pulse'
+                }`}
+              ></span>
+              <span className="text-xs font-mono tracking-widest text-emerald-400 uppercase font-semibold">
+                {game.status === 'active'
+                  ? 'INTERROGATION ACTIVE'
+                  : game.status === 'voting'
+                  ? 'GUESSING PHASE // ACCUSE SPY'
+                  : game.status === 'completed'
+                  ? 'OPERATION CONCLUDED // DEBRIEF'
+                  : 'LOBBY RECRUITING'}
+              </span>
+              <span className="text-neutral-600">&bull;</span>
+              <span className="text-xs font-mono text-neutral-400">
+                {game.players.length} Players &bull; {spyCount} {spyCount === 1 ? 'Spy' : 'Spies'}
+              </span>
+            </div>
+            <h1 className="text-xl sm:text-2xl font-bold text-white tracking-tight">{game.title}</h1>
+            <p className="text-xs text-neutral-400 mt-1">
+              Directed by Commander <span className="text-neutral-200 font-semibold">{game.hostCodename}</span>
+            </p>
+          </div>
+
+          {/* Prominent Invite Link Button */}
+          <button
+            id="btn-open-invite-modal"
+            type="button"
+            onClick={() => setShowInviteModal(true)}
+            className="self-start sm:self-center py-2.5 px-4 rounded-lg bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 text-neutral-950 font-bold text-xs font-mono flex items-center gap-2 shadow-lg shadow-emerald-950/50 transition-all cursor-pointer"
+          >
+            <Share2 className="w-4 h-4" />
+            <span>Send Invitation Link</span>
+          </button>
+        </div>
+
+        {/* Quick Link Share Bar */}
+        <div id="quick-invite-bar" className="mt-4 p-3 rounded-lg bg-neutral-950/80 border border-neutral-800/80 flex flex-col sm:flex-row items-center justify-between gap-3">
+          <div className="flex items-center gap-2 text-xs font-mono text-neutral-400 w-full sm:w-auto truncate">
+            <span className="text-emerald-400 shrink-0 font-bold">INVITE LINK:</span>
+            <span className="text-neutral-300 truncate select-all">{inviteUrl}</span>
+          </div>
+          <div className="flex items-center gap-2 w-full sm:w-auto shrink-0">
+            <button
+              id="btn-quick-copy-link"
+              type="button"
+              onClick={handleQuickCopy}
+              className="flex-1 sm:flex-none py-1.5 px-3 rounded bg-neutral-800 hover:bg-neutral-750 text-neutral-200 text-xs font-mono font-medium flex items-center justify-center gap-1.5 border border-neutral-700 transition-colors cursor-pointer"
+            >
+              {copiedQuick ? (
+                <>
+                  <Check className="w-3.5 h-3.5 text-emerald-400" />
+                  <span className="text-emerald-400">Copied!</span>
+                </>
+              ) : (
+                <>
+                  <Copy className="w-3.5 h-3.5 text-neutral-400" />
+                  <span>Copy Link</span>
+                </>
+              )}
+            </button>
+            <a
+              id="btn-quick-test-tab"
+              href={inviteUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="py-1.5 px-2.5 rounded bg-neutral-800 hover:bg-neutral-750 text-neutral-300 text-xs font-mono flex items-center justify-center border border-neutral-700 transition-colors"
+              title="Open invitation in a new tab"
+            >
+              <ExternalLink className="w-3.5 h-3.5" />
+            </a>
+          </div>
+        </div>
+      </div>
+
+      {/* Spy Rules & Protocol Protocol Card (In Lobby) */}
+      {game.status === 'recruiting' && (
+        <div className="bg-neutral-900/70 border border-neutral-800 rounded-xl p-4 sm:p-5 font-mono text-xs space-y-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2 text-emerald-400 font-bold uppercase tracking-wider">
+              <Shield className="w-4 h-4" />
+              <span>Spy Protocol &amp; Location Allocation</span>
+            </div>
+            <button
+              type="button"
+              onClick={() => setShowLocationsGuide(true)}
+              className="text-neutral-400 hover:text-emerald-300 underline underline-offset-2 flex items-center gap-1 cursor-pointer"
+            >
+              <Database className="w-3 h-3 text-emerald-400" />
+              <span>Browse 500 Places</span>
+            </button>
+          </div>
+
+          <div className="p-3 bg-neutral-950/80 rounded-lg border border-neutral-850 space-y-2 text-neutral-300">
+            <p className="leading-relaxed">
+              &bull; When the operation starts, <strong className="text-white">each player randomly receives the exact same secret location</strong> from a collection of 500 pre-existing locations (Church, Palace, Castle, School, Submarine, etc.), <span className="text-red-300 font-semibold">except for the undercover Spies</span>.
+            </p>
+            <p className="leading-relaxed">
+              &bull; <strong className="text-emerald-300">Information Asymmetry:</strong> Players do NOT know who received the location or who became a Spy. The roster remains strictly classified.
+            </p>
+            <p className="leading-relaxed">
+              &bull; <strong className="text-white">Spy Distribution Scale:</strong>
+              <span className="text-neutral-400 ml-1">
+                3–4 Players = 1 Spy &bull; 5–7 Players = 2 Spies &bull; 8–10 Players = 3 Spies (+1 Spy per 3 players).
+              </span>
+            </p>
+          </div>
+
+          <div className="flex items-center justify-between text-[11px] text-neutral-400 pt-1">
+            <span>
+              Current Roster: <strong className="text-emerald-400">{game.players.length} Operatives</strong>
+            </span>
+            <span className="text-emerald-300 font-bold bg-emerald-950/60 border border-emerald-500/30 px-2 py-0.5 rounded">
+              &rarr; {getSpyCount(game.players.length)} {getSpyCount(game.players.length) === 1 ? 'Spy' : 'Spies'} will be deployed
+            </span>
+          </div>
+        </div>
+      )}
+
+      {/* Active Mission Secret Intel Card (Visible during Active game) */}
+      {game.status === 'active' && (
+        <div
+          id="active-mission-briefing"
+          className={`border rounded-xl p-5 sm:p-6 backdrop-blur-md shadow-2xl transition-all ${
+            revealRole && isSpy
+              ? 'bg-neutral-900/95 border-red-500/50'
+              : revealRole
+              ? 'bg-neutral-900/95 border-emerald-500/50'
+              : 'bg-neutral-900/90 border-amber-500/40'
+          }`}
+        >
+          <div className="flex items-center justify-between mb-4 pb-3 border-b border-neutral-800">
+            <div className="flex items-center gap-2">
+              <AlertCircle className={`w-5 h-5 ${isSpy && revealRole ? 'text-red-400' : 'text-amber-400'}`} />
+              <div>
+                <h2 className="text-sm sm:text-base font-bold text-white uppercase tracking-wider font-mono">
+                  Classified Assignment // Eyes Only
+                </h2>
+                <div className="text-[11px] font-mono text-neutral-400">
+                  {game.players.length} Operatives Active &bull; {spyCount} Undercover {spyCount === 1 ? 'Spy' : 'Spies'}
+                </div>
+              </div>
+            </div>
+
+            <button
+              id="btn-toggle-reveal-role"
+              type="button"
+              onClick={() => setRevealRole(!revealRole)}
+              className={`text-xs font-mono flex items-center gap-1.5 py-1.5 px-3 rounded cursor-pointer transition-all ${
+                revealRole
+                  ? 'bg-neutral-800 text-neutral-300 hover:bg-neutral-750 border border-neutral-700'
+                  : 'bg-amber-950/60 text-amber-300 hover:bg-amber-900/60 border border-amber-500/40 shadow-lg shadow-amber-950/40 font-semibold'
+              }`}
+            >
+              <Eye className="w-3.5 h-3.5" />
+              <span>{revealRole ? 'Hide Classified Role' : 'Reveal Classified Role'}</span>
+            </button>
+          </div>
+
+          <div className="p-4 rounded-lg bg-neutral-950 border border-neutral-800 font-mono text-sm space-y-4">
+            {revealRole ? (
+              <div className="animate-in fade-in duration-200 space-y-3">
+                {isSpy ? (
+                  /* Spy View */
+                  <div className="p-4 bg-red-950/40 border border-red-600/70 rounded-lg text-red-200 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <div className="text-red-400 font-bold text-xs tracking-widest uppercase flex items-center gap-1.5">
+                        <Radio className="w-4 h-4 text-red-400 animate-pulse" />
+                        <span>ASSIGNED ROLE: THE SPY</span>
+                      </div>
+                      <span className="text-[10px] uppercase font-bold px-2 py-0.5 rounded bg-red-900/60 text-red-300 border border-red-700/60">
+                        Undercover Infiltrator
+                      </span>
+                    </div>
+
+                    <div className="p-3 bg-red-950/60 border border-red-800/60 rounded flex items-center justify-between gap-3">
+                      <div>
+                        <div className="text-[10px] text-red-400 uppercase tracking-wide">
+                          SECRET LOCATION:
+                        </div>
+                        <div className="text-base sm:text-lg font-bold text-red-100 flex items-center gap-2">
+                          <HelpCircle className="w-5 h-5 text-red-400" />
+                          <span>UNKNOWN // CLASSIFIED</span>
+                        </div>
+                      </div>
+                      <span className="text-xs text-red-300 font-semibold text-right">
+                        You do NOT know the location!
+                      </span>
+                    </div>
+
+                    <div className="text-xs space-y-1.5 text-neutral-300">
+                      <p>
+                        &bull; All other loyal operatives have been deployed to the <strong>exact same secret location</strong>.
+                      </p>
+                      <p>
+                        &bull; <strong>Objective:</strong> Blend in! Ask cautious questions, listen to other operatives without giving away that you don&rsquo;t know the location, and deduce which of the 500 locations they are at.
+                      </p>
+                      <p>
+                        &bull; There {spyCount === 1 ? 'is 1 Spy' : `are ${spyCount} Spies`} total in this mission.
+                      </p>
+                    </div>
+
+                    {/* Spy Action Helper */}
+                    <div className="pt-2 border-t border-red-900/60 flex flex-col sm:flex-row items-center justify-between gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setShowLocationsGuide(true)}
+                        className="w-full sm:w-auto py-2 px-3.5 rounded bg-red-900/80 hover:bg-red-800 text-white text-xs font-bold font-mono flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+                      >
+                        <Database className="w-3.5 h-3.5" />
+                        <span>Browse 500 Locations &amp; Guess</span>
+                      </button>
+
+                      {spyGuessFeedback && (
+                        <span className="text-[11px] font-mono text-amber-300 font-semibold">
+                          {spyGuessFeedback}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                ) : (
+                  /* Loyal Operative View */
+                  <div className="p-4 bg-emerald-950/40 border border-emerald-600/70 rounded-lg text-emerald-200 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <div className="text-emerald-400 font-bold text-xs tracking-widest uppercase flex items-center gap-1.5">
+                        <Shield className="w-4 h-4 text-emerald-400" />
+                        <span>ASSIGNED ROLE: LOYAL OPERATIVE</span>
+                      </div>
+                      <span className="text-[10px] uppercase font-bold px-2 py-0.5 rounded bg-emerald-900/60 text-emerald-300 border border-emerald-700/60">
+                        Field Agent
+                      </span>
+                    </div>
+
+                    <div className="p-3 bg-emerald-950/60 border border-emerald-800/60 rounded flex items-center justify-between gap-3">
+                      <div>
+                        <div className="text-[10px] text-emerald-400 uppercase tracking-wide">
+                          SECRET LOCATION (ALL LOYAL AGENTS SHARE THIS):
+                        </div>
+                        <div className="text-base sm:text-xl font-bold text-white flex items-center gap-2">
+                          <MapPin className="w-5 h-5 text-emerald-400" />
+                          <span className="underline decoration-emerald-500/60 underline-offset-4">
+                            {targetLocation}
+                          </span>
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setShowLocationsGuide(true)}
+                        className="py-1 px-2.5 rounded bg-neutral-900 hover:bg-neutral-800 border border-emerald-700/50 text-[11px] text-emerald-300 flex items-center gap-1 cursor-pointer"
+                      >
+                        <Database className="w-3 h-3" />
+                        <span>500 Places</span>
+                      </button>
+                    </div>
+
+                    <div className="text-xs space-y-1.5 text-neutral-300">
+                      <p>
+                        &bull; Every loyal operative received this exact location: <strong className="text-white">{targetLocation}</strong>.
+                      </p>
+                      <p>
+                        &bull; <strong className="text-red-300">Notice:</strong> There {spyCount === 1 ? 'is 1 undercover Spy' : `are ${spyCount} undercover Spies`} in the group who DOES NOT know the location!
+                      </p>
+                      <p>
+                        &bull; <strong>Objective:</strong> Ask questions about the place to detect who doesn&rsquo;t know it, but don&rsquo;t be too obvious or the Spy will deduce the location!
+                      </p>
+                    </div>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="text-center py-6 space-y-2">
+                <div className="w-10 h-10 mx-auto rounded-full bg-neutral-900 border border-neutral-800 flex items-center justify-center text-neutral-400">
+                  <Lock className="w-5 h-5 text-amber-400" />
+                </div>
+                <div className="text-xs text-neutral-300 font-bold">
+                  Classified Dossier Encrypted
+                </div>
+                <div className="text-[11px] text-neutral-500 max-w-sm mx-auto">
+                  Ensure no other players are viewing your screen, then click &ldquo;Reveal Classified Role&rdquo; to view your secret assignment.
+                </div>
+              </div>
+            )}
+
+            {/* Debrief summary if requested */}
+            {showDebrief && (
+              <div className="mt-3 p-3 bg-neutral-900 border border-neutral-700 rounded-lg text-xs space-y-2">
+                <div className="text-emerald-400 font-bold uppercase tracking-wider">
+                  MISSION DEBRIEF // UNMASKED DOSSIER
+                </div>
+                <div className="text-neutral-300">
+                  Target Location: <strong className="text-white">{targetLocation}</strong>
+                </div>
+                <div className="text-neutral-300">
+                  Undercover Spies:{' '}
+                  <strong className="text-red-400">
+                    {game.spyUsernames && game.spyUsernames.length > 0
+                      ? game.spyUsernames.map((u) => `@${u}`).join(', ')
+                      : 'None assigned'}
+                  </strong>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Active controls */}
+          <div className="mt-4 pt-3 border-t border-neutral-800 flex flex-wrap items-center justify-between gap-2">
+            <button
+              type="button"
+              onClick={() => setShowLocationsGuide(true)}
+              className="text-xs font-mono text-neutral-400 hover:text-emerald-300 flex items-center gap-1.5 cursor-pointer"
+            >
+              <Database className="w-3.5 h-3.5 text-emerald-400" />
+              <span>View 500 Locations Pool</span>
+            </button>
+
+            {isHost && (
+              <div className="flex flex-wrap items-center gap-2">
+                <button
+                  id="btn-start-guessing-phase-active"
+                  type="button"
+                  onClick={handleStartGuessingPhase}
+                  className="text-xs font-mono font-bold text-neutral-950 bg-amber-400 hover:bg-amber-300 px-3.5 py-1.5 rounded flex items-center gap-1.5 transition-all shadow-md shadow-amber-950/50 cursor-pointer"
+                >
+                  <Vote className="w-3.5 h-3.5 text-neutral-950" />
+                  <span>Start Guessing Phase</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowDebrief(!showDebrief)}
+                  className="text-xs font-mono text-neutral-300 hover:text-white px-3 py-1.5 rounded bg-neutral-800 hover:bg-neutral-750 border border-neutral-700 cursor-pointer"
+                >
+                  {showDebrief ? 'Hide Debrief' : 'Debrief / Reveal Identities'}
+                </button>
+                <button
+                  type="button"
+                  onClick={handleResetToRecruiting}
+                  className="text-xs font-mono text-amber-400 hover:text-amber-300 px-3 py-1.5 rounded bg-amber-950/40 hover:bg-amber-900/40 border border-amber-500/40 cursor-pointer flex items-center gap-1"
+                >
+                  <RotateCcw className="w-3 h-3" />
+                  <span>New Round / Lobby</span>
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Guessing & Voting Phase Card (When game is in voting state) */}
+      {game.status === 'voting' && (
+        <div
+          id="voting-phase-card"
+          className="bg-neutral-900/95 border border-purple-500/50 rounded-xl p-5 sm:p-6 backdrop-blur-md shadow-2xl space-y-5 font-mono"
+        >
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-neutral-800 pb-4">
+            <div className="flex items-center gap-2.5">
+              <div className="w-8 h-8 rounded-lg bg-purple-950/80 border border-purple-500/50 flex items-center justify-center text-purple-300">
+                <Vote className="w-4 h-4" />
+              </div>
+              <div>
+                <h2 className="text-base sm:text-lg font-bold text-white uppercase tracking-wider">
+                  Guessing Phase // Accuse The Spy
+                </h2>
+                <p className="text-xs text-neutral-400">
+                  All participants cast their secret accusation. The operative with the most votes is declared the Spy.
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <span className="text-xs px-2.5 py-1 rounded bg-purple-950/60 border border-purple-500/40 text-purple-300 font-bold">
+                {Object.keys(game.votes || {}).length} / {game.players.length} Accusations Cast
+              </span>
+            </div>
+          </div>
+
+          {/* Rules of Engagement Banner */}
+          <div className="p-3.5 bg-neutral-950/90 rounded-lg border border-purple-900/40 text-xs space-y-2 text-neutral-300">
+            <div className="text-purple-400 font-bold uppercase tracking-wider flex items-center gap-1.5">
+              <Shield className="w-3.5 h-3.5" />
+              <span>Deduction &amp; Scoring Rules</span>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1 text-[11px]">
+              <div className="p-2.5 rounded bg-neutral-900/80 border border-neutral-800 space-y-1">
+                <span className="text-amber-400 font-bold block">CASE A: False Accusation</span>
+                <p className="text-neutral-400 leading-snug">
+                  If the declared user with most votes was <strong className="text-red-300">NOT really a Spy</strong>, the real Spy or Spies win getting <strong className="text-amber-400">1 point each</strong>.
+                </p>
+              </div>
+              <div className="p-2.5 rounded bg-neutral-900/80 border border-neutral-800 space-y-1">
+                <span className="text-emerald-400 font-bold block">CASE B: Spy Apprehended</span>
+                <p className="text-neutral-400 leading-snug">
+                  If the declared user <strong className="text-emerald-300">WAS really a Spy</strong>, all loyal operatives (Not Spies) win getting <strong className="text-emerald-400">1 point each</strong>.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Voting Action Section */}
+          <div className="p-4 bg-neutral-950 rounded-lg border border-neutral-800 space-y-4">
+            <div className="flex items-center justify-between">
+              <span className="text-xs text-neutral-300 font-bold tracking-wider uppercase">
+                {myVote ? 'Your Accusation Status:' : 'Cast Your Secret Accusation:'}
+              </span>
+              {myVote && (
+                <span className="text-xs text-emerald-400 flex items-center gap-1 font-bold">
+                  <CheckCircle2 className="w-3.5 h-3.5" />
+                  <span>Accusation Locked for @{myVote}</span>
+                </span>
+              )}
+            </div>
+
+            {/* Suspects Grid */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+              {game.players.map((suspect) => {
+                const isMe = suspect.username.toLowerCase() === currentUser.username.toLowerCase();
+                const isSelected = (selectedSuspect || myVote) === suspect.username.toLowerCase();
+                return (
+                  <button
+                    key={suspect.username}
+                    type="button"
+                    disabled={isMe}
+                    onClick={() => {
+                      if (!isMe) {
+                        setSelectedSuspect(suspect.username.toLowerCase());
+                      }
+                    }}
+                    className={`p-3 rounded-lg border text-left transition-all flex items-center justify-between ${
+                      isMe
+                        ? 'opacity-40 cursor-not-allowed bg-neutral-950 border-neutral-850'
+                        : isSelected
+                        ? 'bg-purple-950/50 border-purple-500 text-white shadow-md shadow-purple-950/40 cursor-pointer ring-1 ring-purple-500/50'
+                        : 'bg-neutral-900/80 border-neutral-800 text-neutral-300 hover:border-neutral-700 hover:bg-neutral-900 cursor-pointer'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2.5">
+                      <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold ${
+                        isSelected ? 'bg-purple-600 text-white' : 'bg-neutral-800 text-neutral-400'
+                      }`}>
+                        {suspect.codename.charAt(0)}
+                      </div>
+                      <div>
+                        <div className="text-xs font-bold text-white flex items-center gap-1.5">
+                          <span>{suspect.codename}</span>
+                          {isMe && <span className="text-[10px] text-neutral-500 font-normal">(You)</span>}
+                        </div>
+                        <div className="text-[10px] text-neutral-500">@{suspect.username}</div>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-1.5">
+                      {!isMe && (
+                        <div className={`w-4 h-4 rounded-full border flex items-center justify-center ${
+                          isSelected ? 'border-purple-400 bg-purple-500' : 'border-neutral-700'
+                        }`}>
+                          {isSelected && <div className="w-1.5 h-1.5 rounded-full bg-white"></div>}
+                        </div>
+                      )}
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Confirm Vote Button */}
+            <div className="pt-2 flex flex-col sm:flex-row items-center justify-between gap-3">
+              <span className="text-[11px] text-neutral-500">
+                {myVote
+                  ? 'You can switch your accusation before the Commander tallies the votes.'
+                  : 'Select an operative above and confirm your accusation.'}
+              </span>
+
+              <button
+                id="btn-confirm-cast-vote"
+                type="button"
+                disabled={!selectedSuspect && !myVote}
+                onClick={() => {
+                  const target = selectedSuspect || myVote;
+                  if (target) handleCastVote(target);
+                }}
+                className={`w-full sm:w-auto py-2 px-5 rounded-lg text-xs font-bold flex items-center justify-center gap-2 transition-all cursor-pointer ${
+                  selectedSuspect && selectedSuspect !== myVote
+                    ? 'bg-purple-600 hover:bg-purple-500 text-white shadow-lg shadow-purple-950/50'
+                    : myVote
+                    ? 'bg-neutral-800 hover:bg-neutral-750 text-neutral-300 border border-neutral-700'
+                    : 'bg-neutral-800 text-neutral-600 border border-neutral-800 cursor-not-allowed'
+                }`}
+              >
+                <Vote className="w-3.5 h-3.5" />
+                <span>
+                  {selectedSuspect && selectedSuspect !== myVote
+                    ? `Lock In Accusation (@${selectedSuspect})`
+                    : myVote
+                    ? `Accusation Confirmed (@${myVote})`
+                    : 'Select a Suspect'}
+                </span>
+              </button>
+            </div>
+          </div>
+
+          {/* Voting Roster Progress */}
+          <div className="p-3 bg-neutral-950/70 rounded-lg border border-neutral-850">
+            <div className="text-[11px] text-neutral-400 font-bold uppercase tracking-wide mb-2 flex items-center justify-between">
+              <span>Operatives Participation Status</span>
+              <span className="text-neutral-500 font-normal">Identities concealed until tally</span>
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-[11px]">
+              {game.players.map((p) => {
+                const hasVoted = Boolean(game.votes?.[p.username.toLowerCase()]);
+                return (
+                  <div
+                    key={p.username}
+                    className={`p-2 rounded border flex items-center justify-between ${
+                      hasVoted
+                        ? 'bg-purple-950/30 border-purple-500/30 text-purple-300'
+                        : 'bg-neutral-900 border-neutral-850 text-neutral-500'
+                    }`}
+                  >
+                    <span className="truncate">{p.codename}</span>
+                    <span className="text-[10px] shrink-0 font-bold">
+                      {hasVoted ? 'VOTED' : 'PENDING'}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Host Tally Controls */}
+          {isHost ? (
+            <div className="pt-3 border-t border-neutral-800 flex flex-col sm:flex-row items-center justify-between gap-3">
+              <span className="text-xs text-neutral-400">
+                Commander Controls: Once participants have cast their votes, tally the ballots to declare the Spy.
+              </span>
+
+              <button
+                id="btn-tally-votes-conclude"
+                type="button"
+                onClick={handleTallyVotes}
+                className="w-full sm:w-auto py-2.5 px-6 rounded-lg bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 text-neutral-950 font-bold text-xs flex items-center justify-center gap-2 transition-all shadow-lg shadow-emerald-950/50 cursor-pointer"
+              >
+                <CheckCircle2 className="w-4 h-4" />
+                <span>Tally Votes &amp; Conclude Operation</span>
+              </button>
+            </div>
+          ) : (
+            <div className="pt-3 border-t border-neutral-800 text-xs text-neutral-400 flex items-center gap-2">
+              <span className="inline-block w-2 h-2 rounded-full bg-purple-400 animate-pulse"></span>
+              <span>Awaiting Commander to tally all accusations and declare the verdict...</span>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Completed / Debrief & Scoreboard Card (When game is completed) */}
+      {game.status === 'completed' && game.votingResults && (
+        <div
+          id="operation-results-card"
+          className={`border rounded-xl p-5 sm:p-6 backdrop-blur-md shadow-2xl space-y-6 font-mono ${
+            game.votingResults.winningTeam === 'loyalists'
+              ? 'bg-neutral-900/95 border-emerald-500/50'
+              : 'bg-neutral-900/95 border-red-500/50'
+          }`}
+        >
+          {/* Victory Banner */}
+          <div
+            className={`p-4 sm:p-5 rounded-lg border flex flex-col sm:flex-row items-center justify-between gap-4 ${
+              game.votingResults.winningTeam === 'loyalists'
+                ? 'bg-emerald-950/50 border-emerald-500 text-emerald-100 shadow-lg shadow-emerald-950/40'
+                : 'bg-red-950/50 border-red-500 text-red-100 shadow-lg shadow-red-950/40'
+            }`}
+          >
+            <div className="flex items-center gap-3.5 text-center sm:text-left">
+              <div
+                className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 ${
+                  game.votingResults.winningTeam === 'loyalists'
+                    ? 'bg-emerald-500 text-neutral-950'
+                    : 'bg-red-600 text-white'
+                }`}
+              >
+                {game.votingResults.winningTeam === 'loyalists' ? (
+                  <Trophy className="w-6 h-6" />
+                ) : (
+                  <Flame className="w-6 h-6" />
+                )}
+              </div>
+              <div>
+                <div className="text-xs uppercase font-bold tracking-widest opacity-80">
+                  MISSION OUTCOME // VERDICT REACHED
+                </div>
+                <h2 className="text-lg sm:text-xl font-bold tracking-tight">
+                  {game.votingResults.winningTeam === 'loyalists'
+                    ? 'LOYAL OPERATIVES WIN! (+1 POINT EACH)'
+                    : 'REAL SPY / SPIES WIN! (+1 POINT EACH)'}
+                </h2>
+                <p className="text-xs opacity-90 mt-0.5 leading-snug">
+                  {game.votingResults.winningTeam === 'loyalists'
+                    ? `Operative @${game.votingResults.declaredSpyUsername} received the most votes (${game.votingResults.voteCounts[game.votingResults.declaredSpyUsername] || 0} votes) and WAS INDEED A REAL SPY!`
+                    : `Operative @${game.votingResults.declaredSpyUsername} received the most votes (${game.votingResults.voteCounts[game.votingResults.declaredSpyUsername] || 0} votes) but was NOT a Spy! The real Spies evaded capture!`}
+                </p>
+              </div>
+            </div>
+
+            <div className="shrink-0 px-3 py-1.5 rounded-lg bg-neutral-950/80 border border-neutral-700 text-xs font-bold text-center">
+              <span className="text-[10px] text-neutral-400 block uppercase">Points Awarded</span>
+              <span className="text-amber-400 font-mono text-sm">+1 Pt to {game.votingResults.winningTeam === 'loyalists' ? 'Not Spies' : 'Real Spies'}</span>
+            </div>
+          </div>
+
+          {/* Intel Triad Dossier */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
+            {/* Accused Spy */}
+            <div className="p-3.5 rounded-lg bg-neutral-950 border border-neutral-800 space-y-1.5">
+              <span className="text-[10px] text-neutral-400 uppercase tracking-wide block">
+                DECLARED SPY (MOST ACCUSATIONS)
+              </span>
+              <div className="font-bold text-sm text-white flex items-center justify-between">
+                <span>@{game.votingResults.declaredSpyUsername}</span>
+                <span className="text-xs px-2 py-0.5 rounded bg-neutral-850 text-neutral-300">
+                  {game.votingResults.voteCounts[game.votingResults.declaredSpyUsername] || 0} Votes
+                </span>
+              </div>
+              <div className="text-[11px] pt-1 border-t border-neutral-850">
+                {game.votingResults.isRealSpy ? (
+                  <span className="text-emerald-400 font-bold flex items-center gap-1">
+                    <UserCheck className="w-3.5 h-3.5" />
+                    <span>Real Spy Confirmed!</span>
+                  </span>
+                ) : (
+                  <span className="text-red-400 font-bold flex items-center gap-1">
+                    <UserX className="w-3.5 h-3.5" />
+                    <span>Innocent Operative!</span>
+                  </span>
+                )}
+              </div>
+            </div>
+
+            {/* Real Spies */}
+            <div className="p-3.5 rounded-lg bg-neutral-950 border border-neutral-800 space-y-1.5">
+              <span className="text-[10px] text-neutral-400 uppercase tracking-wide block">
+                ACTUAL UNDERCOVER SPIES
+              </span>
+              <div className="font-bold text-sm text-red-400 truncate">
+                {game.spyUsernames && game.spyUsernames.length > 0
+                  ? game.spyUsernames.map((u) => `@${u}`).join(', ')
+                  : 'Classified'}
+              </div>
+              <div className="text-[11px] text-neutral-400 pt-1 border-t border-neutral-850">
+                Total Spies: {game.totalSpiesCount || getSpyCount(game.players.length)}
+              </div>
+            </div>
+
+            {/* Secret Location */}
+            <div className="p-3.5 rounded-lg bg-neutral-950 border border-neutral-800 space-y-1.5">
+              <span className="text-[10px] text-neutral-400 uppercase tracking-wide block">
+                CLASSIFIED LOCATION (500 POOL)
+              </span>
+              <div className="font-bold text-sm text-emerald-300 flex items-center gap-1.5 truncate">
+                <MapPin className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                <span className="truncate">{targetLocation}</span>
+              </div>
+              <div className="text-[11px] text-neutral-400 pt-1 border-t border-neutral-850">
+                <button
+                  type="button"
+                  onClick={() => setShowLocationsGuide(true)}
+                  className="text-emerald-400 hover:text-emerald-300 underline underline-offset-2 flex items-center gap-1 cursor-pointer"
+                >
+                  <Database className="w-3 h-3" />
+                  <span>Browse 500 Places</span>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* Voting Ledger Breakdown */}
+          <div className="p-3.5 bg-neutral-950 rounded-lg border border-neutral-800 space-y-2.5">
+            <div className="flex items-center justify-between text-xs text-neutral-300 font-bold uppercase tracking-wider">
+              <span>Votes Cast Ledger</span>
+              <span className="text-neutral-500 font-normal">{game.votingResults.totalVotesCast} Total Accusations</span>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+              {Object.entries(game.votes || {}).map(([voter, suspect]) => {
+                const voterOperative = game.players.find(
+                  (p) => p.username.toLowerCase() === voter.toLowerCase()
+                );
+                const suspectOperative = game.players.find(
+                  (p) => p.username.toLowerCase() === suspect.toLowerCase()
+                );
+                return (
+                  <div
+                    key={voter}
+                    className="p-2 rounded bg-neutral-900 border border-neutral-850 flex items-center justify-between"
+                  >
+                    <span className="text-neutral-300">
+                      {voterOperative?.codename || voter} <span className="text-neutral-500">(@{voter})</span>
+                    </span>
+                    <span className="text-neutral-500 mx-1">&rarr;</span>
+                    <span className="font-bold text-purple-300">
+                      accused {suspectOperative?.codename || suspect} <span className="text-purple-400/70">(@{suspect})</span>
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Cumulative Scoreboard Leaderboard */}
+          <div className="p-4 bg-neutral-950 rounded-lg border border-neutral-800 space-y-3">
+            <div className="flex items-center justify-between">
+              <div className="text-xs text-amber-400 font-bold uppercase tracking-wider flex items-center gap-1.5">
+                <Trophy className="w-4 h-4 text-amber-400" />
+                <span>Cumulative Scoreboard &amp; Points Leaderboard</span>
+              </div>
+              <span className="text-[11px] text-neutral-500">
+                1 point per victory
+              </span>
+            </div>
+
+            <div className="space-y-1.5">
+              {[...game.players]
+                .sort((a, b) => (b.score ?? 0) - (a.score ?? 0))
+                .map((player, rank) => {
+                  const wonThisRound = game.votingResults?.pointsAwardedUsernames.includes(
+                    player.username.toLowerCase()
+                  );
+                  return (
+                    <div
+                      key={player.username}
+                      className={`p-2.5 rounded-lg border flex items-center justify-between text-xs ${
+                        wonThisRound
+                          ? 'bg-amber-950/20 border-amber-500/40 text-white'
+                          : 'bg-neutral-900 border-neutral-850 text-neutral-300'
+                      }`}
+                    >
+                      <div className="flex items-center gap-3">
+                        <span className="font-mono font-bold text-neutral-500 w-4">
+                          #{rank + 1}
+                        </span>
+                        <div>
+                          <span className="font-bold">{player.codename}</span>
+                          <span className="text-neutral-500 ml-1.5">@{player.username}</span>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-3">
+                        {wonThisRound && (
+                          <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-emerald-950/80 text-emerald-400 border border-emerald-500/30 flex items-center gap-1">
+                            <Sparkles className="w-3 h-3 text-emerald-400" />
+                            <span>+1 PT WON</span>
+                          </span>
+                        )}
+                        <span className="font-bold text-amber-400 text-sm font-mono">
+                          {player.score ?? 0} {player.score === 1 ? 'pt' : 'pts'}
+                        </span>
+                      </div>
+                    </div>
+                  );
+                })}
+            </div>
+          </div>
+
+          {/* Post-Game Actions */}
+          <div className="pt-3 border-t border-neutral-800 flex flex-wrap items-center justify-between gap-3">
+            <button
+              type="button"
+              onClick={onLeave}
+              className="text-xs text-neutral-400 hover:text-white flex items-center gap-1.5 cursor-pointer"
+            >
+              <ArrowLeft className="w-3.5 h-3.5" />
+              <span>Return to Headquarters</span>
+            </button>
+
+            {isHost && (
+              <div className="flex items-center gap-2">
+                <button
+                  id="btn-return-lobby"
+                  type="button"
+                  onClick={handleResetToRecruiting}
+                  className="text-xs font-mono text-neutral-300 hover:text-white px-3 py-2 rounded bg-neutral-800 hover:bg-neutral-750 border border-neutral-700 cursor-pointer"
+                >
+                  Return to Lobby
+                </button>
+                <button
+                  id="btn-start-next-round"
+                  type="button"
+                  onClick={handleStartNextRound}
+                  className="py-2 px-4 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-neutral-950 font-bold text-xs font-mono flex items-center gap-2 transition-all shadow-lg shadow-emerald-950/40 cursor-pointer"
+                >
+                  <RotateCcw className="w-3.5 h-3.5" />
+                  <span>Start Next Round (Keep Points)</span>
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Operatives Roster */}
+      <div className="bg-neutral-900/90 border border-neutral-800 rounded-xl p-5 sm:p-6 backdrop-blur-md shadow-xl">
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-2">
+            <Users className="w-5 h-5 text-emerald-400" />
+            <div>
+              <h2 className="text-sm font-bold text-white uppercase tracking-wider font-mono">
+                Operatives Roster ({game.players.length} / {game.maxPlayers})
+              </h2>
+              <p className="text-[10px] font-mono text-neutral-500">
+                {game.status === 'active'
+                  ? 'All roles remain strictly classified. No operative knows who got the location or became a Spy.'
+                  : `Waiting for launch. At least 3 operatives required.`}
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2">
+            {game.status === 'recruiting' && game.players.length < game.maxPlayers && (
+              <button
+                id="btn-add-bot-agent"
+                type="button"
+                onClick={handleAddAgent}
+                className="text-xs font-mono text-emerald-400 hover:text-emerald-300 py-1 px-2.5 rounded bg-neutral-800 hover:bg-neutral-750 border border-neutral-700 flex items-center gap-1 cursor-pointer"
+                title="Add a test agent to the roster"
+              >
+                <span>+ Add Bot Agent</span>
+              </button>
+            )}
+          </div>
+        </div>
+
+        {/* Players List */}
+        <div className="space-y-2.5">
+          {game.players.map((player, idx) => {
+            const isMe = player.username.toLowerCase() === currentUser.username.toLowerCase();
+            return (
+              <div
+                key={player.username + idx}
+                className={`p-3.5 rounded-lg border flex items-center justify-between transition-all ${
+                  isMe
+                    ? 'bg-neutral-950 border-emerald-500/40 shadow-sm'
+                    : 'bg-neutral-950/60 border-neutral-800'
+                }`}
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-full bg-neutral-800 border border-neutral-700 flex items-center justify-center font-mono font-bold text-xs text-emerald-400">
+                    {idx + 1}
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-bold text-white font-mono">{player.codename}</span>
+                      {player.isHost && (
+                        <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-emerald-950/80 border border-emerald-500/40 text-emerald-400 uppercase font-semibold">
+                          Host
+                        </span>
+                      )}
+                      {isMe && (
+                        <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-neutral-800 text-neutral-400">
+                          You
+                        </span>
+                      )}
+                    </div>
+                    <div className="text-xs text-neutral-500 font-mono flex items-center gap-2">
+                      <span>ID: @{player.username}</span>
+                      <span>&bull;</span>
+                      <span className="text-amber-400 font-semibold flex items-center gap-1">
+                        <Trophy className="w-3 h-3 text-amber-400" />
+                        <span>{player.score ?? 0} pts</span>
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  {game.status === 'voting' ? (
+                    <span
+                      className={`text-xs font-mono px-2.5 py-1 rounded flex items-center gap-1.5 ${
+                        game.votes?.[player.username.toLowerCase()]
+                          ? 'bg-purple-950/60 text-purple-300 border border-purple-500/40'
+                          : 'bg-neutral-800 text-neutral-400 border border-neutral-700'
+                      }`}
+                    >
+                      <Vote className="w-3.5 h-3.5" />
+                      <span>
+                        {game.votes?.[player.username.toLowerCase()]
+                          ? 'Accusation Cast'
+                          : 'Deliberating...'}
+                      </span>
+                    </span>
+                  ) : game.status === 'completed' ? (
+                    <span
+                      className={`text-xs font-mono px-2.5 py-1 rounded flex items-center gap-1.5 ${
+                        game.votingResults?.pointsAwardedUsernames.includes(
+                          player.username.toLowerCase()
+                        )
+                          ? 'bg-emerald-950/60 text-emerald-400 border border-emerald-500/40 font-bold'
+                          : 'bg-neutral-800 text-neutral-400 border border-neutral-700'
+                      }`}
+                    >
+                      <Trophy className="w-3.5 h-3.5 text-amber-400" />
+                      <span>{player.score ?? 0} pts</span>
+                    </span>
+                  ) : game.status === 'active' ? (
+                    <span className="text-xs font-mono px-2.5 py-1 rounded flex items-center gap-1.5 bg-neutral-850 text-neutral-300 border border-neutral-750">
+                      <Shield className="w-3.5 h-3.5 text-neutral-400" />
+                      <span>Classified</span>
+                    </span>
+                  ) : (
+                    <span
+                      className={`text-xs font-mono px-2.5 py-1 rounded flex items-center gap-1.5 ${
+                        player.status === 'ready'
+                          ? 'bg-emerald-950/50 text-emerald-400 border border-emerald-500/30'
+                          : 'bg-neutral-800 text-neutral-400 border border-neutral-700'
+                      }`}
+                    >
+                      <CheckCircle2 className="w-3.5 h-3.5" />
+                      <span className="capitalize">{player.status}</span>
+                    </span>
+                  )}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Minimum participants alert banner for creator and players (Recruiting phase only) */}
+        {game.status === 'recruiting' && (
+          <div
+            id="participant-threshold-banner"
+            className={`mt-4 p-3 rounded-lg border font-mono text-xs flex items-center justify-between gap-3 ${
+              game.players.length >= 3
+                ? 'bg-emerald-950/40 border-emerald-500/40 text-emerald-300'
+                : 'bg-neutral-950/70 border-neutral-800 text-neutral-400'
+            }`}
+          >
+            <div className="flex items-center gap-2">
+              <span
+                className={`w-2 h-2 rounded-full shrink-0 ${
+                  game.players.length >= 3 ? 'bg-emerald-400 animate-pulse' : 'bg-amber-400'
+                }`}
+              ></span>
+              <span>
+                {game.players.length >= 3 ? (
+                  <>
+                    <strong className="text-white font-bold">Launch Condition Met:</strong> 3 or more participants connected ({game.players.length} active). {isHost ? 'You can now start the game!' : 'Waiting for creator to start.'}
+                  </>
+                ) : (
+                  <>
+                    <strong className="text-neutral-300">Recruitment in Progress:</strong> At least 3 participants required to start ({game.players.length}/3 joined &bull; {3 - game.players.length} more needed).
+                  </>
+                )}
+              </span>
+            </div>
+
+            {game.players.length < 3 && (
+              <button
+                type="button"
+                onClick={() => setShowInviteModal(true)}
+                className="shrink-0 text-[11px] font-mono text-emerald-400 hover:text-emerald-300 underline underline-offset-2 flex items-center gap-1 cursor-pointer"
+              >
+                <Share2 className="w-3 h-3" />
+                <span>Invite Recruits</span>
+              </button>
+            )}
+          </div>
+        )}
+
+        {/* Lobby Actions */}
+        {game.status === 'recruiting' && (
+          <div className="mt-5 pt-4 border-t border-neutral-800 flex flex-col sm:flex-row items-center justify-between gap-3">
+            <button
+              id="btn-toggle-my-ready"
+              type="button"
+              onClick={handleToggleReady}
+              className="w-full sm:w-auto py-2 px-4 rounded-lg bg-neutral-800 hover:bg-neutral-750 text-neutral-200 border border-neutral-700 text-xs font-mono font-medium transition-colors cursor-pointer"
+            >
+              Toggle Ready Status
+            </button>
+
+            {isHost ? (
+              <div className="w-full sm:w-auto flex flex-col items-end gap-1">
+                <button
+                  id="btn-launch-operation"
+                  type="button"
+                  onClick={handleLaunchGame}
+                  disabled={game.players.length < 3}
+                  className={`w-full sm:w-auto py-2.5 px-6 rounded-lg font-bold text-xs font-mono flex items-center justify-center gap-2 transition-all shadow-lg cursor-pointer ${
+                    game.players.length >= 3
+                      ? 'bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 text-neutral-950 shadow-emerald-950/50'
+                      : 'bg-neutral-800 text-neutral-500 border border-neutral-750 opacity-60 cursor-not-allowed'
+                  }`}
+                  title={
+                    game.players.length < 3
+                      ? 'Cannot start game yet: At least 3 participants are required.'
+                      : 'Launch the operation now'
+                  }
+                >
+                  <Play className="w-4 h-4" />
+                  <span>
+                    {game.players.length >= 3
+                      ? `Start Game (${game.players.length} Players &bull; ${getSpyCount(game.players.length)} ${getSpyCount(game.players.length) === 1 ? 'Spy' : 'Spies'})`
+                      : `Start Game (Requires 3+ Participants: ${game.players.length}/3)`}
+                  </span>
+                </button>
+                {game.players.length < 3 && (
+                  <span className="text-[10px] font-mono text-neutral-500">
+                    Game creator can start once 3+ participants join
+                  </span>
+                )}
+              </div>
+            ) : (
+              <div className="text-xs font-mono text-neutral-400 flex items-center gap-2">
+                <span className="inline-block w-1.5 h-1.5 rounded-full bg-neutral-500 animate-pulse"></span>
+                <span>
+                  {game.players.length >= 3
+                    ? `Ready (${game.players.length} participants). Awaiting commander to start...`
+                    : `Awaiting 3+ participants to start (${game.players.length}/3 connected)...`}
+                </span>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* Invite Modal */}
+      {showInviteModal && (
+        <InviteModal
+          game={game}
+          onClose={() => setShowInviteModal(false)}
+          onOperativeAdded={() => {
+            const updated = togglePlayerReady(game.id, currentUser.username);
+            if (updated) onGameUpdated(updated);
+          }}
+        />
+      )}
+
+      {/* Locations Guide Modal */}
+      {showLocationsGuide && (
+        <LocationsGuideModal
+          isSpy={isSpy && game.status === 'active'}
+          onClose={() => setShowLocationsGuide(false)}
+          onGuessLocation={handleSpyGuessLocation}
+        />
+      )}
+    </div>
+  );
+};
