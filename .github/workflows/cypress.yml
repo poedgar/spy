@@ -40,6 +40,8 @@ jobs:
 
       - name: Run the production smoke test
         run: npm run test
+        env:
+          CYPRESS_BASE_URL: https://spy-ten-tau.vercel.app
 
       - name: Upload failure screenshots
         if: failure()

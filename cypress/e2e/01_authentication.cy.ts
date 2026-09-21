@@ -2,7 +2,7 @@ describe('SpyNet Terminal - Authentication & Sign In', () => {
   beforeEach(() => {
     // Clear localStorage to ensure fresh session
     cy.clearLocalStorage();
-    cy.visit('https://spy-ten-tau.vercel.app/');
+    cy.visit('/');
   });
 
   it('displays the terminal header, encryption status, and sign-in card', () => {
