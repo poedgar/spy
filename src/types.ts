@@ -15,6 +15,8 @@ export interface AuthState {
 
 export type GameMode = 'mole' | 'codebreaker' | 'counterintel';
 
+export type AgeTier = 'children' | 'teens' | 'adults';
+
 export interface Operative {
   username: string;
   codename: string;
@@ -38,6 +40,7 @@ export interface SpyGame {
   id: string;
   title: string;
   gameMode: GameMode;
+  ageTier: AgeTier;
   hostUsername: string;
   hostCodename: string;
   createdAt: string;

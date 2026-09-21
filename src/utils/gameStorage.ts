@@ -1,4 +1,4 @@
-import { SpyGame, AuthUser, GameMode } from '../types.ts';
+import { SpyGame, AuthUser, GameMode, AgeTier } from '../types.ts';
 import { getRandomLocation } from '../data/locations.ts';
 import { db } from './firebase.ts';
 import {
@@ -31,6 +31,7 @@ export function parseFirestoreGame(data: any): SpyGame {
     id: data.id,
     title: data.title || `Operation ${data.id}`,
     gameMode: data.gameMode || 'mole',
+    ageTier: data.ageTier === 'children' || data.ageTier === 'teens' ? data.ageTier : 'adults',
     hostUsername: data.hostUsername || '',
     hostCodename: data.hostCodename || data.hostUsername || 'COMMANDER',
     createdAt: data.createdAt || new Date().toISOString(),
@@ -75,6 +76,7 @@ export function sanitizeGameForFirestore(game: SpyGame): Record<string, any> {
     id: game.id,
     title: game.title || `Operation ${game.id}`,
     gameMode: game.gameMode || 'mole',
+    ageTier: game.ageTier === 'children' || game.ageTier === 'teens' ? game.ageTier : 'adults',
     hostUsername: game.hostUsername || '',
     hostCodename: game.hostCodename || '',
     createdAt: game.createdAt || new Date().toISOString(),
@@ -244,13 +246,15 @@ export async function createNewSpyGame(
   gameMode: GameMode,
   maxPlayers: number,
   secretLocation: string,
-  missionBriefing: string
+  missionBriefing: string,
+  ageTier: AgeTier = 'adults'
 ): Promise<SpyGame> {
   const id = generateGameId();
   const newGame: SpyGame = {
     id,
     title: title.trim() || `Operation ${id}`,
     gameMode,
+    ageTier,
     hostUsername: user.username,
     hostCodename: user.codename,
     createdAt: new Date().toISOString(),
@@ -409,8 +413,8 @@ export function startSpyGame(gameId: string): SpyGame | null {
     throw new Error('At least 3 participants are required to start the game.');
   }
 
-  // 1. Pick a random location from the 500 pre-existing locations
-  const randomLocation = getRandomLocation();
+  // 1. Pick a random location from the pool matching the game's age tier
+  const randomLocation = getRandomLocation('en', game.ageTier);
 
   // 2. Calculate the number of spies required
   const spyCount = getSpyCount(game.players.length);
@@ -591,8 +595,8 @@ export function startNewRound(gameId: string): SpyGame | null {
 
   const game = games[gameIndex];
 
-  // Pick a fresh random location from the 500 locations pool
-  const randomLocation = getRandomLocation();
+  // Pick a fresh random location from the pool matching the game's age tier
+  const randomLocation = getRandomLocation('en', game.ageTier);
   const spyCount = getSpyCount(game.players.length);
 
   // Shuffle and assign new spies

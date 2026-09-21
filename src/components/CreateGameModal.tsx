@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
-import { AuthUser, GameMode, SpyGame } from '../types.ts';
+import React, { useState, useEffect } from 'react';
+import { AuthUser, GameMode, AgeTier, SpyGame } from '../types.ts';
 import { createNewSpyGame, getSpyCount } from '../utils/gameStorage.ts';
-import { getRandomLocation, getLocationName } from '../data/locations.ts';
+import { getRandomLocation, getLocationName, getLocationPoolSize } from '../data/locations.ts';
 import { useLanguage } from '../i18n/LanguageContext.tsx';
 import {
   X,
@@ -15,6 +15,8 @@ import {
   ArrowRight,
   Database,
   Loader2,
+  Baby,
+  ShieldAlert,
 } from 'lucide-react';
 
 interface CreateGameModalProps {
@@ -57,14 +59,20 @@ export const CreateGameModal: React.FC<CreateGameModalProps> = ({
     codenamePresets[Math.floor(Math.random() * codenamePresets.length)]
   );
   const [gameMode, setGameMode] = useState<GameMode>('mole');
+  const [ageTier, setAgeTier] = useState<AgeTier>('adults');
   const [maxPlayers, setMaxPlayers] = useState(6);
-  const [secretLocation, setSecretLocation] = useState(getRandomLocation());
+  const [secretLocation, setSecretLocation] = useState(() => getRandomLocation('en', 'adults'));
   const [briefing, setBriefing] = useState(() => t('briefing_default'));
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // Keep the preview location consistent with whichever age tier is selected.
+  useEffect(() => {
+    setSecretLocation(getRandomLocation('en', ageTier));
+  }, [ageTier]);
+
   const handleRandomize = () => {
     setTitle(codenamePresets[Math.floor(Math.random() * codenamePresets.length)]);
-    setSecretLocation(getRandomLocation());
+    setSecretLocation(getRandomLocation('en', ageTier));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -76,7 +84,8 @@ export const CreateGameModal: React.FC<CreateGameModalProps> = ({
       gameMode,
       maxPlayers,
       secretLocation,
-      briefing
+      briefing,
+      ageTier
     );
     onGameCreated(newGame);
   };
@@ -234,6 +243,68 @@ export const CreateGameModal: React.FC<CreateGameModalProps> = ({
               <span>8-10 (3 {t('spies_plural')})</span>
               <span>12 (4 {t('spies_plural')})</span>
             </div>
+          </div>
+
+          {/* Player Age Group / Difficulty */}
+          <div>
+            <label className="block text-xs font-mono font-medium text-neutral-300 mb-2">
+              {t('age_tier_label')}
+            </label>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+              <button
+                id="btn-tier-children"
+                type="button"
+                onClick={() => setAgeTier('children')}
+                className={`p-3 rounded-lg border text-left transition-all cursor-pointer ${
+                  ageTier === 'children'
+                    ? 'bg-emerald-950/40 border-emerald-500 text-white shadow-sm'
+                    : 'bg-neutral-950/60 border-neutral-800 text-neutral-400 hover:border-neutral-700'
+                }`}
+              >
+                <div className="flex items-center justify-between mb-1">
+                  <span className="font-bold text-xs font-mono text-emerald-300">{t('tier_children')}</span>
+                  <Baby className="w-3 h-3 text-emerald-400" />
+                </div>
+                <p className="text-[11px] text-neutral-400 leading-snug">{t('tier_children_desc')}</p>
+              </button>
+
+              <button
+                id="btn-tier-teens"
+                type="button"
+                onClick={() => setAgeTier('teens')}
+                className={`p-3 rounded-lg border text-left transition-all cursor-pointer ${
+                  ageTier === 'teens'
+                    ? 'bg-emerald-950/40 border-emerald-500 text-white shadow-sm'
+                    : 'bg-neutral-950/60 border-neutral-800 text-neutral-400 hover:border-neutral-700'
+                }`}
+              >
+                <div className="flex items-center justify-between mb-1">
+                  <span className="font-bold text-xs font-mono text-emerald-300">{t('tier_teens')}</span>
+                  <Users className="w-3 h-3 text-emerald-400" />
+                </div>
+                <p className="text-[11px] text-neutral-400 leading-snug">{t('tier_teens_desc')}</p>
+              </button>
+
+              <button
+                id="btn-tier-adults"
+                type="button"
+                onClick={() => setAgeTier('adults')}
+                className={`p-3 rounded-lg border text-left transition-all cursor-pointer ${
+                  ageTier === 'adults'
+                    ? 'bg-emerald-950/40 border-emerald-500 text-white shadow-sm'
+                    : 'bg-neutral-950/60 border-neutral-800 text-neutral-400 hover:border-neutral-700'
+                }`}
+              >
+                <div className="flex items-center justify-between mb-1">
+                  <span className="font-bold text-xs font-mono text-emerald-300">{t('tier_adults')}</span>
+                  <ShieldAlert className="w-3 h-3 text-emerald-400" />
+                </div>
+                <p className="text-[11px] text-neutral-400 leading-snug">{t('tier_adults_desc')}</p>
+              </button>
+            </div>
+            <p id="age-tier-pool-count" className="text-[11px] font-mono text-neutral-500 mt-1.5">
+              {t('locations_available_count', { count: getLocationPoolSize(ageTier) })}
+            </p>
           </div>
 
           {/* 500 Locations Pool Intel Information */}
