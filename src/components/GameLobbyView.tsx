@@ -1063,15 +1063,29 @@ export const GameLobbyView: React.FC<GameLobbyViewProps> = ({
 
           <div className="flex items-center gap-2">
             {game.status === 'recruiting' && game.players.length < game.maxPlayers && (
-              <button
-                id="btn-add-bot-agent"
-                type="button"
-                onClick={handleAddAgent}
-                className="text-xs font-mono text-emerald-400 hover:text-emerald-300 py-1 px-2.5 rounded bg-neutral-800 hover:bg-neutral-750 border border-neutral-700 flex items-center gap-1 cursor-pointer"
-                title={t('add_bot_agent')}
-              >
-                <span>{t('add_bot_agent')}</span>
-              </button>
+              <>
+                <button
+                  id="btn-add-bot-operative"
+                  type="button"
+                  onClick={handleAddAgent}
+                  className="text-xs font-mono text-emerald-400 hover:text-emerald-300 py-1 px-2.5 rounded bg-neutral-800 hover:bg-neutral-750 border border-neutral-700 flex items-center gap-1 cursor-pointer"
+                  title={t('add_bot_agent')}
+                >
+                  <span>{t('add_bot_agent')}</span>
+                </button>
+                <button
+                  id="btn-add-two-bots"
+                  type="button"
+                  onClick={() => {
+                    handleAddAgent();
+                    handleAddAgent();
+                  }}
+                  className="text-xs font-mono text-emerald-400 hover:text-emerald-300 py-1 px-2.5 rounded bg-neutral-800 hover:bg-neutral-750 border border-neutral-700 flex items-center gap-1 cursor-pointer"
+                  title="Add two bot operatives"
+                >
+                  <span>+2 Bots</span>
+                </button>
+              </>
             )}
           </div>
         </div>
@@ -1098,7 +1112,7 @@ export const GameLobbyView: React.FC<GameLobbyViewProps> = ({
                       <span className="text-sm font-bold text-white font-mono">{player.codename}</span>
                       {player.isHost && (
                         <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-emerald-950/80 border border-emerald-500/40 text-emerald-400 uppercase font-semibold">
-                          {t('host_badge')}
+                          HOST / CREATOR
                         </span>
                       )}
                       {isMe && (
