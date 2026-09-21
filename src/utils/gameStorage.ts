@@ -238,14 +238,14 @@ export function generateInviteLink(gameId: string): string {
   return `${origin}${pathname}?game=${encodeURIComponent(gameId)}`;
 }
 
-export function createNewSpyGame(
+export async function createNewSpyGame(
   user: AuthUser,
   title: string,
   gameMode: GameMode,
   maxPlayers: number,
   secretLocation: string,
   missionBriefing: string
-): SpyGame {
+): Promise<SpyGame> {
   const id = generateGameId();
   const newGame: SpyGame = {
     id,
@@ -277,8 +277,11 @@ export function createNewSpyGame(
   const games = getStoredGames();
   saveStoredGames([newGame, ...games.filter((g) => g.id !== id)]);
 
-  // Sync to Firestore in background
-  syncGameToFirestore(newGame);
+  // Wait for the game to actually reach Firestore before returning: the host
+  // may immediately share the invite link (or navigate away), and a
+  // fire-and-forget write here can be aborted mid-flight by that navigation,
+  // leaving the game permanently unjoinable for invited players.
+  await syncGameToFirestore(newGame);
 
   return newGame;
 }

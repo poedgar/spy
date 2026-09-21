@@ -14,6 +14,7 @@ import {
   KeyRound,
   ArrowRight,
   Database,
+  Loader2,
 } from 'lucide-react';
 
 interface CreateGameModalProps {
@@ -59,15 +60,17 @@ export const CreateGameModal: React.FC<CreateGameModalProps> = ({
   const [maxPlayers, setMaxPlayers] = useState(6);
   const [secretLocation, setSecretLocation] = useState(getRandomLocation());
   const [briefing, setBriefing] = useState(() => t('briefing_default'));
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleRandomize = () => {
     setTitle(codenamePresets[Math.floor(Math.random() * codenamePresets.length)]);
     setSecretLocation(getRandomLocation());
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const newGame = createNewSpyGame(
+    setIsSubmitting(true);
+    const newGame = await createNewSpyGame(
       user,
       title,
       gameMode,
@@ -278,10 +281,17 @@ export const CreateGameModal: React.FC<CreateGameModalProps> = ({
             <button
               id="btn-confirm-create-game"
               type="submit"
-              className="w-full py-2.5 px-4 rounded-lg bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 text-neutral-950 font-bold text-sm flex items-center justify-center gap-2 transition-all shadow-lg shadow-emerald-950/40 cursor-pointer"
+              disabled={isSubmitting}
+              className="w-full py-2.5 px-4 rounded-lg bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 disabled:opacity-50 text-neutral-950 font-bold text-sm flex items-center justify-center gap-2 transition-all shadow-lg shadow-emerald-950/40 cursor-pointer"
             >
-              <span>{t('init_op_generate_btn')}</span>
-              <ArrowRight className="w-4 h-4" />
+              {isSubmitting ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <>
+                  <span>{t('init_op_generate_btn')}</span>
+                  <ArrowRight className="w-4 h-4" />
+                </>
+              )}
             </button>
           </div>
         </form>
