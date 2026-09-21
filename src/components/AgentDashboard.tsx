@@ -112,26 +112,44 @@ export const AgentDashboard: React.FC<AgentDashboardProps> = ({
 
   // Handle incoming invite if initialGameId was provided
   useEffect(() => {
-    if (initialGameId && !activeGame) {
-      let active = true;
+    if (!initialGameId || activeGame) return;
+
+    let active = true;
+    let attempt = 0;
+    // The host's game write to Firestore is fire-and-forget, so a freshly
+    // loaded invitee page (fresh client, empty cache) can query before that
+    // write has propagated. Retry briefly instead of failing on the first miss.
+    const maxAttempts = 5;
+    const retryDelayMs = 700;
+
+    const attemptJoin = () => {
       joinSpyGameAsync(initialGameId, user)
         .then((joined) => {
-          if (active && joined) {
+          if (!active) return;
+          if (joined) {
             setActiveGame(joined);
+          } else if (attempt < maxAttempts) {
+            attempt += 1;
+            setTimeout(attemptJoin, retryDelayMs);
           }
         })
         .catch(() => {
+          // A thrown error (e.g. roster full) is a real rule violation, not a
+          // transient lookup miss - fall back to a read-only view instead of retrying.
+          if (!active) return;
           getGameByIdAsync(initialGameId).then((found) => {
             if (active && found) {
               setActiveGame(found);
             }
           });
         });
+    };
 
-      return () => {
-        active = false;
-      };
-    }
+    attemptJoin();
+
+    return () => {
+      active = false;
+    };
   }, [initialGameId]);
 
   const handleCreateGameSuccess = (newGame: SpyGame) => {
