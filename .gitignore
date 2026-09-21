@@ -13,49 +13,76 @@ build/
 .env.local
 *.env.*
 
-# Logs
-*.log
-
-# Coverage reports
-coverage/
-.nyc_output/
-*.lcov
-
-# IDE files
+# IDE specific
 .vscode/
 .idea/
 *.swp
 *.swo
 
-# OS files
-.DS_Store
-Thumbs.db
+# Logs
+*.log
 
-# Python specific (if applicable)
+# Coverage
+coverage/
+htmlcov/
+.coverage
+
+# Python
 __pycache__/
 *.pyc
 *.pyo
 *.pyd
 .Python
 *.so
-.coverage
-htmlcov/
-.pytest_cache/
+.eggs/
+eggs/
+pip-log.txt
+pip-delete-this-directory.txt
+.tox/
+.coverage*
+.noserc
+.noseids
 .mypy_cache/
+.pytest_cache/
+.hypothesis/
 
-# Node.js specific (if applicable)
+# Node.js
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
-
-# Compiled assets
-*.min.js
-*.min.css
-bundle.js
-bundle.css
+node_modules/
+jspm_packages/
+typings/
+.npm
+.nyc_output
+coverage/
+*.lcov
+*.pid
+*.seed
+*.id
+*.cred
+*.tgz
+*.tar.gz
+*.zip
+.DS_Store
+Thumbs.db
 
 # Temporary files
 *.tmp
 *.temp
+*.bak
+*.backup
+*~
+.#*
+%*%
+._*
+
+# OS generated
 .DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
 ```
