@@ -362,7 +362,7 @@ function AppContent() {
                         className="text-[11px] font-mono text-emerald-400 hover:text-emerald-300 underline underline-offset-2 cursor-pointer"
                         title="Quick demo as Agent_007"
                       >
-                        {t('demo_007')}
+                        Demo 007
                       </button>
                       <span className="text-neutral-600">&bull;</span>
                       <button
@@ -372,7 +372,7 @@ function AppContent() {
                         className="text-[11px] font-mono text-neutral-400 hover:text-emerald-300 underline underline-offset-2 cursor-pointer"
                         title="Quick demo as Operative_Viper"
                       >
-                        {t('demo_viper')}
+                        Demo Viper
                       </button>
                     </div>
                   </div>

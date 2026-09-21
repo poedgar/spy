@@ -359,9 +359,10 @@ export function addBotOperative(gameId: string): SpyGame | null {
   const botCodenames = ['BLACK_LOTUS', 'SILENT_ECHO', 'VECTOR_ZERO', 'NEON_SNAKE', 'PHANTOM_KEY'];
   const available = botCodenames.filter((cn) => !game.players.some((p) => p.codename === cn));
   const chosenCodename = available[0] || `AGENT_${Math.floor(100 + Math.random() * 900)}`;
+  const botUsername = `bot_${chosenCodename.toLowerCase()}`;
 
   game.players.push({
-    username: chosenCodename.toLowerCase(),
+    username: botUsername,
     codename: chosenCodename,
     clearanceLevel: 'LEVEL 3 - SECRET',
     isHost: false,
@@ -440,7 +441,7 @@ export function startVotingPhase(gameId: string): SpyGame | null {
 
   // Automatically generate votes for bot agents (bots vote for another player)
   const isBot = (username: string) =>
-    username.startsWith('agent_') ||
+    username.startsWith('bot_') ||
     ['black_lotus', 'silent_echo', 'vector_zero', 'neon_snake', 'phantom_key'].includes(
       username.toLowerCase()
     );

@@ -345,7 +345,7 @@ export const GameLobbyView: React.FC<GameLobbyViewProps> = ({
       {/* Active Mission Secret Intel Card (Visible during Active game) */}
       {game.status === 'active' && (
         <div
-          id="active-mission-briefing"
+          id="classified-dossier-card"
           className={`border rounded-xl p-5 sm:p-6 backdrop-blur-md shadow-2xl transition-all ${
             revealRole && isSpy
               ? 'bg-neutral-900/95 border-red-500/50'
