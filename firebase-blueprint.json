@@ -1,0 +1,36 @@
+{
+  "entities": {
+    "SpyGame": {
+      "title": "SpyGame",
+      "description": "Multiplayer spy social deduction game session",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Unique game identifier or code" },
+        "title": { "type": "string", "description": "Game title" },
+        "gameMode": { "type": "string", "description": "Selected game mode" },
+        "hostUsername": { "type": "string", "description": "Username of the host" },
+        "hostCodename": { "type": "string", "description": "Codename of the host" },
+        "createdAt": { "type": "string", "description": "ISO timestamp of game creation" },
+        "maxPlayers": { "type": "number", "description": "Maximum number of allowed players" },
+        "secretLocation": { "type": "string", "description": "Secret location for loyalists" },
+        "selectedLocation": { "type": "string", "description": "Currently active secret location" },
+        "missionBriefing": { "type": "string", "description": "Mission briefing text" },
+        "status": { "type": "string", "description": "Game status: recruiting, active, voting, completed" },
+        "inviteCode": { "type": "string", "description": "4-character invite code" },
+        "players": { "type": "array", "description": "List of players in the game" },
+        "spyUsernames": { "type": "array", "description": "Usernames designated as spies" },
+        "totalSpiesCount": { "type": "number", "description": "Count of spies in the game" },
+        "startedAt": { "type": "string", "description": "ISO timestamp when round started" },
+        "votes": { "type": "object", "description": "Map of voter username to suspect username" },
+        "votingResults": { "type": "object", "description": "Voting outcome and score awards" }
+      },
+      "required": ["id", "title", "hostUsername", "status", "players"]
+    }
+  },
+  "firestore": {
+    "/games/{gameId}": {
+      "schema": "SpyGame",
+      "description": "Collection of multiplayer spy game sessions"
+    }
+  }
+}

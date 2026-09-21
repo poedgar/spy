@@ -19,9 +19,9 @@ import {
   CheckCircle2,
   Share2,
 } from 'lucide-react';
-import { AuthState, AuthUser } from './types.ts';
+import { AuthState, AuthUser, SpyGame } from './types.ts';
 import { AgentDashboard } from './components/AgentDashboard.tsx';
-import { getGameById } from './utils/gameStorage.ts';
+import { getGameById, getGameByIdAsync } from './utils/gameStorage.ts';
 import { LanguageProvider, useLanguage, LanguageSwitcher } from './i18n/LanguageContext.tsx';
 
 function AppContent() {
@@ -31,6 +31,7 @@ function AppContent() {
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
   const [pendingGameId, setPendingGameId] = useState<string | null>(null);
+  const [pendingGame, setPendingGame] = useState<SpyGame | null>(null);
 
   const [authState, setAuthState] = useState<AuthState>({
     isAuthenticated: false,
@@ -46,6 +47,14 @@ function AppContent() {
       const gameCode = urlParams.get('game') || urlParams.get('join');
       if (gameCode) {
         setPendingGameId(gameCode);
+        const cached = getGameById(gameCode);
+        if (cached) {
+          setPendingGame(cached);
+        } else {
+          getGameByIdAsync(gameCode).then((found) => {
+            if (found) setPendingGame(found);
+          });
+        }
       }
     } catch (err) {
       console.error('Error parsing query params:', err);
@@ -137,8 +146,6 @@ function AppContent() {
     });
     setPassword('');
   };
-
-  const pendingGame = pendingGameId ? getGameById(pendingGameId) : null;
 
   return (
     <div

@@ -3,8 +3,12 @@ import { AuthUser, SpyGame } from '../types.ts';
 import {
   getStoredGames,
   joinSpyGame,
+  joinSpyGameAsync,
   getGameById,
+  getGameByIdAsync,
   generateInviteLink,
+  subscribeToAllGames,
+  subscribeToGame,
 } from '../utils/gameStorage.ts';
 import { CreateGameModal } from './CreateGameModal.tsx';
 import { GameLobbyView } from './GameLobbyView.tsx';
@@ -47,49 +51,83 @@ export const AgentDashboard: React.FC<AgentDashboardProps> = ({
   const [searchCode, setSearchCode] = useState(initialGameId || '');
   const [joinError, setJoinError] = useState<string | null>(null);
   const [copiedGameId, setCopiedGameId] = useState<string | null>(null);
+  const [isJoining, setIsJoining] = useState(false);
 
-  // Sync games state from localStorage
+  // Sync games state from localStorage and Firestore
   const refreshGames = () => {
     const loaded = getStoredGames();
     setGames(loaded);
 
     // If currently viewing a game, update its state too
     if (activeGame) {
-      const refreshed = loaded.find((g) => g.id === activeGame.id);
+      const refreshed = loaded.find((g) => g.id.toLowerCase() === activeGame.id.toLowerCase());
       if (refreshed) {
         setActiveGame(refreshed);
       }
     }
   };
 
+  // Subscribe to all games in Firestore for real-time multiplayer updates
   useEffect(() => {
     refreshGames();
+
+    const unsubscribeAll = subscribeToAllGames((updatedList) => {
+      setGames(updatedList);
+      if (activeGame) {
+        const refreshed = updatedList.find((g) => g.id.toLowerCase() === activeGame.id.toLowerCase());
+        if (refreshed) {
+          setActiveGame(refreshed);
+        }
+      }
+    });
 
     const handleStorage = () => refreshGames();
     window.addEventListener('storage', handleStorage);
     window.addEventListener('spy_games_updated', handleStorage);
 
     return () => {
+      unsubscribeAll();
       window.removeEventListener('storage', handleStorage);
       window.removeEventListener('spy_games_updated', handleStorage);
+    };
+  }, [activeGame?.id]);
+
+  // Real-time listener specifically for the active game room
+  useEffect(() => {
+    if (!activeGame?.id) return;
+
+    const unsubscribeActive = subscribeToGame(activeGame.id, (realtimeGame) => {
+      if (realtimeGame) {
+        setActiveGame(realtimeGame);
+      }
+    });
+
+    return () => {
+      unsubscribeActive();
     };
   }, [activeGame?.id]);
 
   // Handle incoming invite if initialGameId was provided
   useEffect(() => {
     if (initialGameId && !activeGame) {
-      const found = getGameById(initialGameId);
-      if (found) {
-        try {
-          const joined = joinSpyGame(found.id, user);
-          if (joined) {
+      let active = true;
+      joinSpyGameAsync(initialGameId, user)
+        .then((joined) => {
+          if (active && joined) {
             setActiveGame(joined);
           }
-        } catch {
-          // If already member, just view
-          setActiveGame(found);
-        }
-      }
+        })
+        .catch(() => {
+          getGameByIdAsync(initialGameId).then((found) => {
+            if (active && found) {
+              setActiveGame(found);
+            }
+          });
+        });
+
+      return () => {
+        active = false;
+      };
     }
   }, [initialGameId]);
 
@@ -99,7 +137,7 @@ export const AgentDashboard: React.FC<AgentDashboardProps> = ({
     setActiveGame(newGame);
   };
 
-  const handleJoinByCode = (e: React.FormEvent) => {
+  const handleJoinByCode = async (e: React.FormEvent) => {
     e.preventDefault();
     setJoinError(null);
 
@@ -122,21 +160,20 @@ export const AgentDashboard: React.FC<AgentDashboardProps> = ({
       // not a url, proceed
     }
 
-    const found = getGameById(cleanCode);
-    if (!found) {
-      setJoinError(t('err_op_not_found', { code: cleanCode }));
-      return;
-    }
-
+    setIsJoining(true);
     try {
-      const joined = joinSpyGame(found.id, user);
+      const joined = await joinSpyGameAsync(cleanCode, user);
       if (joined) {
         setActiveGame(joined);
         setSearchCode('');
         refreshGames();
+      } else {
+        setJoinError(t('err_op_not_found', { code: cleanCode }));
       }
     } catch (err: any) {
       setJoinError(err?.message || 'Unable to join operation.');
+    } finally {
+      setIsJoining(false);
     }
   };
 
