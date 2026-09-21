@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { SpyGame } from '../types.ts';
 import { generateInviteLink, addBotOperative } from '../utils/gameStorage.ts';
+import { useLanguage } from '../i18n/LanguageContext.tsx';
 import {
   Copy,
   Check,
@@ -9,9 +10,7 @@ import {
   ExternalLink,
   X,
   UserPlus,
-  ShieldAlert,
   Terminal,
-  QrCode,
 } from 'lucide-react';
 
 interface InviteModalProps {
@@ -21,6 +20,7 @@ interface InviteModalProps {
 }
 
 export const InviteModal: React.FC<InviteModalProps> = ({ game, onClose, onOperativeAdded }) => {
+  const { t } = useLanguage();
   const [copied, setCopied] = useState(false);
   const [copiedCode, setCopiedCode] = useState(false);
   const [simulatedAdded, setSimulatedAdded] = useState(false);
@@ -33,7 +33,6 @@ export const InviteModal: React.FC<InviteModalProps> = ({ game, onClose, onOpera
       setCopied(true);
       setTimeout(() => setCopied(false), 2500);
     } catch {
-      // Fallback
       const input = document.getElementById('invite-url-input') as HTMLInputElement;
       if (input) {
         input.select();
@@ -111,7 +110,7 @@ export const InviteModal: React.FC<InviteModalProps> = ({ game, onClose, onOpera
           id="btn-close-invite-modal"
           type="button"
           onClick={onClose}
-          className="absolute top-4 right-4 text-neutral-400 hover:text-white p-1 rounded-lg hover:bg-neutral-800 transition-colors"
+          className="absolute top-4 right-4 text-neutral-400 hover:text-white p-1 rounded-lg hover:bg-neutral-800 transition-colors cursor-pointer"
           title="Close dialog"
         >
           <X className="w-5 h-5" />
@@ -125,21 +124,21 @@ export const InviteModal: React.FC<InviteModalProps> = ({ game, onClose, onOpera
           <div>
             <div className="flex items-center space-x-2">
               <span className="text-[10px] font-mono tracking-widest text-emerald-400 uppercase font-semibold">
-                SECURE TRANSMISSION
+                {t('secure_transmission')}
               </span>
             </div>
-            <h3 className="text-lg font-bold text-white">Send Invitation Link</h3>
+            <h3 className="text-lg font-bold text-white">{t('send_invite_link')}</h3>
           </div>
         </div>
 
         <p className="text-xs text-neutral-400 mb-5 leading-relaxed">
-          Share this unique terminal link with other operatives so they can join <strong className="text-emerald-300 font-semibold">{game.title}</strong> directly from their browser. The game creator can start the operation as soon as 3 or more participants have joined.
+          {t('share_link_desc', { title: game.title })}
         </p>
 
         {/* Invite Link Display Box */}
         <div className="mb-4">
           <label className="block text-[11px] font-mono text-neutral-400 mb-1.5 font-medium tracking-wide">
-            CLASSIFIED INVITATION URL
+            {t('classified_invitation_url')}
           </label>
           <div className="flex items-center gap-2">
             <div className="relative flex-1">
@@ -164,12 +163,12 @@ export const InviteModal: React.FC<InviteModalProps> = ({ game, onClose, onOpera
               {copied ? (
                 <>
                   <Check className="w-3.5 h-3.5" />
-                  <span>COPIED!</span>
+                  <span>{t('copied_excl')}</span>
                 </>
               ) : (
                 <>
                   <Copy className="w-3.5 h-3.5" />
-                  <span>COPY</span>
+                  <span>{t('copy_btn')}</span>
                 </>
               )}
             </button>
@@ -177,7 +176,7 @@ export const InviteModal: React.FC<InviteModalProps> = ({ game, onClose, onOpera
           {copied && (
             <p className="text-[11px] text-emerald-400 mt-1.5 font-mono flex items-center gap-1">
               <Check className="w-3 h-3" />
-              Link copied to clipboard. Send to any operative!
+              {t('link_copied_notice')}
             </p>
           )}
         </div>
@@ -185,7 +184,7 @@ export const InviteModal: React.FC<InviteModalProps> = ({ game, onClose, onOpera
         {/* Mission Code Badge */}
         <div className="mb-5 p-3 rounded-lg bg-neutral-950/80 border border-neutral-800 flex items-center justify-between">
           <div>
-            <div className="text-[10px] font-mono text-neutral-500">DIRECT MISSION CODE</div>
+            <div className="text-[10px] font-mono text-neutral-500">{t('direct_code_label')}</div>
             <div className="text-base font-bold font-mono tracking-widest text-white">{game.inviteCode}</div>
           </div>
           <button
@@ -195,7 +194,7 @@ export const InviteModal: React.FC<InviteModalProps> = ({ game, onClose, onOpera
             className="text-xs font-mono px-2.5 py-1.5 rounded bg-neutral-800 hover:bg-neutral-750 text-neutral-300 border border-neutral-700 flex items-center gap-1 transition-colors cursor-pointer"
           >
             {copiedCode ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3" />}
-            <span>{copiedCode ? 'Copied' : 'Copy Code'}</span>
+            <span>{copiedCode ? t('copied') : t('copy_code_btn')}</span>
           </button>
         </div>
 
@@ -208,7 +207,7 @@ export const InviteModal: React.FC<InviteModalProps> = ({ game, onClose, onOpera
             className="py-2 px-3 rounded-lg bg-neutral-800 hover:bg-neutral-750 text-neutral-200 border border-neutral-700 text-xs font-medium flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
           >
             <Share2 className="w-3.5 h-3.5 text-emerald-400" />
-            <span>Share Link</span>
+            <span>{t('share_link_btn')}</span>
           </button>
 
           <button
@@ -218,7 +217,7 @@ export const InviteModal: React.FC<InviteModalProps> = ({ game, onClose, onOpera
             className="py-2 px-3 rounded-lg bg-neutral-800 hover:bg-neutral-750 text-neutral-200 border border-neutral-700 text-xs font-medium flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
           >
             <Mail className="w-3.5 h-3.5 text-emerald-400" />
-            <span>Send via Email</span>
+            <span>{t('send_email_btn')}</span>
           </button>
         </div>
 
@@ -226,7 +225,7 @@ export const InviteModal: React.FC<InviteModalProps> = ({ game, onClose, onOpera
         <div className="pt-4 border-t border-neutral-800">
           <div className="text-[10px] font-mono text-neutral-500 mb-2 flex items-center gap-1">
             <Terminal className="w-3 h-3" />
-            <span>TESTING &amp; MULTI-TAB SIMULATION</span>
+            <span>{t('testing_simulation')}</span>
           </div>
 
           <div className="flex flex-col sm:flex-row gap-2">
@@ -238,7 +237,7 @@ export const InviteModal: React.FC<InviteModalProps> = ({ game, onClose, onOpera
               className="flex-1 py-1.5 px-3 rounded bg-neutral-850 hover:bg-neutral-800 border border-neutral-750 text-[11px] font-mono text-neutral-300 flex items-center justify-center gap-1.5 transition-colors"
             >
               <ExternalLink className="w-3 h-3 text-emerald-400" />
-              <span>Open in New Tab</span>
+              <span>{t('open_new_tab')}</span>
             </a>
 
             <button
@@ -249,7 +248,7 @@ export const InviteModal: React.FC<InviteModalProps> = ({ game, onClose, onOpera
               className="flex-1 py-1.5 px-3 rounded bg-neutral-850 hover:bg-neutral-800 disabled:opacity-40 border border-neutral-750 text-[11px] font-mono text-neutral-300 flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
             >
               <UserPlus className="w-3 h-3 text-emerald-400" />
-              <span>{simulatedAdded ? 'Added Agent!' : 'Add Bot Agent'}</span>
+              <span>{simulatedAdded ? t('added_agent') : t('add_bot_agent')}</span>
             </button>
           </div>
         </div>
@@ -262,7 +261,7 @@ export const InviteModal: React.FC<InviteModalProps> = ({ game, onClose, onOpera
             onClick={onClose}
             className="w-full py-2 rounded-lg bg-neutral-800 hover:bg-neutral-750 text-neutral-300 text-xs font-medium transition-colors cursor-pointer"
           >
-            Done
+            {t('done')}
           </button>
         </div>
       </div>

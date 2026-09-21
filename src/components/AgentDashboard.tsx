@@ -9,6 +9,7 @@ import {
 import { CreateGameModal } from './CreateGameModal.tsx';
 import { GameLobbyView } from './GameLobbyView.tsx';
 import { InviteModal } from './InviteModal.tsx';
+import { useLanguage } from '../i18n/LanguageContext.tsx';
 import {
   ShieldCheck,
   LogOut,
@@ -38,6 +39,7 @@ export const AgentDashboard: React.FC<AgentDashboardProps> = ({
   onSignOut,
   initialGameId,
 }) => {
+  const { t, language } = useLanguage();
   const [games, setGames] = useState<SpyGame[]>(() => getStoredGames());
   const [activeGame, setActiveGame] = useState<SpyGame | null>(null);
   const [isCreatingGame, setIsCreatingGame] = useState(false);
@@ -83,8 +85,9 @@ export const AgentDashboard: React.FC<AgentDashboardProps> = ({
           if (joined) {
             setActiveGame(joined);
           }
-        } catch (err: any) {
-          setJoinError(err?.message || 'Unable to join operation.');
+        } catch {
+          // If already member, just view
+          setActiveGame(found);
         }
       }
     }
@@ -92,27 +95,36 @@ export const AgentDashboard: React.FC<AgentDashboardProps> = ({
 
   const handleCreateGameSuccess = (newGame: SpyGame) => {
     setIsCreatingGame(false);
-    setActiveGame(newGame);
     refreshGames();
+    setActiveGame(newGame);
   };
 
   const handleJoinByCode = (e: React.FormEvent) => {
     e.preventDefault();
     setJoinError(null);
-    if (!searchCode.trim()) return;
 
-    let targetCode = searchCode.trim();
-    // Support pasting full URL
-    if (targetCode.includes('game=')) {
-      const match = targetCode.match(/game=([^&]+)/);
-      if (match && match[1]) {
-        targetCode = decodeURIComponent(match[1]);
-      }
+    let cleanCode = searchCode.trim();
+    if (!cleanCode) {
+      setJoinError(t('err_enter_code'));
+      return;
     }
 
-    const found = getGameById(targetCode);
+    // Support full invitation link pasted
+    try {
+      if (cleanCode.includes('http://') || cleanCode.includes('https://') || cleanCode.includes('?')) {
+        const url = new URL(cleanCode.startsWith('http') ? cleanCode : window.location.origin + '/' + cleanCode);
+        const code = url.searchParams.get('game') || url.searchParams.get('join');
+        if (code) {
+          cleanCode = code;
+        }
+      }
+    } catch {
+      // not a url, proceed
+    }
+
+    const found = getGameById(cleanCode);
     if (!found) {
-      setJoinError(`No active operation matching code "${targetCode}" was located.`);
+      setJoinError(t('err_op_not_found', { code: cleanCode }));
       return;
     }
 
@@ -179,11 +191,11 @@ export const AgentDashboard: React.FC<AgentDashboardProps> = ({
               <div className="flex items-center space-x-2">
                 <span className="inline-block w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
                 <span className="text-[10px] font-mono tracking-widest text-emerald-400 uppercase font-semibold">
-                  ENCRYPTED TERMINAL ACTIVE
+                  {t('encrypted_terminal_active')}
                 </span>
               </div>
               <h1 className="text-xl font-bold tracking-tight text-white flex items-center gap-2">
-                <span>Operative:</span>
+                <span>{t('operative_label')}</span>
                 <span className="text-emerald-400 font-mono">{user.codename}</span>
               </h1>
             </div>
@@ -201,7 +213,7 @@ export const AgentDashboard: React.FC<AgentDashboardProps> = ({
               title="Terminate authenticated session"
             >
               <LogOut className="w-3.5 h-3.5 text-neutral-400" />
-              <span>Sign Out</span>
+              <span>{t('sign_out')}</span>
             </button>
           </div>
         </div>
@@ -209,20 +221,20 @@ export const AgentDashboard: React.FC<AgentDashboardProps> = ({
         {/* Quick specs grid */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-4 text-xs font-mono">
           <div className="bg-neutral-950/70 border border-neutral-850 p-2.5 rounded-lg">
-            <span className="text-[10px] text-neutral-500 block">USERNAME</span>
+            <span className="text-[10px] text-neutral-500 block">{t('stat_username')}</span>
             <span className="text-neutral-200 font-semibold truncate block">{user.username}</span>
           </div>
           <div className="bg-neutral-950/70 border border-neutral-850 p-2.5 rounded-lg">
-            <span className="text-[10px] text-neutral-500 block">CLEARANCE</span>
+            <span className="text-[10px] text-neutral-500 block">{t('stat_clearance')}</span>
             <span className="text-emerald-400 font-semibold truncate block">{user.clearanceLevel}</span>
           </div>
           <div className="bg-neutral-950/70 border border-neutral-850 p-2.5 rounded-lg">
-            <span className="text-[10px] text-neutral-500 block">ENCRYPTION</span>
+            <span className="text-[10px] text-neutral-500 block">{t('stat_encryption')}</span>
             <span className="text-neutral-200 font-semibold block">AES-256 GCM</span>
           </div>
           <div className="bg-neutral-950/70 border border-neutral-850 p-2.5 rounded-lg">
-            <span className="text-[10px] text-neutral-500 block">OPERATIONS</span>
-            <span className="text-emerald-300 font-semibold block">{myOperations.length} Active</span>
+            <span className="text-[10px] text-neutral-500 block">{t('stat_operations')}</span>
+            <span className="text-emerald-300 font-semibold block">{myOperations.length} {t('stat_active_suffix')}</span>
           </div>
         </div>
       </div>
@@ -237,11 +249,11 @@ export const AgentDashboard: React.FC<AgentDashboardProps> = ({
                 <Radio className="w-4 h-4" />
               </span>
               <h2 className="text-sm font-bold text-white font-mono uppercase tracking-wide">
-                Mission Command
+                {t('mission_command')}
               </h2>
             </div>
             <p className="text-xs text-neutral-400 mb-4 leading-relaxed">
-              Launch a new classified spy game and invite fellow operatives via secure encrypted link. Select mission objectives, operative limits, and classified sectors.
+              {t('mission_command_desc')}
             </p>
           </div>
 
@@ -252,7 +264,7 @@ export const AgentDashboard: React.FC<AgentDashboardProps> = ({
             className="w-full sm:w-auto self-start py-2.5 px-5 rounded-lg bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 text-neutral-950 font-bold text-xs font-mono flex items-center justify-center gap-2 transition-all shadow-lg shadow-emerald-950/40 cursor-pointer"
           >
             <Plus className="w-4 h-4" />
-            <span>Create New Spy Game</span>
+            <span>{t('create_new_spy_game')}</span>
           </button>
         </div>
 
@@ -264,11 +276,11 @@ export const AgentDashboard: React.FC<AgentDashboardProps> = ({
                 <KeyRound className="w-4 h-4" />
               </span>
               <h2 className="text-sm font-bold text-white font-mono uppercase tracking-wide">
-                Join Operation
+                {t('join_operation')}
               </h2>
             </div>
             <p className="text-xs text-neutral-400 mb-3">
-              Enter mission code or paste invitation link.
+              {t('join_op_desc')}
             </p>
           </div>
 
@@ -282,7 +294,7 @@ export const AgentDashboard: React.FC<AgentDashboardProps> = ({
                   setSearchCode(e.target.value);
                   if (joinError) setJoinError(null);
                 }}
-                placeholder="e.g. SPY-XXXX or paste link"
+                placeholder={t('join_placeholder')}
                 className="w-full bg-neutral-950 border border-neutral-750 focus:border-emerald-500 rounded-lg px-3 py-2 text-xs text-white placeholder-neutral-600 font-mono outline-none"
               />
             </div>
@@ -300,7 +312,7 @@ export const AgentDashboard: React.FC<AgentDashboardProps> = ({
               className="w-full py-2 px-3 rounded-lg bg-neutral-800 hover:bg-neutral-750 text-neutral-200 border border-neutral-700 text-xs font-mono font-medium flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
             >
               <Search className="w-3.5 h-3.5 text-neutral-400" />
-              <span>Connect to Mission</span>
+              <span>{t('connect_mission')}</span>
             </button>
           </form>
         </div>
@@ -312,18 +324,18 @@ export const AgentDashboard: React.FC<AgentDashboardProps> = ({
           <div className="flex items-center gap-2">
             <Terminal className="w-5 h-5 text-emerald-400" />
             <h2 className="text-sm font-bold text-white uppercase tracking-wider font-mono">
-              Classified Operations ({myOperations.length})
+              {t('classified_operations', { count: myOperations.length })}
             </h2>
           </div>
-          <span className="text-xs font-mono text-neutral-500">Auto-synchronized</span>
+          <span className="text-xs font-mono text-neutral-500">{t('auto_synced')}</span>
         </div>
 
         {myOperations.length === 0 ? (
           <div className="text-center py-10 px-4 bg-neutral-950/40 border border-dashed border-neutral-800 rounded-lg">
             <Radio className="w-8 h-8 text-neutral-600 mx-auto mb-2.5" />
-            <h3 className="text-sm font-bold text-neutral-300 font-mono">No Active Operations Assigned</h3>
+            <h3 className="text-sm font-bold text-neutral-300 font-mono">{t('no_operations')}</h3>
             <p className="text-xs text-neutral-500 mt-1 max-w-sm mx-auto">
-              Initialize a spy game above to generate your first mission dispatch and invitation link.
+              {t('no_operations_desc')}
             </p>
             <button
               type="button"
@@ -331,7 +343,7 @@ export const AgentDashboard: React.FC<AgentDashboardProps> = ({
               className="mt-4 py-2 px-4 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-neutral-950 text-xs font-mono font-bold inline-flex items-center gap-1.5 transition-colors cursor-pointer"
             >
               <Plus className="w-3.5 h-3.5" />
-              <span>Create Operation</span>
+              <span>{t('create_operation_btn')}</span>
             </button>
           </div>
         ) : (
@@ -360,10 +372,10 @@ export const AgentDashboard: React.FC<AgentDashboardProps> = ({
                         }`}
                       >
                         {game.status === 'active'
-                          ? 'Active'
+                          ? t('status_active')
                           : game.players.length >= 3
-                          ? 'Ready (3+)'
-                          : `Needs ${3 - game.players.length} More`}
+                          ? t('status_ready')
+                          : t('status_needs_more', { count: 3 - game.players.length })}
                       </span>
                     </div>
 
@@ -372,18 +384,18 @@ export const AgentDashboard: React.FC<AgentDashboardProps> = ({
                       {game.title}
                     </h3>
                     <p className="text-xs text-neutral-400 line-clamp-1 mb-3 flex items-center gap-1.5">
-                      <span className="text-emerald-500/70 font-mono text-[11px]">POOL:</span>
-                      <span>500 Pre-existing Locations (Classified on Launch)</span>
+                      <span className="text-emerald-500/70 font-mono text-[11px]">{t('pool_label')}</span>
+                      <span>{t('pool_500')}</span>
                     </p>
 
                     {/* Meta info */}
                     <div className="flex items-center gap-3 text-[11px] font-mono text-neutral-500 mb-4">
                       <span className="flex items-center gap-1">
                         <Users className="w-3 h-3 text-neutral-400" />
-                        {game.players.length}/{game.maxPlayers} Agents
+                        {game.players.length}/{game.maxPlayers} {t('agents_count')}
                       </span>
                       <span>&bull;</span>
-                      <span>{isHost ? 'Host: You' : `Host: ${game.hostCodename}`}</span>
+                      <span>{isHost ? t('host_you') : t('host_user', { host: game.hostCodename })}</span>
                     </div>
                   </div>
 
@@ -395,7 +407,7 @@ export const AgentDashboard: React.FC<AgentDashboardProps> = ({
                       className="py-1.5 px-3 rounded bg-neutral-800 hover:bg-neutral-750 text-neutral-200 text-xs font-mono font-medium flex items-center gap-1.5 border border-neutral-700 transition-colors cursor-pointer"
                     >
                       <Play className="w-3 h-3 text-emerald-400" />
-                      <span>Enter Lobby</span>
+                      <span>{t('enter_lobby')}</span>
                     </button>
 
                     <div className="flex items-center gap-1.5">
@@ -403,17 +415,17 @@ export const AgentDashboard: React.FC<AgentDashboardProps> = ({
                         type="button"
                         onClick={(e) => handleCopyLink(game, e)}
                         className="py-1.5 px-2.5 rounded bg-neutral-850 hover:bg-neutral-800 text-neutral-300 text-xs font-mono flex items-center gap-1 border border-neutral-750 transition-colors cursor-pointer"
-                        title="Copy invitation link"
+                        title={t('copy_link')}
                       >
                         {isCopied ? (
                           <>
                             <Check className="w-3 h-3 text-emerald-400" />
-                            <span className="text-[11px] text-emerald-400">Copied</span>
+                            <span className="text-[11px] text-emerald-400">{t('copied')}</span>
                           </>
                         ) : (
                           <>
                             <Copy className="w-3 h-3 text-neutral-400" />
-                            <span className="text-[11px]">Copy Link</span>
+                            <span className="text-[11px]">{t('copy_link')}</span>
                           </>
                         )}
                       </button>
@@ -422,7 +434,7 @@ export const AgentDashboard: React.FC<AgentDashboardProps> = ({
                         type="button"
                         onClick={() => setInviteModalGame(game)}
                         className="p-1.5 rounded bg-emerald-950/60 hover:bg-emerald-900/60 border border-emerald-500/40 text-emerald-400 transition-colors cursor-pointer"
-                        title="Open full invitation options"
+                        title={t('invite_operatives')}
                       >
                         <Share2 className="w-3.5 h-3.5" />
                       </button>

@@ -11,6 +11,8 @@ import {
   tallyVotesAndConclude,
   startNewRound,
 } from '../utils/gameStorage.ts';
+import { getLocationName } from '../data/locations.ts';
+import { useLanguage } from '../i18n/LanguageContext.tsx';
 import { InviteModal } from './InviteModal.tsx';
 import { LocationsGuideModal } from './LocationsGuideModal.tsx';
 import {
@@ -34,7 +36,6 @@ import {
   Lock,
   Vote,
   Trophy,
-  Award,
   Flame,
   UserCheck,
   UserX,
@@ -53,6 +54,7 @@ export const GameLobbyView: React.FC<GameLobbyViewProps> = ({
   onLeave,
   onGameUpdated,
 }) => {
+  const { t, language } = useLanguage();
   const [showInviteModal, setShowInviteModal] = useState(false);
   const [showLocationsGuide, setShowLocationsGuide] = useState(false);
   const [copiedQuick, setCopiedQuick] = useState(false);
@@ -150,14 +152,25 @@ export const GameLobbyView: React.FC<GameLobbyViewProps> = ({
     : false;
 
   const targetLocation = game.selectedLocation || game.secretLocation || 'Palace';
+  const targetLocationLocalized =
+    language === 'uk' ? getLocationName(targetLocation, 'uk') : targetLocation;
   const spyCount = game.totalSpiesCount || getSpyCount(game.players.length);
 
   const handleSpyGuessLocation = (guessedLocation: string) => {
-    const isCorrect = guessedLocation.trim().toLowerCase() === targetLocation.trim().toLowerCase();
+    const normGuessed = guessedLocation.trim().toLowerCase();
+    const normTarget = targetLocation.trim().toLowerCase();
+    const ukTarget = getLocationName(targetLocation, 'uk').trim().toLowerCase();
+    const enGuessed = getLocationName(guessedLocation, 'en').trim().toLowerCase();
+
+    const isCorrect =
+      normGuessed === normTarget ||
+      normGuessed === ukTarget ||
+      enGuessed === normTarget;
+
     if (isCorrect) {
-      setSpyGuessFeedback(`TARGET IDENTIFIED! "${guessedLocation}" is the CORRECT secret location! Covert mission accomplished!`);
+      setSpyGuessFeedback(t('target_identified', { loc: guessedLocation }));
     } else {
-      setSpyGuessFeedback(`INCORRECT GUESS. "${guessedLocation}" is not the true location. Stay undercover and keep listening!`);
+      setSpyGuessFeedback(t('incorrect_guess', { loc: guessedLocation }));
     }
   };
 
@@ -172,7 +185,7 @@ export const GameLobbyView: React.FC<GameLobbyViewProps> = ({
           className="text-xs font-mono text-neutral-400 hover:text-neutral-200 flex items-center gap-1.5 transition-colors cursor-pointer"
         >
           <ArrowLeft className="w-4 h-4" />
-          <span>Return to Headquarters</span>
+          <span>{t('return_hq')}</span>
         </button>
 
         <div className="flex items-center gap-2">
@@ -180,10 +193,10 @@ export const GameLobbyView: React.FC<GameLobbyViewProps> = ({
             type="button"
             onClick={() => setShowLocationsGuide(true)}
             className="text-xs font-mono px-2.5 py-1 rounded bg-neutral-900 hover:bg-neutral-850 border border-neutral-800 text-emerald-400 flex items-center gap-1.5 transition-colors cursor-pointer"
-            title="Browse 500 possible locations"
+            title={t('view_500_pool')}
           >
             <Database className="w-3.5 h-3.5" />
-            <span>500 Locations</span>
+            <span>{t('view_500_pool')}</span>
           </button>
 
           <span className="text-xs font-mono px-2.5 py-1 rounded bg-neutral-900 border border-neutral-800 text-neutral-400">
@@ -210,21 +223,23 @@ export const GameLobbyView: React.FC<GameLobbyViewProps> = ({
               ></span>
               <span className="text-xs font-mono tracking-widest text-emerald-400 uppercase font-semibold">
                 {game.status === 'active'
-                  ? 'INTERROGATION ACTIVE'
+                  ? t('interrogation_active')
                   : game.status === 'voting'
-                  ? 'GUESSING PHASE // ACCUSE SPY'
+                  ? t('guessing_accuse_spy')
                   : game.status === 'completed'
-                  ? 'OPERATION CONCLUDED // DEBRIEF'
-                  : 'LOBBY RECRUITING'}
+                  ? t('operation_concluded')
+                  : t('lobby_recruiting')}
               </span>
               <span className="text-neutral-600">&bull;</span>
               <span className="text-xs font-mono text-neutral-400">
-                {game.players.length} Players &bull; {spyCount} {spyCount === 1 ? 'Spy' : 'Spies'}
+                {game.players.length} {t('agents_count')} &bull; {spyCount}{' '}
+                {spyCount === 1 ? t('spy_singular') : t('spies_plural')}
               </span>
             </div>
             <h1 className="text-xl sm:text-2xl font-bold text-white tracking-tight">{game.title}</h1>
             <p className="text-xs text-neutral-400 mt-1">
-              Directed by Commander <span className="text-neutral-200 font-semibold">{game.hostCodename}</span>
+              {t('directed_by')}{' '}
+              <span className="text-neutral-200 font-semibold">{game.hostCodename}</span>
             </p>
           </div>
 
@@ -236,14 +251,14 @@ export const GameLobbyView: React.FC<GameLobbyViewProps> = ({
             className="self-start sm:self-center py-2.5 px-4 rounded-lg bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 text-neutral-950 font-bold text-xs font-mono flex items-center gap-2 shadow-lg shadow-emerald-950/50 transition-all cursor-pointer"
           >
             <Share2 className="w-4 h-4" />
-            <span>Send Invitation Link</span>
+            <span>{t('send_invite_link')}</span>
           </button>
         </div>
 
         {/* Quick Link Share Bar */}
         <div id="quick-invite-bar" className="mt-4 p-3 rounded-lg bg-neutral-950/80 border border-neutral-800/80 flex flex-col sm:flex-row items-center justify-between gap-3">
           <div className="flex items-center gap-2 text-xs font-mono text-neutral-400 w-full sm:w-auto truncate">
-            <span className="text-emerald-400 shrink-0 font-bold">INVITE LINK:</span>
+            <span className="text-emerald-400 shrink-0 font-bold">{t('invite_link_label')}</span>
             <span className="text-neutral-300 truncate select-all">{inviteUrl}</span>
           </div>
           <div className="flex items-center gap-2 w-full sm:w-auto shrink-0">
@@ -256,12 +271,12 @@ export const GameLobbyView: React.FC<GameLobbyViewProps> = ({
               {copiedQuick ? (
                 <>
                   <Check className="w-3.5 h-3.5 text-emerald-400" />
-                  <span className="text-emerald-400">Copied!</span>
+                  <span className="text-emerald-400">{t('copied_excl')}</span>
                 </>
               ) : (
                 <>
                   <Copy className="w-3.5 h-3.5 text-neutral-400" />
-                  <span>Copy Link</span>
+                  <span>{t('copy_link_btn')}</span>
                 </>
               )}
             </button>
@@ -271,7 +286,7 @@ export const GameLobbyView: React.FC<GameLobbyViewProps> = ({
               target="_blank"
               rel="noopener noreferrer"
               className="py-1.5 px-2.5 rounded bg-neutral-800 hover:bg-neutral-750 text-neutral-300 text-xs font-mono flex items-center justify-center border border-neutral-700 transition-colors"
-              title="Open invitation in a new tab"
+              title={t('open_in_tab')}
             >
               <ExternalLink className="w-3.5 h-3.5" />
             </a>
@@ -285,7 +300,7 @@ export const GameLobbyView: React.FC<GameLobbyViewProps> = ({
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2 text-emerald-400 font-bold uppercase tracking-wider">
               <Shield className="w-4 h-4" />
-              <span>Spy Protocol &amp; Location Allocation</span>
+              <span>{t('spy_protocol_title')}</span>
             </div>
             <button
               type="button"
@@ -293,31 +308,34 @@ export const GameLobbyView: React.FC<GameLobbyViewProps> = ({
               className="text-neutral-400 hover:text-emerald-300 underline underline-offset-2 flex items-center gap-1 cursor-pointer"
             >
               <Database className="w-3 h-3 text-emerald-400" />
-              <span>Browse 500 Places</span>
+              <span>{t('browse_500_places')}</span>
             </button>
           </div>
 
           <div className="p-3 bg-neutral-950/80 rounded-lg border border-neutral-850 space-y-2 text-neutral-300">
             <p className="leading-relaxed">
-              &bull; When the operation starts, <strong className="text-white">each player randomly receives the exact same secret location</strong> from a collection of 500 pre-existing locations (Church, Palace, Castle, School, Submarine, etc.), <span className="text-red-300 font-semibold">except for the undercover Spies</span>.
+              &bull; {t('pool_desc')}
             </p>
             <p className="leading-relaxed">
-              &bull; <strong className="text-emerald-300">Information Asymmetry:</strong> Players do NOT know who received the location or who became a Spy. The roster remains strictly classified.
+              &bull; <strong className="text-emerald-300">{t('info_asymmetry_title')}</strong> {t('info_asymmetry_desc')}
             </p>
             <p className="leading-relaxed">
-              &bull; <strong className="text-white">Spy Distribution Scale:</strong>
+              &bull; <strong className="text-white">{t('spy_scale_title')}</strong>
               <span className="text-neutral-400 ml-1">
-                3–4 Players = 1 Spy &bull; 5–7 Players = 2 Spies &bull; 8–10 Players = 3 Spies (+1 Spy per 3 players).
+                {t('spy_scale_desc')}
               </span>
             </p>
           </div>
 
           <div className="flex items-center justify-between text-[11px] text-neutral-400 pt-1">
             <span>
-              Current Roster: <strong className="text-emerald-400">{game.players.length} Operatives</strong>
+              {t('current_roster_label')}{' '}
+              <strong className="text-emerald-400">
+                {game.players.length} {t('agents_count')}
+              </strong>
             </span>
             <span className="text-emerald-300 font-bold bg-emerald-950/60 border border-emerald-500/30 px-2 py-0.5 rounded">
-              &rarr; {getSpyCount(game.players.length)} {getSpyCount(game.players.length) === 1 ? 'Spy' : 'Spies'} will be deployed
+              &rarr; {spyCount} {spyCount === 1 ? t('spy_singular') : t('spies_plural')} {t('will_be_deployed')}
             </span>
           </div>
         </div>
@@ -340,10 +358,11 @@ export const GameLobbyView: React.FC<GameLobbyViewProps> = ({
               <AlertCircle className={`w-5 h-5 ${isSpy && revealRole ? 'text-red-400' : 'text-amber-400'}`} />
               <div>
                 <h2 className="text-sm sm:text-base font-bold text-white uppercase tracking-wider font-mono">
-                  Classified Assignment // Eyes Only
+                  {t('classified_assignment')}
                 </h2>
                 <div className="text-[11px] font-mono text-neutral-400">
-                  {game.players.length} Operatives Active &bull; {spyCount} Undercover {spyCount === 1 ? 'Spy' : 'Spies'}
+                  {game.players.length} {t('operatives_active')} &bull; {spyCount} {t('undercover_spies')}{' '}
+                  {spyCount === 1 ? t('spy_singular') : t('spies_plural')}
                 </div>
               </div>
             </div>
@@ -359,7 +378,7 @@ export const GameLobbyView: React.FC<GameLobbyViewProps> = ({
               }`}
             >
               <Eye className="w-3.5 h-3.5" />
-              <span>{revealRole ? 'Hide Classified Role' : 'Reveal Classified Role'}</span>
+              <span>{revealRole ? t('hide_role_btn') : t('reveal_role_btn')}</span>
             </button>
           </div>
 
@@ -372,37 +391,33 @@ export const GameLobbyView: React.FC<GameLobbyViewProps> = ({
                     <div className="flex items-center justify-between">
                       <div className="text-red-400 font-bold text-xs tracking-widest uppercase flex items-center gap-1.5">
                         <Radio className="w-4 h-4 text-red-400 animate-pulse" />
-                        <span>ASSIGNED ROLE: THE SPY</span>
+                        <span>{t('assigned_role_spy')}</span>
                       </div>
                       <span className="text-[10px] uppercase font-bold px-2 py-0.5 rounded bg-red-900/60 text-red-300 border border-red-700/60">
-                        Undercover Infiltrator
+                        {t('undercover_infiltrator')}
                       </span>
                     </div>
 
                     <div className="p-3 bg-red-950/60 border border-red-800/60 rounded flex items-center justify-between gap-3">
                       <div>
                         <div className="text-[10px] text-red-400 uppercase tracking-wide">
-                          SECRET LOCATION:
+                          {t('secret_location_spy_title')}
                         </div>
                         <div className="text-base sm:text-lg font-bold text-red-100 flex items-center gap-2">
                           <HelpCircle className="w-5 h-5 text-red-400" />
-                          <span>UNKNOWN // CLASSIFIED</span>
+                          <span>{t('unknown_classified')}</span>
                         </div>
                       </div>
                       <span className="text-xs text-red-300 font-semibold text-right">
-                        You do NOT know the location!
+                        {t('you_do_not_know_loc')}
                       </span>
                     </div>
 
                     <div className="text-xs space-y-1.5 text-neutral-300">
+                      <p>&bull; {t('spy_mission_notice')}</p>
+                      <p>&bull; {t('spy_objective_body')}</p>
                       <p>
-                        &bull; All other loyal operatives have been deployed to the <strong>exact same secret location</strong>.
-                      </p>
-                      <p>
-                        &bull; <strong>Objective:</strong> Blend in! Ask cautious questions, listen to other operatives without giving away that you don&rsquo;t know the location, and deduce which of the 500 locations they are at.
-                      </p>
-                      <p>
-                        &bull; There {spyCount === 1 ? 'is 1 Spy' : `are ${spyCount} Spies`} total in this mission.
+                        &bull; {spyCount === 1 ? `1 ${t('spy_singular')}` : `${spyCount} ${t('spies_plural')}`}
                       </p>
                     </div>
 
@@ -414,7 +429,7 @@ export const GameLobbyView: React.FC<GameLobbyViewProps> = ({
                         className="w-full sm:w-auto py-2 px-3.5 rounded bg-red-900/80 hover:bg-red-800 text-white text-xs font-bold font-mono flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
                       >
                         <Database className="w-3.5 h-3.5" />
-                        <span>Browse 500 Locations &amp; Guess</span>
+                        <span>{t('browse_500_guess')}</span>
                       </button>
 
                       {spyGuessFeedback && (
@@ -430,23 +445,28 @@ export const GameLobbyView: React.FC<GameLobbyViewProps> = ({
                     <div className="flex items-center justify-between">
                       <div className="text-emerald-400 font-bold text-xs tracking-widest uppercase flex items-center gap-1.5">
                         <Shield className="w-4 h-4 text-emerald-400" />
-                        <span>ASSIGNED ROLE: LOYAL OPERATIVE</span>
+                        <span>{t('assigned_role_loyal')}</span>
                       </div>
                       <span className="text-[10px] uppercase font-bold px-2 py-0.5 rounded bg-emerald-900/60 text-emerald-300 border border-emerald-700/60">
-                        Field Agent
+                        {t('field_agent')}
                       </span>
                     </div>
 
                     <div className="p-3 bg-emerald-950/60 border border-emerald-800/60 rounded flex items-center justify-between gap-3">
                       <div>
                         <div className="text-[10px] text-emerald-400 uppercase tracking-wide">
-                          SECRET LOCATION (ALL LOYAL AGENTS SHARE THIS):
+                          {t('secret_location_loyal_title')}
                         </div>
                         <div className="text-base sm:text-xl font-bold text-white flex items-center gap-2">
                           <MapPin className="w-5 h-5 text-emerald-400" />
                           <span className="underline decoration-emerald-500/60 underline-offset-4">
-                            {targetLocation}
+                            {targetLocationLocalized}
                           </span>
+                          {language === 'uk' && (
+                            <span className="text-xs text-neutral-400 font-normal">
+                              ({targetLocation})
+                            </span>
+                          )}
                         </div>
                       </div>
                       <button
@@ -455,19 +475,19 @@ export const GameLobbyView: React.FC<GameLobbyViewProps> = ({
                         className="py-1 px-2.5 rounded bg-neutral-900 hover:bg-neutral-800 border border-emerald-700/50 text-[11px] text-emerald-300 flex items-center gap-1 cursor-pointer"
                       >
                         <Database className="w-3 h-3" />
-                        <span>500 Places</span>
+                        <span>{t('browse_500_places')}</span>
                       </button>
                     </div>
 
                     <div className="text-xs space-y-1.5 text-neutral-300">
                       <p>
-                        &bull; Every loyal operative received this exact location: <strong className="text-white">{targetLocation}</strong>.
+                        &bull; {t('loyal_mission_notice')} <strong className="text-white">{targetLocationLocalized}</strong>.
                       </p>
                       <p>
-                        &bull; <strong className="text-red-300">Notice:</strong> There {spyCount === 1 ? 'is 1 undercover Spy' : `are ${spyCount} undercover Spies`} in the group who DOES NOT know the location!
+                        &bull; <strong className="text-red-300">{t('loyal_spy_warning', { count: spyCount })}</strong>
                       </p>
                       <p>
-                        &bull; <strong>Objective:</strong> Ask questions about the place to detect who doesn&rsquo;t know it, but don&rsquo;t be too obvious or the Spy will deduce the location!
+                        &bull; {t('loyal_objective_body')}
                       </p>
                     </div>
                   </div>
@@ -479,10 +499,10 @@ export const GameLobbyView: React.FC<GameLobbyViewProps> = ({
                   <Lock className="w-5 h-5 text-amber-400" />
                 </div>
                 <div className="text-xs text-neutral-300 font-bold">
-                  Classified Dossier Encrypted
+                  {t('dossier_encrypted')}
                 </div>
                 <div className="text-[11px] text-neutral-500 max-w-sm mx-auto">
-                  Ensure no other players are viewing your screen, then click &ldquo;Reveal Classified Role&rdquo; to view your secret assignment.
+                  {t('dossier_encrypted_hint')}
                 </div>
               </div>
             )}
@@ -491,17 +511,18 @@ export const GameLobbyView: React.FC<GameLobbyViewProps> = ({
             {showDebrief && (
               <div className="mt-3 p-3 bg-neutral-900 border border-neutral-700 rounded-lg text-xs space-y-2">
                 <div className="text-emerald-400 font-bold uppercase tracking-wider">
-                  MISSION DEBRIEF // UNMASKED DOSSIER
+                  {t('unmasked_dossier')}
                 </div>
                 <div className="text-neutral-300">
-                  Target Location: <strong className="text-white">{targetLocation}</strong>
+                  {t('target_location_label')}{' '}
+                  <strong className="text-white">{targetLocationLocalized} ({targetLocation})</strong>
                 </div>
                 <div className="text-neutral-300">
-                  Undercover Spies:{' '}
+                  {t('undercover_spies_label')}{' '}
                   <strong className="text-red-400">
                     {game.spyUsernames && game.spyUsernames.length > 0
                       ? game.spyUsernames.map((u) => `@${u}`).join(', ')
-                      : 'None assigned'}
+                      : t('none_assigned')}
                   </strong>
                 </div>
               </div>
@@ -516,7 +537,7 @@ export const GameLobbyView: React.FC<GameLobbyViewProps> = ({
               className="text-xs font-mono text-neutral-400 hover:text-emerald-300 flex items-center gap-1.5 cursor-pointer"
             >
               <Database className="w-3.5 h-3.5 text-emerald-400" />
-              <span>View 500 Locations Pool</span>
+              <span>{t('view_500_pool')}</span>
             </button>
 
             {isHost && (
@@ -528,14 +549,14 @@ export const GameLobbyView: React.FC<GameLobbyViewProps> = ({
                   className="text-xs font-mono font-bold text-neutral-950 bg-amber-400 hover:bg-amber-300 px-3.5 py-1.5 rounded flex items-center gap-1.5 transition-all shadow-md shadow-amber-950/50 cursor-pointer"
                 >
                   <Vote className="w-3.5 h-3.5 text-neutral-950" />
-                  <span>Start Guessing Phase</span>
+                  <span>{t('start_guessing_phase')}</span>
                 </button>
                 <button
                   type="button"
                   onClick={() => setShowDebrief(!showDebrief)}
                   className="text-xs font-mono text-neutral-300 hover:text-white px-3 py-1.5 rounded bg-neutral-800 hover:bg-neutral-750 border border-neutral-700 cursor-pointer"
                 >
-                  {showDebrief ? 'Hide Debrief' : 'Debrief / Reveal Identities'}
+                  {showDebrief ? t('hide_debrief') : t('show_debrief')}
                 </button>
                 <button
                   type="button"
@@ -543,7 +564,7 @@ export const GameLobbyView: React.FC<GameLobbyViewProps> = ({
                   className="text-xs font-mono text-amber-400 hover:text-amber-300 px-3 py-1.5 rounded bg-amber-950/40 hover:bg-amber-900/40 border border-amber-500/40 cursor-pointer flex items-center gap-1"
                 >
                   <RotateCcw className="w-3 h-3" />
-                  <span>New Round / Lobby</span>
+                  <span>{t('new_round_lobby')}</span>
                 </button>
               </div>
             )}
@@ -564,17 +585,20 @@ export const GameLobbyView: React.FC<GameLobbyViewProps> = ({
               </div>
               <div>
                 <h2 className="text-base sm:text-lg font-bold text-white uppercase tracking-wider">
-                  Guessing Phase // Accuse The Spy
+                  {t('guessing_phase_title')}
                 </h2>
                 <p className="text-xs text-neutral-400">
-                  All participants cast their secret accusation. The operative with the most votes is declared the Spy.
+                  {t('guessing_phase_desc')}
                 </p>
               </div>
             </div>
 
             <div className="flex items-center gap-2">
               <span className="text-xs px-2.5 py-1 rounded bg-purple-950/60 border border-purple-500/40 text-purple-300 font-bold">
-                {Object.keys(game.votes || {}).length} / {game.players.length} Accusations Cast
+                {t('accusations_cast', {
+                  voted: Object.keys(game.votes || {}).length,
+                  total: game.players.length,
+                })}
               </span>
             </div>
           </div>
@@ -583,19 +607,19 @@ export const GameLobbyView: React.FC<GameLobbyViewProps> = ({
           <div className="p-3.5 bg-neutral-950/90 rounded-lg border border-purple-900/40 text-xs space-y-2 text-neutral-300">
             <div className="text-purple-400 font-bold uppercase tracking-wider flex items-center gap-1.5">
               <Shield className="w-3.5 h-3.5" />
-              <span>Deduction &amp; Scoring Rules</span>
+              <span>{t('rules_of_engagement')}</span>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1 text-[11px]">
               <div className="p-2.5 rounded bg-neutral-900/80 border border-neutral-800 space-y-1">
-                <span className="text-amber-400 font-bold block">CASE A: False Accusation</span>
+                <span className="text-amber-400 font-bold block">{t('case_a_title')}</span>
                 <p className="text-neutral-400 leading-snug">
-                  If the declared user with most votes was <strong className="text-red-300">NOT really a Spy</strong>, the real Spy or Spies win getting <strong className="text-amber-400">1 point each</strong>.
+                  {t('case_a_desc')}
                 </p>
               </div>
               <div className="p-2.5 rounded bg-neutral-900/80 border border-neutral-800 space-y-1">
-                <span className="text-emerald-400 font-bold block">CASE B: Spy Apprehended</span>
+                <span className="text-emerald-400 font-bold block">{t('case_b_title')}</span>
                 <p className="text-neutral-400 leading-snug">
-                  If the declared user <strong className="text-emerald-300">WAS really a Spy</strong>, all loyal operatives (Not Spies) win getting <strong className="text-emerald-400">1 point each</strong>.
+                  {t('case_b_desc')}
                 </p>
               </div>
             </div>
@@ -605,12 +629,12 @@ export const GameLobbyView: React.FC<GameLobbyViewProps> = ({
           <div className="p-4 bg-neutral-950 rounded-lg border border-neutral-800 space-y-4">
             <div className="flex items-center justify-between">
               <span className="text-xs text-neutral-300 font-bold tracking-wider uppercase">
-                {myVote ? 'Your Accusation Status:' : 'Cast Your Secret Accusation:'}
+                {myVote ? t('status_accusation') : t('cast_accusation')}
               </span>
               {myVote && (
                 <span className="text-xs text-emerald-400 flex items-center gap-1 font-bold">
                   <CheckCircle2 className="w-3.5 h-3.5" />
-                  <span>Accusation Locked for @{myVote}</span>
+                  <span>{t('accusation_locked', { target: myVote })}</span>
                 </span>
               )}
             </div>
@@ -647,7 +671,7 @@ export const GameLobbyView: React.FC<GameLobbyViewProps> = ({
                       <div>
                         <div className="text-xs font-bold text-white flex items-center gap-1.5">
                           <span>{suspect.codename}</span>
-                          {isMe && <span className="text-[10px] text-neutral-500 font-normal">(You)</span>}
+                          {isMe && <span className="text-[10px] text-neutral-500 font-normal">({t('you_do_not_know_loc') ? 'You' : 'You'})</span>}
                         </div>
                         <div className="text-[10px] text-neutral-500">@{suspect.username}</div>
                       </div>
@@ -671,8 +695,8 @@ export const GameLobbyView: React.FC<GameLobbyViewProps> = ({
             <div className="pt-2 flex flex-col sm:flex-row items-center justify-between gap-3">
               <span className="text-[11px] text-neutral-500">
                 {myVote
-                  ? 'You can switch your accusation before the Commander tallies the votes.'
-                  : 'Select an operative above and confirm your accusation.'}
+                  ? t('switch_suspect_instruction')
+                  : t('select_suspect_instruction')}
               </span>
 
               <button
@@ -694,20 +718,20 @@ export const GameLobbyView: React.FC<GameLobbyViewProps> = ({
                 <Vote className="w-3.5 h-3.5" />
                 <span>
                   {selectedSuspect && selectedSuspect !== myVote
-                    ? `Lock In Accusation (@${selectedSuspect})`
+                    ? t('lock_in_accusation', { target: selectedSuspect })
                     : myVote
-                    ? `Accusation Confirmed (@${myVote})`
-                    : 'Select a Suspect'}
+                    ? t('accusation_confirmed', { target: myVote })
+                    : t('select_suspect')}
                 </span>
               </button>
             </div>
           </div>
 
           {/* Voting Roster Progress */}
-          <div className="p-3 bg-neutral-950/70 rounded-lg border border-neutral-850">
+          <div className="p-3 bg-neutral-950/70 rounded-lg border border-neutral-855">
             <div className="text-[11px] text-neutral-400 font-bold uppercase tracking-wide mb-2 flex items-center justify-between">
-              <span>Operatives Participation Status</span>
-              <span className="text-neutral-500 font-normal">Identities concealed until tally</span>
+              <span>{t('operatives_participation')}</span>
+              <span className="text-neutral-500 font-normal">{t('identities_concealed')}</span>
             </div>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-[11px]">
               {game.players.map((p) => {
@@ -723,7 +747,7 @@ export const GameLobbyView: React.FC<GameLobbyViewProps> = ({
                   >
                     <span className="truncate">{p.codename}</span>
                     <span className="text-[10px] shrink-0 font-bold">
-                      {hasVoted ? 'VOTED' : 'PENDING'}
+                      {hasVoted ? t('voted_tag') : t('pending_tag')}
                     </span>
                   </div>
                 );
@@ -735,7 +759,7 @@ export const GameLobbyView: React.FC<GameLobbyViewProps> = ({
           {isHost ? (
             <div className="pt-3 border-t border-neutral-800 flex flex-col sm:flex-row items-center justify-between gap-3">
               <span className="text-xs text-neutral-400">
-                Commander Controls: Once participants have cast their votes, tally the ballots to declare the Spy.
+                {t('commander_controls_tally')}
               </span>
 
               <button
@@ -745,13 +769,13 @@ export const GameLobbyView: React.FC<GameLobbyViewProps> = ({
                 className="w-full sm:w-auto py-2.5 px-6 rounded-lg bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 text-neutral-950 font-bold text-xs flex items-center justify-center gap-2 transition-all shadow-lg shadow-emerald-950/50 cursor-pointer"
               >
                 <CheckCircle2 className="w-4 h-4" />
-                <span>Tally Votes &amp; Conclude Operation</span>
+                <span>{t('tally_votes_btn')}</span>
               </button>
             </div>
           ) : (
             <div className="pt-3 border-t border-neutral-800 text-xs text-neutral-400 flex items-center gap-2">
               <span className="inline-block w-2 h-2 rounded-full bg-purple-400 animate-pulse"></span>
-              <span>Awaiting Commander to tally all accusations and declare the verdict...</span>
+              <span>{t('awaiting_commander_tally')}</span>
             </div>
           )}
         </div>
@@ -791,24 +815,34 @@ export const GameLobbyView: React.FC<GameLobbyViewProps> = ({
               </div>
               <div>
                 <div className="text-xs uppercase font-bold tracking-widest opacity-80">
-                  MISSION OUTCOME // VERDICT REACHED
+                  {t('verdict_reached')}
                 </div>
                 <h2 className="text-lg sm:text-xl font-bold tracking-tight">
                   {game.votingResults.winningTeam === 'loyalists'
-                    ? 'LOYAL OPERATIVES WIN! (+1 POINT EACH)'
-                    : 'REAL SPY / SPIES WIN! (+1 POINT EACH)'}
+                    ? t('loyalists_win')
+                    : t('spies_win')}
                 </h2>
                 <p className="text-xs opacity-90 mt-0.5 leading-snug">
                   {game.votingResults.winningTeam === 'loyalists'
-                    ? `Operative @${game.votingResults.declaredSpyUsername} received the most votes (${game.votingResults.voteCounts[game.votingResults.declaredSpyUsername] || 0} votes) and WAS INDEED A REAL SPY!`
-                    : `Operative @${game.votingResults.declaredSpyUsername} received the most votes (${game.votingResults.voteCounts[game.votingResults.declaredSpyUsername] || 0} votes) but was NOT a Spy! The real Spies evaded capture!`}
+                    ? t('loyalists_win_details', {
+                        spy: game.votingResults.declaredSpyUsername,
+                        votes: game.votingResults.voteCounts[game.votingResults.declaredSpyUsername] || 0,
+                      })
+                    : t('spies_win_details', {
+                        spy: game.votingResults.declaredSpyUsername,
+                        votes: game.votingResults.voteCounts[game.votingResults.declaredSpyUsername] || 0,
+                      })}
                 </p>
               </div>
             </div>
 
             <div className="shrink-0 px-3 py-1.5 rounded-lg bg-neutral-950/80 border border-neutral-700 text-xs font-bold text-center">
-              <span className="text-[10px] text-neutral-400 block uppercase">Points Awarded</span>
-              <span className="text-amber-400 font-mono text-sm">+1 Pt to {game.votingResults.winningTeam === 'loyalists' ? 'Not Spies' : 'Real Spies'}</span>
+              <span className="text-[10px] text-neutral-400 block uppercase">{t('points_awarded')}</span>
+              <span className="text-amber-400 font-mono text-sm">
+                {t('plus_one_to', {
+                  team: game.votingResults.winningTeam === 'loyalists' ? t('not_spies') : t('real_spies'),
+                })}
+              </span>
             </div>
           </div>
 
@@ -817,24 +851,26 @@ export const GameLobbyView: React.FC<GameLobbyViewProps> = ({
             {/* Accused Spy */}
             <div className="p-3.5 rounded-lg bg-neutral-950 border border-neutral-800 space-y-1.5">
               <span className="text-[10px] text-neutral-400 uppercase tracking-wide block">
-                DECLARED SPY (MOST ACCUSATIONS)
+                {t('declared_spy')}
               </span>
               <div className="font-bold text-sm text-white flex items-center justify-between">
                 <span>@{game.votingResults.declaredSpyUsername}</span>
                 <span className="text-xs px-2 py-0.5 rounded bg-neutral-850 text-neutral-300">
-                  {game.votingResults.voteCounts[game.votingResults.declaredSpyUsername] || 0} Votes
+                  {t('votes_count', {
+                    count: game.votingResults.voteCounts[game.votingResults.declaredSpyUsername] || 0,
+                  })}
                 </span>
               </div>
               <div className="text-[11px] pt-1 border-t border-neutral-850">
                 {game.votingResults.isRealSpy ? (
                   <span className="text-emerald-400 font-bold flex items-center gap-1">
                     <UserCheck className="w-3.5 h-3.5" />
-                    <span>Real Spy Confirmed!</span>
+                    <span>{t('real_spy_confirmed')}</span>
                   </span>
                 ) : (
                   <span className="text-red-400 font-bold flex items-center gap-1">
                     <UserX className="w-3.5 h-3.5" />
-                    <span>Innocent Operative!</span>
+                    <span>{t('innocent_operative')}</span>
                   </span>
                 )}
               </div>
@@ -843,26 +879,26 @@ export const GameLobbyView: React.FC<GameLobbyViewProps> = ({
             {/* Real Spies */}
             <div className="p-3.5 rounded-lg bg-neutral-950 border border-neutral-800 space-y-1.5">
               <span className="text-[10px] text-neutral-400 uppercase tracking-wide block">
-                ACTUAL UNDERCOVER SPIES
+                {t('actual_spies_label')}
               </span>
               <div className="font-bold text-sm text-red-400 truncate">
                 {game.spyUsernames && game.spyUsernames.length > 0
                   ? game.spyUsernames.map((u) => `@${u}`).join(', ')
-                  : 'Classified'}
+                  : t('unknown_classified')}
               </div>
               <div className="text-[11px] text-neutral-400 pt-1 border-t border-neutral-850">
-                Total Spies: {game.totalSpiesCount || getSpyCount(game.players.length)}
+                {t('operatives_active')}: {game.totalSpiesCount || getSpyCount(game.players.length)}
               </div>
             </div>
 
             {/* Secret Location */}
             <div className="p-3.5 rounded-lg bg-neutral-950 border border-neutral-800 space-y-1.5">
               <span className="text-[10px] text-neutral-400 uppercase tracking-wide block">
-                CLASSIFIED LOCATION (500 POOL)
+                {t('classified_loc_pool_label')}
               </span>
               <div className="font-bold text-sm text-emerald-300 flex items-center gap-1.5 truncate">
                 <MapPin className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
-                <span className="truncate">{targetLocation}</span>
+                <span className="truncate">{targetLocationLocalized}</span>
               </div>
               <div className="text-[11px] text-neutral-400 pt-1 border-t border-neutral-850">
                 <button
@@ -871,7 +907,7 @@ export const GameLobbyView: React.FC<GameLobbyViewProps> = ({
                   className="text-emerald-400 hover:text-emerald-300 underline underline-offset-2 flex items-center gap-1 cursor-pointer"
                 >
                   <Database className="w-3 h-3" />
-                  <span>Browse 500 Places</span>
+                  <span>{t('browse_500_places')}</span>
                 </button>
               </div>
             </div>
@@ -880,8 +916,10 @@ export const GameLobbyView: React.FC<GameLobbyViewProps> = ({
           {/* Voting Ledger Breakdown */}
           <div className="p-3.5 bg-neutral-950 rounded-lg border border-neutral-800 space-y-2.5">
             <div className="flex items-center justify-between text-xs text-neutral-300 font-bold uppercase tracking-wider">
-              <span>Votes Cast Ledger</span>
-              <span className="text-neutral-500 font-normal">{game.votingResults.totalVotesCast} Total Accusations</span>
+              <span>{t('votes_cast_ledger')}</span>
+              <span className="text-neutral-500 font-normal">
+                {t('total_accusations', { total: game.votingResults.totalVotesCast })}
+              </span>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
               {Object.entries(game.votes || {}).map(([voter, suspect]) => {
@@ -901,7 +939,9 @@ export const GameLobbyView: React.FC<GameLobbyViewProps> = ({
                     </span>
                     <span className="text-neutral-500 mx-1">&rarr;</span>
                     <span className="font-bold text-purple-300">
-                      accused {suspectOperative?.codename || suspect} <span className="text-purple-400/70">(@{suspect})</span>
+                      {t('accused_user', {
+                        suspect: `${suspectOperative?.codename || suspect} (@${suspect})`,
+                      })}
                     </span>
                   </div>
                 );
@@ -914,10 +954,10 @@ export const GameLobbyView: React.FC<GameLobbyViewProps> = ({
             <div className="flex items-center justify-between">
               <div className="text-xs text-amber-400 font-bold uppercase tracking-wider flex items-center gap-1.5">
                 <Trophy className="w-4 h-4 text-amber-400" />
-                <span>Cumulative Scoreboard &amp; Points Leaderboard</span>
+                <span>{t('scoreboard_title')}</span>
               </div>
               <span className="text-[11px] text-neutral-500">
-                1 point per victory
+                {t('one_point_per_victory')}
               </span>
             </div>
 
@@ -951,11 +991,11 @@ export const GameLobbyView: React.FC<GameLobbyViewProps> = ({
                         {wonThisRound && (
                           <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-emerald-950/80 text-emerald-400 border border-emerald-500/30 flex items-center gap-1">
                             <Sparkles className="w-3 h-3 text-emerald-400" />
-                            <span>+1 PT WON</span>
+                            <span>{t('won_plus_one')}</span>
                           </span>
                         )}
                         <span className="font-bold text-amber-400 text-sm font-mono">
-                          {player.score ?? 0} {player.score === 1 ? 'pt' : 'pts'}
+                          {player.score ?? 0} {t('pts')}
                         </span>
                       </div>
                     </div>
@@ -972,7 +1012,7 @@ export const GameLobbyView: React.FC<GameLobbyViewProps> = ({
               className="text-xs text-neutral-400 hover:text-white flex items-center gap-1.5 cursor-pointer"
             >
               <ArrowLeft className="w-3.5 h-3.5" />
-              <span>Return to Headquarters</span>
+              <span>{t('return_hq')}</span>
             </button>
 
             {isHost && (
@@ -983,7 +1023,7 @@ export const GameLobbyView: React.FC<GameLobbyViewProps> = ({
                   onClick={handleResetToRecruiting}
                   className="text-xs font-mono text-neutral-300 hover:text-white px-3 py-2 rounded bg-neutral-800 hover:bg-neutral-750 border border-neutral-700 cursor-pointer"
                 >
-                  Return to Lobby
+                  {t('return_to_lobby')}
                 </button>
                 <button
                   id="btn-start-next-round"
@@ -992,7 +1032,7 @@ export const GameLobbyView: React.FC<GameLobbyViewProps> = ({
                   className="py-2 px-4 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-neutral-950 font-bold text-xs font-mono flex items-center gap-2 transition-all shadow-lg shadow-emerald-950/40 cursor-pointer"
                 >
                   <RotateCcw className="w-3.5 h-3.5" />
-                  <span>Start Next Round (Keep Points)</span>
+                  <span>{t('start_next_round')}</span>
                 </button>
               </div>
             )}
@@ -1001,18 +1041,21 @@ export const GameLobbyView: React.FC<GameLobbyViewProps> = ({
       )}
 
       {/* Operatives Roster */}
-      <div className="bg-neutral-900/90 border border-neutral-800 rounded-xl p-5 sm:p-6 backdrop-blur-md shadow-xl">
+      <div id="operatives-roster" className="bg-neutral-900/90 border border-neutral-800 rounded-xl p-5 sm:p-6 backdrop-blur-md shadow-xl">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
             <Users className="w-5 h-5 text-emerald-400" />
             <div>
               <h2 className="text-sm font-bold text-white uppercase tracking-wider font-mono">
-                Operatives Roster ({game.players.length} / {game.maxPlayers})
+                {t('operatives_roster', {
+                  current: game.players.length,
+                  max: game.maxPlayers,
+                })}
               </h2>
               <p className="text-[10px] font-mono text-neutral-500">
                 {game.status === 'active'
-                  ? 'All roles remain strictly classified. No operative knows who got the location or became a Spy.'
-                  : `Waiting for launch. At least 3 operatives required.`}
+                  ? t('roster_active_hint')
+                  : t('roster_lobby_hint')}
               </p>
             </div>
           </div>
@@ -1024,9 +1067,9 @@ export const GameLobbyView: React.FC<GameLobbyViewProps> = ({
                 type="button"
                 onClick={handleAddAgent}
                 className="text-xs font-mono text-emerald-400 hover:text-emerald-300 py-1 px-2.5 rounded bg-neutral-800 hover:bg-neutral-750 border border-neutral-700 flex items-center gap-1 cursor-pointer"
-                title="Add a test agent to the roster"
+                title={t('add_bot_agent')}
               >
-                <span>+ Add Bot Agent</span>
+                <span>{t('add_bot_agent')}</span>
               </button>
             )}
           </div>
@@ -1054,12 +1097,12 @@ export const GameLobbyView: React.FC<GameLobbyViewProps> = ({
                       <span className="text-sm font-bold text-white font-mono">{player.codename}</span>
                       {player.isHost && (
                         <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-emerald-950/80 border border-emerald-500/40 text-emerald-400 uppercase font-semibold">
-                          Host
+                          {t('host_badge')}
                         </span>
                       )}
                       {isMe && (
                         <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-neutral-800 text-neutral-400">
-                          You
+                          {t('identity_credentials') ? 'You' : 'You'}
                         </span>
                       )}
                     </div>
@@ -1068,7 +1111,7 @@ export const GameLobbyView: React.FC<GameLobbyViewProps> = ({
                       <span>&bull;</span>
                       <span className="text-amber-400 font-semibold flex items-center gap-1">
                         <Trophy className="w-3 h-3 text-amber-400" />
-                        <span>{player.score ?? 0} pts</span>
+                        <span>{player.score ?? 0} {t('pts')}</span>
                       </span>
                     </div>
                   </div>
@@ -1086,8 +1129,8 @@ export const GameLobbyView: React.FC<GameLobbyViewProps> = ({
                       <Vote className="w-3.5 h-3.5" />
                       <span>
                         {game.votes?.[player.username.toLowerCase()]
-                          ? 'Accusation Cast'
-                          : 'Deliberating...'}
+                          ? t('voted_tag')
+                          : t('pending_tag')}
                       </span>
                     </span>
                   ) : game.status === 'completed' ? (
@@ -1101,12 +1144,12 @@ export const GameLobbyView: React.FC<GameLobbyViewProps> = ({
                       }`}
                     >
                       <Trophy className="w-3.5 h-3.5 text-amber-400" />
-                      <span>{player.score ?? 0} pts</span>
+                      <span>{player.score ?? 0} {t('pts')}</span>
                     </span>
                   ) : game.status === 'active' ? (
                     <span className="text-xs font-mono px-2.5 py-1 rounded flex items-center gap-1.5 bg-neutral-850 text-neutral-300 border border-neutral-750">
                       <Shield className="w-3.5 h-3.5 text-neutral-400" />
-                      <span>Classified</span>
+                      <span>{t('unknown_classified')}</span>
                     </span>
                   ) : (
                     <span
@@ -1117,7 +1160,9 @@ export const GameLobbyView: React.FC<GameLobbyViewProps> = ({
                       }`}
                     >
                       <CheckCircle2 className="w-3.5 h-3.5" />
-                      <span className="capitalize">{player.status}</span>
+                      <span className="capitalize">
+                        {player.status === 'ready' ? t('ready_tag') : t('pending_tag')}
+                      </span>
                     </span>
                   )}
                 </div>
@@ -1144,13 +1189,14 @@ export const GameLobbyView: React.FC<GameLobbyViewProps> = ({
               ></span>
               <span>
                 {game.players.length >= 3 ? (
-                  <>
-                    <strong className="text-white font-bold">Launch Condition Met:</strong> 3 or more participants connected ({game.players.length} active). {isHost ? 'You can now start the game!' : 'Waiting for creator to start.'}
-                  </>
+                  isHost
+                    ? t('launch_condition_met', { count: game.players.length })
+                    : t('launch_condition_waiting', { count: game.players.length })
                 ) : (
-                  <>
-                    <strong className="text-neutral-300">Recruitment in Progress:</strong> At least 3 participants required to start ({game.players.length}/3 joined &bull; {3 - game.players.length} more needed).
-                  </>
+                  t('recruitment_in_progress', {
+                    count: game.players.length,
+                    needed: 3 - game.players.length,
+                  })
                 )}
               </span>
             </div>
@@ -1162,7 +1208,7 @@ export const GameLobbyView: React.FC<GameLobbyViewProps> = ({
                 className="shrink-0 text-[11px] font-mono text-emerald-400 hover:text-emerald-300 underline underline-offset-2 flex items-center gap-1 cursor-pointer"
               >
                 <Share2 className="w-3 h-3" />
-                <span>Invite Recruits</span>
+                <span>{t('invite_recruits')}</span>
               </button>
             )}
           </div>
@@ -1177,7 +1223,7 @@ export const GameLobbyView: React.FC<GameLobbyViewProps> = ({
               onClick={handleToggleReady}
               className="w-full sm:w-auto py-2 px-4 rounded-lg bg-neutral-800 hover:bg-neutral-750 text-neutral-200 border border-neutral-700 text-xs font-mono font-medium transition-colors cursor-pointer"
             >
-              Toggle Ready Status
+              {t('toggle_ready_btn')}
             </button>
 
             {isHost ? (
@@ -1194,20 +1240,28 @@ export const GameLobbyView: React.FC<GameLobbyViewProps> = ({
                   }`}
                   title={
                     game.players.length < 3
-                      ? 'Cannot start game yet: At least 3 participants are required.'
-                      : 'Launch the operation now'
+                      ? t('start_game_requires', { count: game.players.length })
+                      : t('start_game_button', {
+                          count: game.players.length,
+                          spies: getSpyCount(game.players.length),
+                          spyLabel: getSpyCount(game.players.length) === 1 ? t('spy_singular') : t('spies_plural'),
+                        })
                   }
                 >
                   <Play className="w-4 h-4" />
                   <span>
                     {game.players.length >= 3
-                      ? `Start Game (${game.players.length} Players &bull; ${getSpyCount(game.players.length)} ${getSpyCount(game.players.length) === 1 ? 'Spy' : 'Spies'})`
-                      : `Start Game (Requires 3+ Participants: ${game.players.length}/3)`}
+                      ? t('start_game_button', {
+                          count: game.players.length,
+                          spies: getSpyCount(game.players.length),
+                          spyLabel: getSpyCount(game.players.length) === 1 ? t('spy_singular') : t('spies_plural'),
+                        })
+                      : t('start_game_requires', { count: game.players.length })}
                   </span>
                 </button>
                 {game.players.length < 3 && (
                   <span className="text-[10px] font-mono text-neutral-500">
-                    Game creator can start once 3+ participants join
+                    {t('creator_can_start_hint')}
                   </span>
                 )}
               </div>
@@ -1216,8 +1270,8 @@ export const GameLobbyView: React.FC<GameLobbyViewProps> = ({
                 <span className="inline-block w-1.5 h-1.5 rounded-full bg-neutral-500 animate-pulse"></span>
                 <span>
                   {game.players.length >= 3
-                    ? `Ready (${game.players.length} participants). Awaiting commander to start...`
-                    : `Awaiting 3+ participants to start (${game.players.length}/3 connected)...`}
+                    ? t('awaiting_commander_start', { count: game.players.length })
+                    : t('awaiting_more_players', { count: game.players.length })}
                 </span>
               </div>
             )}
