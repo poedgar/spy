@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-#[Fillable(['title', 'game_mode', 'host_id', 'max_players', 'mission_briefing', 'secret_location', 'status'])]
+#[Fillable(['title', 'game_mode', 'code', 'host_id', 'max_players', 'mission_briefing', 'secret_location', 'status'])]
 class Game extends Model
 {
     use HasFactory;
