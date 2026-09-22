@@ -31,7 +31,7 @@ test('joining a full game is rejected', function () {
 
     $response = $this->actingAs($user)->post(route('games.join', $game));
 
-    $response->assertSessionHasErrors('game');
+    $response->assertSessionHasErrors('code');
     expect(GamePlayer::where('game_id', $game->id)->where('user_id', $user->id)->exists())->toBeFalse();
 });
 
@@ -41,4 +41,23 @@ test('a guest is redirected to login when trying to join', function () {
     $response = $this->post(route('games.join', $game));
 
     $response->assertRedirect(route('login'));
+});
+
+test('joining with a nonexistent invite code returns a graceful error instead of a 404', function () {
+    $user = User::factory()->create();
+
+    $response = $this->actingAs($user)->post(route('games.join', ['code' => 'SPY-NOPE']));
+
+    $response->assertSessionHasErrors('code');
+    $response->assertStatus(302);
+});
+
+test('joining with a lowercase invite code fails gracefully since codes are case-sensitive', function () {
+    $game = Game::factory()->create(['code' => 'SPY-ABCD', 'max_players' => 6]);
+    $user = User::factory()->create();
+
+    $response = $this->actingAs($user)->post(route('games.join', ['code' => 'spy-abcd']));
+
+    $response->assertSessionHasErrors('code');
+    expect(GamePlayer::where('game_id', $game->id)->where('user_id', $user->id)->exists())->toBeFalse();
 });

@@ -5,20 +5,27 @@ namespace App\Http\Controllers;
 use App\Http\Requests\StoreGameRequest;
 use App\Models\Game;
 use App\Models\GamePlayer;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
+use Inertia\Response;
 
 class GameController extends Controller
 {
-    public function show(Game $game)
+    public function show(Game $game): Response
     {
+        $game->load([
+            'players' => fn ($query) => $query->with('user:id,name,codename'),
+            'host:id,name,codename',
+        ]);
+
         return inertia('games/Lobby', [
-            'game' => $game->load('players.user', 'host'),
+            'game' => $game->makeHidden('secret_location'),
         ]);
     }
 
-    public function store(StoreGameRequest $request)
+    public function store(StoreGameRequest $request): RedirectResponse
     {
         $game = DB::transaction(function () use ($request) {
             $game = Game::create([
@@ -42,13 +49,19 @@ class GameController extends Controller
         return to_route('games.show', $game);
     }
 
-    public function join(Request $request, Game $game)
+    public function join(Request $request, string $code): RedirectResponse
     {
+        $game = Game::where('code', $code)->first();
+
+        if (! $game) {
+            return back()->withErrors(['code' => 'No operation found with that invite code.']);
+        }
+
         $alreadyJoined = $game->players()->where('user_id', $request->user()->id)->exists();
 
         if (! $alreadyJoined) {
             if ($game->players()->count() >= $game->max_players) {
-                return back()->withErrors(['game' => 'This operation roster is already full.']);
+                return back()->withErrors(['code' => 'This operation roster is already full.']);
             }
 
             GamePlayer::create([
