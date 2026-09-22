@@ -1,7 +1,19 @@
 <script setup lang="ts">
-import { Head } from '@inertiajs/vue3';
-import PlaceholderPattern from '@/components/PlaceholderPattern.vue';
+import { Head, Link } from '@inertiajs/vue3';
+import CreateGameForm from '@/components/CreateGameForm.vue';
+import JoinGameForm from '@/components/JoinGameForm.vue';
 import { dashboard } from '@/routes';
+
+interface GameRow {
+    id: number;
+    code: string;
+    title: string;
+    status: string;
+}
+
+defineProps<{
+    games: GameRow[];
+}>();
 
 defineOptions({
     layout: {
@@ -18,30 +30,19 @@ defineOptions({
 <template>
     <Head title="Dashboard" />
 
-    <div
-        class="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4"
-    >
-        <div class="grid auto-rows-min gap-4 md:grid-cols-3">
-            <div
-                class="relative aspect-video overflow-hidden rounded-xl border border-sidebar-border/70 dark:border-sidebar-border"
-            >
-                <PlaceholderPattern />
-            </div>
-            <div
-                class="relative aspect-video overflow-hidden rounded-xl border border-sidebar-border/70 dark:border-sidebar-border"
-            >
-                <PlaceholderPattern />
-            </div>
-            <div
-                class="relative aspect-video overflow-hidden rounded-xl border border-sidebar-border/70 dark:border-sidebar-border"
-            >
-                <PlaceholderPattern />
-            </div>
+    <div class="flex flex-1 flex-col gap-4 p-4">
+        <div class="grid gap-4 md:grid-cols-2">
+            <CreateGameForm />
+            <JoinGameForm />
         </div>
-        <div
-            class="relative min-h-[100vh] flex-1 rounded-xl border border-sidebar-border/70 md:min-h-min dark:border-sidebar-border"
-        >
-            <PlaceholderPattern />
+
+        <div id="games-list" class="rounded-xl border border-sidebar-border/70 p-4 dark:border-sidebar-border">
+            <h2 class="mb-2 font-semibold">Your Operations</h2>
+            <ul class="space-y-1">
+                <li v-for="game in games" :key="game.id">
+                    <Link :href="`/games/${game.code}`" class="font-mono">{{ game.title }} ({{ game.code }})</Link>
+                </li>
+            </ul>
         </div>
     </div>
 </template>
