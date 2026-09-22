@@ -42,12 +42,20 @@ Each phase's spec assumes the previous phases are complete.
   `users` table (not the current app's fake/demo login).
 - **Real-time sync** (from Phase 2 onward): Laravel Reverb + Laravel Echo
   (self-hosted WebSockets, no third-party service).
-- **Scaffold**: Laravel 13's official Vue starter kit
-  (`laravel new laravel-app --vue --database=sqlite`), which ships Inertia +
-  Vue 3 + Tailwind + Pest pre-wired. SQLite needs no server process —
-  Laravel creates `database/database.sqlite` and runs migrations straight
-  against it, which also keeps the Pest test suite fast (SQLite, often
-  in-memory for tests).
+- **Scaffold**: Laravel 13's official Vue starter kit, verified against a
+  throwaway probe scaffold in this environment:
+  `laravel new laravel-app --vue --pest --database=sqlite --npm --no-interaction`.
+  Ships Inertia + Vue 3 + Tailwind + Pest pre-wired, and turns out to be
+  considerably more than a bare-bones scaffold: it's Fortify-based
+  (registration/login/password-reset/2FA/passkeys), includes a full
+  shadcn-vue-style UI component library under
+  `resources/js/components/ui/`, generated "wayfinder" typed route/action
+  helpers, and settings pages. Phase 1 uses this as-is rather than
+  stripping it down — see "Auth Flow" below for the two adjustments needed
+  (codename assignment, disabling email verification). SQLite needs no
+  server process — Laravel creates `database/database.sqlite` and runs
+  migrations straight against it, which also keeps the Pest test suite
+  fast.
 - **Location in this repo**: a new `laravel-app/` directory at the repo
   root, sibling to the existing React app (`src/`, `cypress/`, etc.). The
   React app is left untouched; this is a parallel rebuild, not a migration
@@ -131,12 +139,25 @@ roles or display a "classified dossier" — that UI doesn't exist yet).
 ### Auth Flow
 
 Starter-kit default auth (register, login, logout, session-based,
-email+password, Laravel's built-in validation and hashing) with one
-addition: the `RegisteredUserController` (or the starter kit's equivalent
-action class) assigns `codename` at creation time, using the wordlist and
-hashing scheme described above. No email verification requirement for
-Phase 1 (matches the current app's frictionless demo-login feel); this can
-be revisited later if the user wants it.
+email+password, Laravel's built-in validation and hashing). Verified by
+scaffolding a throwaway probe: this starter kit is Laravel Fortify-based
+(not a plain Breeze-style scaffold) and also ships 2FA and passkey support,
+which Phase 1 leaves untouched/unused rather than ripping out. Two concrete
+adjustments to the generated defaults:
+
+- **Codename assignment**: `app/Actions/Fortify/CreateNewUser.php` (the
+  `CreatesNewUsers` action Fortify calls on registration) gets its
+  `create()` method's `User::create([...])` call extended with
+  `'codename' => CodenameGenerator::forName($input['name'])`.
+- **Disable email verification**: the generated `User` model implements
+  `MustVerifyEmail` and `config/fortify.php`'s `features` array includes
+  `Features::emailVerification()`, and `routes/web.php` gates
+  `/dashboard` behind `['auth', 'verified']` — all of which would block a
+  freshly-registered user from the dashboard until they click an emailed
+  link, contradicting this spec's "no email verification" requirement.
+  Phase 1 removes `Features::emailVerification()` from `config/fortify.php`,
+  removes `MustVerifyEmail` from `App\Models\User`, and changes every route
+  this phase adds (dashboard, games) to require only `auth`, not `verified`.
 
 ### Routes, Controllers, Pages
 
@@ -155,13 +176,25 @@ requires auth via middleware.
 
 ### Vue Pages/Components (mapping to today's React app, for continuity)
 
+The starter kit already ships `resources/js/pages/Dashboard.vue` (a
+placeholder page) and wires it via `Route::inertia('dashboard', 'Dashboard')`
+in `routes/web.php` — a route-string shorthand with no controller. Phase 1
+replaces that shorthand with a real `DashboardController@index` (so it can
+pass `games` as a prop) and replaces the placeholder page content.
+
 | React (today) | Vue (Phase 1) |
 |---|---|
 | `App.tsx` (auth gate) | Starter kit's default guest/auth layout + middleware |
-| `AgentDashboard.tsx` | `Dashboard.vue` |
-| `CreateGameModal.tsx` | A form section on `Dashboard.vue` (or a dedicated `CreateGameForm.vue` component) — a full modal isn't necessary yet; Phase 1 favors a plain inline form over recreating the modal chrome. |
-| `GameLobbyView.tsx` | `Lobby.vue` (roster list only; no dossier/voting/results sections yet) |
+| `AgentDashboard.tsx` | `resources/js/pages/Dashboard.vue` (existing file, content replaced) |
+| `CreateGameModal.tsx` | `resources/js/components/CreateGameForm.vue` (new) — a plain form section embedded on `Dashboard.vue`, not a full modal; recreating the modal chrome is deferred. |
+| `GameLobbyView.tsx` | `resources/js/pages/games/Lobby.vue` (new; roster list only, no dossier/voting/results sections yet) |
 | `InviteModal.tsx` | Not built yet — the invite code is just shown as plain text on `Lobby.vue`. Copy-to-clipboard/share polish is Phase 4. |
+
+The starter kit also generates typed route/action helpers under
+`resources/js/routes/` and `resources/js/actions/` ("wayfinder") from the
+backend route list, importable instead of hand-written URL strings (e.g.
+`import { dashboard } from '@/routes'`). Phase 1's new routes get the same
+treatment for consistency with the rest of the generated code.
 
 ### Testing Plan
 
