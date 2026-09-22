@@ -36,11 +36,16 @@ defineOptions({
             <JoinGameForm />
         </div>
 
-        <div id="games-list" class="rounded-xl border border-sidebar-border/70 p-4 dark:border-sidebar-border">
+        <div
+            id="games-list"
+            class="rounded-xl border border-sidebar-border/70 p-4 dark:border-sidebar-border"
+        >
             <h2 class="mb-2 font-semibold">Your Operations</h2>
             <ul class="space-y-1">
                 <li v-for="game in games" :key="game.id">
-                    <Link :href="`/games/${game.code}`" class="font-mono">{{ game.title }} ({{ game.code }})</Link>
+                    <Link :href="`/games/${game.code}`" class="font-mono"
+                        >{{ game.title }} ({{ game.code }})</Link
+                    >
                 </li>
             </ul>
         </div>

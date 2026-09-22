@@ -14,7 +14,11 @@ function submit() {
 </script>
 
 <template>
-    <form id="create-game-form" class="rounded-xl border border-sidebar-border/70 p-4 dark:border-sidebar-border" @submit.prevent="submit">
+    <form
+        id="create-game-form"
+        class="rounded-xl border border-sidebar-border/70 p-4 dark:border-sidebar-border"
+        @submit.prevent="submit"
+    >
         <h2 class="mb-2 font-semibold">Create Operation</h2>
         <input
             id="input-game-title"
@@ -23,7 +27,9 @@ function submit() {
             placeholder="Operation title"
             class="mb-2 w-full rounded border px-2 py-1"
         />
-        <p v-if="form.errors.title" class="mb-2 text-sm text-red-600">{{ form.errors.title }}</p>
+        <p v-if="form.errors.title" class="mb-2 text-sm text-red-600">
+            {{ form.errors.title }}
+        </p>
 
         <input
             id="input-max-players"
@@ -33,12 +39,28 @@ function submit() {
             max="12"
             class="mb-2 w-full rounded border px-2 py-1"
         />
-        <p v-if="form.errors.max_players" class="mb-2 text-sm text-red-600">{{ form.errors.max_players }}</p>
+        <p v-if="form.errors.max_players" class="mb-2 text-sm text-red-600">
+            {{ form.errors.max_players }}
+        </p>
 
-        <textarea id="input-mission-briefing" v-model="form.mission_briefing" class="mb-2 w-full rounded border px-2 py-1"></textarea>
-        <p v-if="form.errors.mission_briefing" class="mb-2 text-sm text-red-600">{{ form.errors.mission_briefing }}</p>
+        <textarea
+            id="input-mission-briefing"
+            v-model="form.mission_briefing"
+            class="mb-2 w-full rounded border px-2 py-1"
+        ></textarea>
+        <p
+            v-if="form.errors.mission_briefing"
+            class="mb-2 text-sm text-red-600"
+        >
+            {{ form.errors.mission_briefing }}
+        </p>
 
-        <button id="btn-create-game" type="submit" :disabled="form.processing" class="rounded bg-primary px-3 py-1.5 text-primary-foreground">
+        <button
+            id="btn-create-game"
+            type="submit"
+            :disabled="form.processing"
+            class="rounded bg-primary px-3 py-1.5 text-primary-foreground"
+        >
             Create
         </button>
     </form>
