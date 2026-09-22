@@ -1,4 +1,4 @@
-# SpyNet Terminal: Laravel + Vue + MySQL Rebuild — Phase 1 Design
+# SpyNet Terminal: Laravel + Vue + SQLite Rebuild — Phase 1 Design
 
 ## Context
 
@@ -12,12 +12,14 @@ as of the most recent feature, three age-tiered difficulty levels
 (children/teens/adults) that filter which of ~500 pre-loaded locations can be
 drawn as the secret location.
 
-The user asked to recreate this app in **Laravel + Vue + MySQL**. This is a
-full architectural rebuild, not a bounded change, and is too large for a
-single spec/plan/implementation cycle. It is decomposed into four phases,
-each with its own spec and plan:
+The user asked to recreate this app in **Laravel + Vue + MySQL**; during
+Phase 1 planning the database driver was revised to **SQLite** (file-based,
+zero setup/server to run) as the project's actual database, dropping MySQL
+from the stack entirely. This is a full architectural rebuild, not a
+bounded change, and is too large for a single spec/plan/implementation
+cycle. It is decomposed into four phases, each with its own spec and plan:
 
-- **Phase 1 (this document)**: Laravel + Vue + MySQL scaffold, real
+- **Phase 1 (this document)**: Laravel + Vue + SQLite scaffold, real
   authentication, the core `users`/`games`/`game_players` data model, and a
   basic create/join/view lobby flow. No real-time push, no game logic
   (spies/voting/scoring), no i18n, no locations dataset.
@@ -26,7 +28,7 @@ each with its own spec and plan:
 - **Phase 3**: Full game-phase logic — bots, spy assignment, game launch,
   accusation voting, scoring, next-round flow. This is the bulk of
   `src/utils/gameStorage.ts`'s logic ported to Laravel models/services.
-- **Phase 4**: i18n (EN/UK), the ~500-location dataset seeded into MySQL,
+- **Phase 4**: i18n (EN/UK), the ~500-location dataset seeded into SQLite,
   age-tiered difficulty (children/teens/adults), and invite-link UX polish
   (copy-to-clipboard, priority-invite banner, etc.).
 
@@ -36,12 +38,16 @@ Each phase's spec assumes the previous phases are complete.
 
 - **Frontend wiring**: Inertia.js. Laravel controllers return Vue "pages"
   directly; there is no separate hand-maintained REST/JSON API contract.
-- **Authentication**: Real, persisted authentication, backed by a MySQL
+- **Authentication**: Real, persisted authentication, backed by a SQLite
   `users` table (not the current app's fake/demo login).
 - **Real-time sync** (from Phase 2 onward): Laravel Reverb + Laravel Echo
   (self-hosted WebSockets, no third-party service).
-- **Scaffold**: Laravel 13's official Vue starter kit (`laravel new --vue`),
-  which ships Inertia + Vue 3 + Tailwind + Pest pre-wired.
+- **Scaffold**: Laravel 13's official Vue starter kit
+  (`laravel new laravel-app --vue --database=sqlite`), which ships Inertia +
+  Vue 3 + Tailwind + Pest pre-wired. SQLite needs no server process —
+  Laravel creates `database/database.sqlite` and runs migrations straight
+  against it, which also keeps the Pest test suite fast (SQLite, often
+  in-memory for tests).
 - **Location in this repo**: a new `laravel-app/` directory at the repo
   root, sibling to the existing React app (`src/`, `cypress/`, etc.). The
   React app is left untouched; this is a parallel rebuild, not a migration
