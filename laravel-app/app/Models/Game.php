@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 #[Fillable(['title', 'game_mode', 'host_id', 'max_players', 'mission_briefing', 'secret_location', 'status'])]
 class Game extends Model
@@ -33,5 +34,10 @@ class Game extends Model
     public function host(): BelongsTo
     {
         return $this->belongsTo(User::class, 'host_id');
+    }
+
+    public function players(): HasMany
+    {
+        return $this->hasMany(GamePlayer::class);
     }
 }
