@@ -15,6 +15,7 @@ build/
 .env
 .env.local
 *.env.*
+!laravel-app/.env.example
 
 # Editor/IDE
 .vscode/
