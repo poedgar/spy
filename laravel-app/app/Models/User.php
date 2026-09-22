@@ -48,6 +48,9 @@ class User extends Authenticatable implements PasskeyUser
         ];
     }
 
+    /**
+     * @return HasMany<GamePlayer, $this>
+     */
     public function gamePlayers(): HasMany
     {
         return $this->hasMany(GamePlayer::class);

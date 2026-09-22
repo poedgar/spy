@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Database\Factories\GameFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -11,6 +12,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 #[Fillable(['title', 'game_mode', 'code', 'host_id', 'max_players', 'mission_briefing', 'secret_location', 'status'])]
 class Game extends Model
 {
+    /** @use HasFactory<GameFactory> */
     use HasFactory;
 
     private const CODE_CHARS = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
@@ -31,13 +33,19 @@ class Game extends Model
         return $code;
     }
 
+    /**
+     * @return BelongsTo<User, $this>
+     */
     public function host(): BelongsTo
     {
         return $this->belongsTo(User::class, 'host_id');
     }
 
+    /**
+     * @return HasMany<GamePlayer, $this>
+     */
     public function players(): HasMany
     {
-        return $this->hasMany(GamePlayer::class);
+        return $this->hasMany(GamePlayer::class)->orderBy('joined_at');
     }
 }

@@ -3,6 +3,7 @@
 use App\Models\Game;
 use App\Models\GamePlayer;
 use App\Models\User;
+use Illuminate\Database\QueryException;
 
 test('a game player belongs to a game and a user', function () {
     $gamePlayer = GamePlayer::factory()->create();
@@ -31,4 +32,4 @@ test('the same user cannot join the same game twice at the database level', func
     GamePlayer::factory()->create(['game_id' => $game->id, 'user_id' => $user->id]);
 
     GamePlayer::factory()->create(['game_id' => $game->id, 'user_id' => $user->id]);
-})->throws(\Illuminate\Database\QueryException::class);
+})->throws(QueryException::class);

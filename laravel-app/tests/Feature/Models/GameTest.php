@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\Game;
+use App\Models\User;
 
 test('generateUniqueCode returns a code in the SPY-XXXX format', function () {
     $code = Game::generateUniqueCode();
@@ -19,7 +20,7 @@ test('generateUniqueCode never collides with an existing game code', function ()
 test('a game belongs to its host', function () {
     $game = Game::factory()->create();
 
-    expect($game->host)->toBeInstanceOf(\App\Models\User::class);
+    expect($game->host)->toBeInstanceOf(User::class);
 });
 
 test('a games route key is its invite code, not its numeric id', function () {
