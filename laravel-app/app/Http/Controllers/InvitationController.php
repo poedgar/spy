@@ -70,4 +70,13 @@ class InvitationController extends Controller
 
         return to_route('games.show', $game);
     }
+
+    public function decline(Request $request, Invitation $invitation): RedirectResponse
+    {
+        abort_unless($invitation->to_user_id === $request->user()->id, 403);
+
+        $invitation->update(['status' => 'declined']);
+
+        return to_route('dashboard');
+    }
 }
