@@ -7,6 +7,7 @@ test('a user can authorize their own private channel', function () {
 
     $response = $this->actingAs($user)->post('/broadcasting/auth', [
         'channel_name' => 'private-user.'.$user->id,
+        'socket_id' => '1234.5678',
     ]);
 
     $response->assertOk();
@@ -18,6 +19,7 @@ test('a user cannot authorize another users private channel', function () {
 
     $response = $this->actingAs($user)->post('/broadcasting/auth', [
         'channel_name' => 'private-user.'.$otherUser->id,
+        'socket_id' => '1234.5678',
     ]);
 
     $response->assertForbidden();
