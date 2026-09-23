@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Events\InvitationSent;
 use App\Models\Game;
+use App\Models\GamePlayer;
 use App\Models\Invitation;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -41,5 +42,32 @@ class InvitationController extends Controller
         broadcast(new InvitationSent($invitation));
 
         return back();
+    }
+
+    public function accept(Request $request, Invitation $invitation): RedirectResponse
+    {
+        abort_unless($invitation->to_user_id === $request->user()->id, 403);
+
+        if ($invitation->status !== 'pending') {
+            return back()->withErrors(['invitation' => 'This invitation is no longer available.']);
+        }
+
+        $game = $invitation->game;
+
+        if ($game->players()->count() >= $game->max_players) {
+            return back()->withErrors(['invitation' => 'This operation roster is already full.']);
+        }
+
+        GamePlayer::create([
+            'game_id' => $game->id,
+            'user_id' => $request->user()->id,
+            'is_host' => false,
+            'status' => 'ready',
+            'joined_at' => now(),
+        ]);
+
+        $invitation->update(['status' => 'accepted']);
+
+        return to_route('games.show', $game);
     }
 }
