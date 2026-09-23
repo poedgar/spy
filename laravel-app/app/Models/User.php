@@ -55,4 +55,12 @@ class User extends Authenticatable implements PasskeyUser
     {
         return $this->hasMany(GamePlayer::class);
     }
+
+    /**
+     * @return HasMany<Invitation, $this>
+     */
+    public function receivedInvitations(): HasMany
+    {
+        return $this->hasMany(Invitation::class, 'to_user_id');
+    }
 }

@@ -48,4 +48,12 @@ class Game extends Model
     {
         return $this->hasMany(GamePlayer::class)->orderBy('joined_at');
     }
+
+    /**
+     * @return HasMany<Invitation, $this>
+     */
+    public function invitations(): HasMany
+    {
+        return $this->hasMany(Invitation::class);
+    }
 }
