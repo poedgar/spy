@@ -1535,6 +1535,7 @@ function invite(userId: number) {
 
     <div class="flex flex-1 flex-col gap-4 p-4">
         <h1 class="text-xl font-bold">Invite Players to {{ game.title }}</h1>
+        <p v-if="form.errors.to_user_id" class="text-sm text-red-600">{{ form.errors.to_user_id }}</p>
 
         <ul id="invite-users-list" class="space-y-2">
             <li
