@@ -70,7 +70,10 @@ defineOptions({
                     :key="invitation.id"
                     class="flex items-center justify-between"
                 >
-                    <span>{{ invitation.game_title }} — invited by {{ invitation.from_codename }}</span>
+                    <span
+                        >{{ invitation.game_title }} — invited by
+                        {{ invitation.from_codename }}</span
+                    >
                     <span class="flex gap-2">
                         <Link
                             :href="`/invitations/${invitation.id}/accept`"
