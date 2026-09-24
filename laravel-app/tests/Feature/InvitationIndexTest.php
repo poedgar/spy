@@ -40,7 +40,7 @@ test('a user with a pending invitation is annotated as pending', function () {
     $host = User::factory()->create();
     $game = Game::factory()->create(['host_id' => $host->id]);
     $invitee = User::factory()->create();
-    Invitation::factory()->create(['game_id' => $game->id, 'to_user_id' => $invitee->id, 'status' => 'pending']);
+    Invitation::factory()->create(['game_id' => $game->id, 'from_user_id' => $host->id, 'to_user_id' => $invitee->id, 'status' => 'pending']);
 
     $response = $this->actingAs($host)->get(route('invitations.index', $game));
 
@@ -52,7 +52,7 @@ test('a user with a declined invitation is annotated as invitable again', functi
     $host = User::factory()->create();
     $game = Game::factory()->create(['host_id' => $host->id]);
     $invitee = User::factory()->create();
-    Invitation::factory()->create(['game_id' => $game->id, 'to_user_id' => $invitee->id, 'status' => 'declined']);
+    Invitation::factory()->create(['game_id' => $game->id, 'from_user_id' => $host->id, 'to_user_id' => $invitee->id, 'status' => 'declined']);
 
     $response = $this->actingAs($host)->get(route('invitations.index', $game));
 
