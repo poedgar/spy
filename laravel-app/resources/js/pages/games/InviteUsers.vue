@@ -38,7 +38,9 @@ const form = useForm({ to_user_id: null as number | null });
 
 function invite(userId: number) {
     form.to_user_id = userId;
-    form.post(`/games/${props.game.code}/invitations`, { preserveScroll: true });
+    form.post(`/games/${props.game.code}/invitations`, {
+        preserveScroll: true,
+    });
 }
 </script>
 
@@ -47,7 +49,9 @@ function invite(userId: number) {
 
     <div class="flex flex-1 flex-col gap-4 p-4">
         <h1 class="text-xl font-bold">Invite Players to {{ game.title }}</h1>
-        <p v-if="form.errors.to_user_id" class="text-sm text-red-600">{{ form.errors.to_user_id }}</p>
+        <p v-if="form.errors.to_user_id" class="text-sm text-red-600">
+            {{ form.errors.to_user_id }}
+        </p>
 
         <ul id="invite-users-list" class="space-y-2">
             <li
@@ -59,13 +63,18 @@ function invite(userId: number) {
                     <span
                         :class="[
                             'inline-block h-2 w-2 rounded-full',
-                            onlineUserIds.has(user.id) ? 'bg-green-500' : 'bg-muted-foreground/40',
+                            onlineUserIds.has(user.id)
+                                ? 'bg-green-500'
+                                : 'bg-muted-foreground/40',
                         ]"
                     />
                     {{ user.codename }}
                 </span>
 
-                <span v-if="user.invite_status === 'pending'" class="text-sm text-muted-foreground">
+                <span
+                    v-if="user.invite_status === 'pending'"
+                    class="text-sm text-muted-foreground"
+                >
                     Invited
                 </span>
                 <button
