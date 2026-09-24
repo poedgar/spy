@@ -1,8 +1,9 @@
 <script setup lang="ts">
-import { Head, Link } from '@inertiajs/vue3';
+import { Head, Link, usePage } from '@inertiajs/vue3';
 import CreateGameForm from '@/components/CreateGameForm.vue';
 import JoinGameForm from '@/components/JoinGameForm.vue';
 import { dashboard } from '@/routes';
+import { useInvitationNotifications } from '@/composables/useInvitationNotifications';
 
 interface GameRow {
     id: number;
@@ -33,6 +34,9 @@ defineOptions({
         ],
     },
 });
+
+const page = usePage<{ auth: { user: { id: number } } }>();
+useInvitationNotifications(page.props.auth.user.id);
 </script>
 
 <template>
