@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { Head } from '@inertiajs/vue3';
+import { computed } from 'vue';
+import { Head, Link, usePage } from '@inertiajs/vue3';
 
 interface PlayerRow {
     id: number;
@@ -22,11 +23,19 @@ interface GameProp {
     mission_briefing: string;
     status: string;
     players: PlayerRow[];
+    host: {
+        id: number;
+        name: string;
+        codename: string;
+    };
 }
 
-defineProps<{
+const props = defineProps<{
     game: GameProp;
 }>();
+
+const page = usePage<{ auth: { user: { id: number } } }>();
+const isHost = computed(() => page.props.auth.user.id === props.game.host.id);
 </script>
 
 <template>
@@ -47,6 +56,14 @@ defineProps<{
             <p class="text-sm text-muted-foreground">
                 {{ game.players.length }} / {{ game.max_players }} operatives
             </p>
+            <Link
+                v-if="isHost && game.status === 'recruiting'"
+                id="btn-invite-players"
+                :href="`/games/${game.code}/invite`"
+                class="mt-2 inline-block text-sm text-primary underline underline-offset-4"
+            >
+                Invite Players
+            </Link>
         </div>
 
         <div
