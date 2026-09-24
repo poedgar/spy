@@ -14,13 +14,16 @@ export function usePresence(): { onlineUserIds: Ref<Set<number>> } {
         subscriberCount += 1;
 
         if (subscriberCount === 1) {
-            echo
-                .join('online-users')
+            echo.join('online-users')
                 .here((members: PresenceMember[]) => {
-                    onlineUserIds.value = new Set(members.map((member) => member.id));
+                    onlineUserIds.value = new Set(
+                        members.map((member) => member.id),
+                    );
                 })
                 .joining((member: PresenceMember) => {
-                    onlineUserIds.value = new Set(onlineUserIds.value).add(member.id);
+                    onlineUserIds.value = new Set(onlineUserIds.value).add(
+                        member.id,
+                    );
                 })
                 .leaving((member: PresenceMember) => {
                     const next = new Set(onlineUserIds.value);
