@@ -11,11 +11,14 @@ interface InvitationSentPayload {
 
 export function useInvitationNotifications(currentUserId: number): void {
     onMounted(() => {
-        echo
-            .private(`user.${currentUserId}`)
-            .listen('.invitation.sent', (payload: InvitationSentPayload) => {
-                toast.info(`${payload.from_codename} invited you to ${payload.game_title}`);
-            });
+        echo.private(`user.${currentUserId}`).listen(
+            '.invitation.sent',
+            (payload: InvitationSentPayload) => {
+                toast.info(
+                    `${payload.from_codename} invited you to ${payload.game_title}`,
+                );
+            },
+        );
     });
 
     onBeforeUnmount(() => {
