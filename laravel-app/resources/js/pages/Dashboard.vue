@@ -11,8 +11,16 @@ interface GameRow {
     status: string;
 }
 
+interface PendingInvitationRow {
+    id: number;
+    game_title: string;
+    game_code: string;
+    from_codename: string;
+}
+
 defineProps<{
     games: GameRow[];
+    pendingInvitations: PendingInvitationRow[];
 }>();
 
 defineOptions({
@@ -46,6 +54,41 @@ defineOptions({
                     <Link :href="`/games/${game.code}`" class="font-mono"
                         >{{ game.title }} ({{ game.code }})</Link
                     >
+                </li>
+            </ul>
+        </div>
+
+        <div
+            v-if="pendingInvitations.length > 0"
+            id="pending-invitations"
+            class="rounded-xl border border-sidebar-border/70 p-4 dark:border-sidebar-border"
+        >
+            <h2 class="mb-2 font-semibold">Pending Invitations</h2>
+            <ul class="space-y-2">
+                <li
+                    v-for="invitation in pendingInvitations"
+                    :key="invitation.id"
+                    class="flex items-center justify-between"
+                >
+                    <span>{{ invitation.game_title }} — invited by {{ invitation.from_codename }}</span>
+                    <span class="flex gap-2">
+                        <Link
+                            :href="`/invitations/${invitation.id}/accept`"
+                            method="post"
+                            as="button"
+                            class="text-sm text-primary underline underline-offset-4"
+                        >
+                            Accept
+                        </Link>
+                        <Link
+                            :href="`/invitations/${invitation.id}/decline`"
+                            method="post"
+                            as="button"
+                            class="text-sm text-muted-foreground underline underline-offset-4"
+                        >
+                            Decline
+                        </Link>
+                    </span>
                 </li>
             </ul>
         </div>
