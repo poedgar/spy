@@ -6,11 +6,39 @@ use App\Events\InvitationSent;
 use App\Models\Game;
 use App\Models\GamePlayer;
 use App\Models\Invitation;
+use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Inertia\Response;
 
 class InvitationController extends Controller
 {
+    public function index(Request $request, Game $game): Response
+    {
+        abort_unless($game->host_id === $request->user()->id, 403);
+        abort_unless($game->status === 'recruiting', 403);
+
+        $rosterUserIds = $game->players()->pluck('user_id');
+        $pendingInviteeIds = $game->invitations()->where('status', 'pending')->pluck('to_user_id');
+
+        $users = User::query()
+            ->where('id', '!=', $request->user()->id)
+            ->whereNotIn('id', $rosterUserIds)
+            ->orderBy('name')
+            ->get(['id', 'name', 'codename'])
+            ->map(fn (User $user) => [
+                'id' => $user->id,
+                'name' => $user->name,
+                'codename' => $user->codename,
+                'invite_status' => $pendingInviteeIds->contains($user->id) ? 'pending' : null,
+            ]);
+
+        return inertia('games/InviteUsers', [
+            'game' => $game->only(['id', 'code', 'title']),
+            'users' => $users,
+        ]);
+    }
+
     public function store(Request $request, Game $game): RedirectResponse
     {
         abort_unless($game->host_id === $request->user()->id, 403);
