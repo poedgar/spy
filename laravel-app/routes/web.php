@@ -9,6 +9,7 @@ Route::inertia('/', 'Welcome')->name('home');
 
 Route::middleware(['auth'])->group(function () {
     Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard');
+    Route::get('games/spy', [DashboardController::class, 'spy'])->name('games.spy');
     Route::get('games/{game}', [GameController::class, 'show'])->name('games.show');
     Route::post('games', [GameController::class, 'store'])->name('games.store');
     Route::post('games/{code}/join', [GameController::class, 'join'])->name('games.join');

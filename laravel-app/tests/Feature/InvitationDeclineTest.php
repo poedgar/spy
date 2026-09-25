@@ -10,7 +10,7 @@ test('declining an invitation marks it declined without joining the game', funct
 
     $response = $this->actingAs($recipient)->post(route('invitations.decline', $invitation));
 
-    $response->assertRedirect(route('dashboard'));
+    $response->assertRedirect(route('games.spy'));
     expect($invitation->fresh()->status)->toBe('declined');
     expect(GamePlayer::where('game_id', $invitation->game_id)->where('user_id', $recipient->id)->exists())->toBeFalse();
 });

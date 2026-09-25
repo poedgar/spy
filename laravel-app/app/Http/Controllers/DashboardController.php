@@ -8,7 +8,12 @@ use Inertia\Response;
 
 class DashboardController extends Controller
 {
-    public function index(Request $request): Response
+    public function index(): Response
+    {
+        return inertia('Dashboard');
+    }
+
+    public function spy(Request $request): Response
     {
         $games = $request->user()
             ->gamePlayers()
@@ -29,7 +34,7 @@ class DashboardController extends Controller
                 'from_codename' => $invitation->fromUser->codename,
             ]);
 
-        return inertia('Dashboard', [
+        return inertia('games/Spy', [
             'games' => $games,
             'pendingInvitations' => $pendingInvitations,
         ]);

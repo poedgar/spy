@@ -132,6 +132,6 @@ class InvitationController extends Controller
             $invitation->update(['status' => 'declined']);
         }
 
-        return to_route('dashboard');
+        return to_route('games.spy');
     }
 }
