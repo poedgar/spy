@@ -17,6 +17,7 @@ class DashboardController extends Controller
     {
         $games = $request->user()
             ->gamePlayers()
+            ->whereHas('game', fn ($query) => $query->where('game_type', 'spy'))
             ->with('game')
             ->get()
             ->pluck('game')
@@ -25,6 +26,7 @@ class DashboardController extends Controller
         $pendingInvitations = $request->user()
             ->receivedInvitations()
             ->where('status', 'pending')
+            ->whereHas('game', fn ($query) => $query->where('game_type', 'spy'))
             ->with('game:id,title,code', 'fromUser:id,codename')
             ->get()
             ->map(fn (Invitation $invitation) => [

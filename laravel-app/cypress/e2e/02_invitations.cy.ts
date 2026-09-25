@@ -1,5 +1,5 @@
 describe('Game invitations (non-realtime path)', () => {
-    it('lets a host invite a specific user, who sees it on their dashboard, accepts, and lands in the lobby', () => {
+    it('lets a host invite a specific user, who sees it on their Spy page, accepts, and lands in the lobby', () => {
         const suffix = Date.now();
         const hostEmail = `host_${suffix}@example.com`;
         const recruitEmail = `recruit_${suffix}@example.com`;
@@ -49,7 +49,7 @@ describe('Game invitations (non-realtime path)', () => {
         cy.get('#roster-list').children().should('have.length', 2);
     });
 
-    it('lets a recipient decline an invitation, which then disappears from their dashboard', () => {
+    it('lets a recipient decline an invitation, which then disappears from their Spy page', () => {
         const suffix = Date.now();
         const hostEmail = `host2_${suffix}@example.com`;
         const recruitEmail = `recruit2_${suffix}@example.com`;
@@ -80,6 +80,7 @@ describe('Game invitations (non-realtime path)', () => {
         cy.get('#pending-invitations', { timeout: 8000 }).should('be.visible');
         cy.get('#pending-invitations').contains('button', 'Decline').click();
 
+        cy.url().should('include', '/games/spy');
         cy.get('#pending-invitations').should('not.exist');
     });
 });

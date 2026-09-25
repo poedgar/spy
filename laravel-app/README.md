@@ -20,7 +20,7 @@ Building on Phase 1, this adds:
   channel membership is the live source of truth.
 - A pending/accept/decline game-invitation flow: from a game's Lobby
   (host only, while the game is `recruiting`), invite a specific
-  registered user. They see it on their Dashboard's "Pending
+  registered user. They see it on their Spy page's "Pending
   Invitations" section, plus a live toast if they're online when it's
   sent.
 
@@ -35,7 +35,7 @@ best-effort live broadcast is skipped, and the failure is logged.
 The live presence dot and live toast are **not** covered by the Cypress
 CI suite (would require real Pusher credentials as CI secrets and two
 simultaneous authenticated sessions) — verify those manually. The
-invite → dashboard → accept/decline → lobby flow itself is CI-covered:
+invite → Spy page → accept/decline → lobby flow itself is CI-covered:
 it never depends on Pusher connectivity, since sending an invitation
 succeeds whether or not the broadcast does.
 

@@ -2,6 +2,7 @@
 import { Head, Link, usePage } from '@inertiajs/vue3';
 import CreateGameForm from '@/components/CreateGameForm.vue';
 import JoinGameForm from '@/components/JoinGameForm.vue';
+import { dashboard } from '@/routes';
 
 interface GameRow {
     id: number;
@@ -25,6 +26,10 @@ defineProps<{
 defineOptions({
     layout: {
         breadcrumbs: [
+            {
+                title: 'Games',
+                href: dashboard(),
+            },
             {
                 title: 'Spy',
                 href: '/games/spy',
