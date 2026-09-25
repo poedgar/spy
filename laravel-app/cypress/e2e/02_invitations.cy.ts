@@ -14,6 +14,7 @@ describe('Game invitations (non-realtime path)', () => {
 
         // Host registers, creates a game, opens the invite page.
         cy.registerAgent(hostName, hostEmail);
+        cy.visit('/games/spy');
         cy.get('#input-game-title').type('Operation Signal');
         cy.get('#input-mission-briefing').clear().type('Find the mole.');
         cy.get('#btn-create-game').click();
@@ -38,6 +39,7 @@ describe('Game invitations (non-realtime path)', () => {
         // The recruit logs in on the same browser (simulating a later visit) and sees the invite.
         cy.clearCookies();
         cy.loginAgent(recruitEmail);
+        cy.visit('/games/spy');
         cy.get('#pending-invitations', { timeout: 8000 }).should('be.visible');
         cy.get('#pending-invitations').contains('Operation Signal');
         cy.get('#pending-invitations').contains('button', 'Accept').click();
@@ -58,6 +60,7 @@ describe('Game invitations (non-realtime path)', () => {
         cy.clearCookies();
 
         cy.registerAgent(hostName, hostEmail);
+        cy.visit('/games/spy');
         cy.get('#input-game-title').type('Operation Quiet');
         cy.get('#input-mission-briefing').clear().type('Find the mole.');
         cy.get('#btn-create-game').click();
@@ -73,6 +76,7 @@ describe('Game invitations (non-realtime path)', () => {
 
         cy.clearCookies();
         cy.loginAgent(recruitEmail);
+        cy.visit('/games/spy');
         cy.get('#pending-invitations', { timeout: 8000 }).should('be.visible');
         cy.get('#pending-invitations').contains('button', 'Decline').click();
 

@@ -2,6 +2,7 @@ describe('Phase 1: auth, game creation, and joining', () => {
     it('registers, creates a game, and lands in its lobby', () => {
         const email = `host_${Date.now()}@example.com`;
         cy.registerAgent('Host Falcon', email);
+        cy.visit('/games/spy');
 
         cy.get('#input-game-title').type('Operation Nightfall');
         cy.get('#input-mission-briefing')
@@ -22,6 +23,7 @@ describe('Phase 1: auth, game creation, and joining', () => {
 
         // Host creates the game
         cy.registerAgent('Host Echo', hostEmail);
+        cy.visit('/games/spy');
         cy.get('#input-game-title').type('Operation Schoolyard');
         cy.get('#input-mission-briefing').clear().type('Find the mole.');
         cy.get('#btn-create-game').click();
@@ -35,6 +37,7 @@ describe('Phase 1: auth, game creation, and joining', () => {
                 // Second user registers and joins by code
                 cy.clearCookies();
                 cy.registerAgent('Recruit Ghost', recruitEmail);
+                cy.visit('/games/spy');
                 cy.get('#input-join-code').type(code);
                 cy.get('#btn-join-game').click();
 
