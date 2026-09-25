@@ -35,8 +35,9 @@ best-effort live broadcast is skipped, and the failure is logged.
 The live presence dot and live toast are **not** covered by the Cypress
 CI suite (would require real Pusher credentials as CI secrets and two
 simultaneous authenticated sessions) — verify those manually. The
-invite → dashboard → accept/decline → lobby flow itself is CI-covered
-and does not depend on Pusher connectivity, for the same reason.
+invite → dashboard → accept/decline → lobby flow itself is CI-covered:
+it never depends on Pusher connectivity, since sending an invitation
+succeeds whether or not the broadcast does.
 
 ## Setup
 

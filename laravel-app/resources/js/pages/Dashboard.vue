@@ -61,7 +61,7 @@ const page = usePage<{ errors: { invitation?: string } }>();
         </div>
 
         <div
-            v-if="pendingInvitations.length > 0"
+            v-if="pendingInvitations.length > 0 || page.props.errors.invitation"
             id="pending-invitations"
             class="rounded-xl border border-sidebar-border/70 p-4 dark:border-sidebar-border"
         >

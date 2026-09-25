@@ -57,6 +57,7 @@ function invite(userId: number) {
             <li
                 v-for="user in sortedUsers"
                 :key="user.id"
+                :data-user-name="user.name"
                 class="flex items-center justify-between rounded-xl border border-sidebar-border/70 p-3 dark:border-sidebar-border"
             >
                 <span class="flex items-center gap-2">
