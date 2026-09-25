@@ -4,7 +4,9 @@ describe('Game picker', () => {
         cy.registerAgent('Picker Tester', email);
 
         // registerAgent lands on /dashboard, which is now the picker.
-        cy.get('#tile-spy').should('be.visible').and('have.attr', 'href', '/games/spy');
+        cy.get('#tile-spy')
+            .should('be.visible')
+            .and('have.attr', 'href', '/games/spy');
         cy.get('.tile-coming-soon').should('have.length', 2);
         cy.get('.tile-coming-soon').first().click();
         cy.url().should('include', '/dashboard');
