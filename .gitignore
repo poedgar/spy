@@ -16,6 +16,7 @@ build/
 .env.local
 *.env.*
 !laravel-app/.env.example
+!expo-app/.env.example
 
 # Editor/IDE
 .vscode/
@@ -47,3 +48,7 @@ htmlcov/
 # Superpowers subagent-driven-development workspace (scratch, per-plan)
 .superpowers/
 ```
+
+# Local worktrees and agent scratch space
+.claude/worktrees/
+.superpowers/
