@@ -17,6 +17,7 @@ class GameFactory extends Factory
     {
         return [
             'code' => Game::generateUniqueCode(),
+            'game_type' => 'spy',
             'title' => 'Operation '.fake()->word(),
             'game_mode' => 'mole',
             'host_id' => User::factory(),

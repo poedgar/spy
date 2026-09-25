@@ -33,6 +33,7 @@ class GameController extends Controller
                 'code' => Game::generateUniqueCode(),
                 'secret_location' => Arr::random(config('locations.names')),
                 'host_id' => $request->user()->id,
+                'game_type' => 'spy',
             ]);
 
             GamePlayer::create([

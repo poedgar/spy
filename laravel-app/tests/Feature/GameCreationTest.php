@@ -43,3 +43,18 @@ test('creating a game validates required fields', function () {
 
     $response->assertSessionHasErrors(['title', 'game_mode', 'max_players', 'mission_briefing']);
 });
+
+test('creating a game sets its game_type to spy', function () {
+    $user = User::factory()->create();
+
+    $response = $this->actingAs($user)->post(route('games.store'), [
+        'title' => 'Operation Nightfall',
+        'game_mode' => 'mole',
+        'max_players' => 6,
+        'mission_briefing' => 'Find the mole before time runs out.',
+    ]);
+
+    $response->assertRedirect();
+    $game = Game::where('title', 'Operation Nightfall')->firstOrFail();
+    expect($game->game_type)->toBe('spy');
+});
