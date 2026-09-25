@@ -111,6 +111,25 @@ test('cannot invite into a full game', function () {
     expect(Invitation::where('game_id', $game->id)->exists())->toBeFalse();
 });
 
+test('a broadcast failure does not prevent the invitation from being saved', function () {
+    // phpunit.xml intentionally configures fake Pusher credentials (see M4
+    // in the final review) — broadcasting to them always fails one way or
+    // another (auth rejection, or a network/TLS error), which is exactly
+    // the scenario this test exercises: store() must swallow that failure
+    // and still save the invitation and redirect successfully.
+    $host = User::factory()->create();
+    $game = Game::factory()->create(['host_id' => $host->id, 'max_players' => 6]);
+    GamePlayer::factory()->create(['game_id' => $game->id, 'user_id' => $host->id, 'is_host' => true]);
+    $invitee = User::factory()->create();
+
+    $response = $this->actingAs($host)->post(route('invitations.store', $game), [
+        'to_user_id' => $invitee->id,
+    ]);
+
+    $response->assertRedirect();
+    expect(Invitation::where('game_id', $game->id)->where('to_user_id', $invitee->id)->exists())->toBeTrue();
+});
+
 test('a guest is redirected to login when trying to send an invitation', function () {
     $game = Game::factory()->create();
     $invitee = User::factory()->create();

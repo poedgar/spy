@@ -47,6 +47,31 @@ test('accepting into a game that filled up in the meantime fails gracefully', fu
     expect($invitation->fresh()->status)->toBe('pending');
 });
 
+test('accepting an invitation for a user who already joined by code resolves it without duplicating', function () {
+    $game = Game::factory()->create(['max_players' => 6]);
+    $recipient = User::factory()->create();
+    GamePlayer::factory()->create(['game_id' => $game->id, 'user_id' => $recipient->id]);
+    $invitation = Invitation::factory()->create(['game_id' => $game->id, 'to_user_id' => $recipient->id]);
+
+    $response = $this->actingAs($recipient)->post(route('invitations.accept', $invitation));
+
+    $response->assertRedirect(route('games.show', $game));
+    expect(GamePlayer::where('game_id', $game->id)->where('user_id', $recipient->id)->count())->toBe(1);
+    expect($invitation->fresh()->status)->toBe('accepted');
+});
+
+test('accepting an invitation for a game that is no longer recruiting fails gracefully', function () {
+    $game = Game::factory()->create(['max_players' => 6, 'status' => 'active']);
+    $recipient = User::factory()->create();
+    $invitation = Invitation::factory()->create(['game_id' => $game->id, 'to_user_id' => $recipient->id]);
+
+    $response = $this->actingAs($recipient)->post(route('invitations.accept', $invitation));
+
+    $response->assertSessionHasErrors('invitation');
+    expect(GamePlayer::where('game_id', $game->id)->where('user_id', $recipient->id)->exists())->toBeFalse();
+    expect($invitation->fresh()->status)->toBe('pending');
+});
+
 test('only the invitations recipient can accept it', function () {
     $game = Game::factory()->create();
     $recipient = User::factory()->create();

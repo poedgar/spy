@@ -9,7 +9,9 @@ use App\Models\Invitation;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Inertia\Response;
+use Throwable;
 
 class InvitationController extends Controller
 {
@@ -67,7 +69,17 @@ class InvitationController extends Controller
             ['from_user_id' => $request->user()->id, 'status' => 'pending'],
         );
 
-        broadcast(new InvitationSent($invitation));
+        // The invitation is already saved at this point — a broadcast failure
+        // (e.g. Pusher unreachable, misconfigured, or a network/TLS error) is
+        // a best-effort delivery problem, not a reason to fail the whole
+        // request. Pusher's SDK only wraps API-level errors (bad credentials,
+        // rate limits) in BroadcastException; raw connectivity failures
+        // surface as GuzzleHttp exceptions instead, so this catches broadly.
+        try {
+            broadcast(new InvitationSent($invitation));
+        } catch (Throwable $e) {
+            report($e);
+        }
 
         return back();
     }
@@ -82,19 +94,32 @@ class InvitationController extends Controller
 
         $game = $invitation->game;
 
-        if ($game->players()->count() >= $game->max_players) {
+        if ($game->status !== 'recruiting') {
+            return back()->withErrors(['invitation' => 'This operation is no longer recruiting.']);
+        }
+
+        // Mirrors GameController::join()'s already-joined guard: a user who
+        // joined by code after being invited should have their invitation
+        // resolved gracefully, not hit the game_players unique constraint.
+        $alreadyJoined = $game->players()->where('user_id', $request->user()->id)->exists();
+
+        if (! $alreadyJoined && $game->players()->count() >= $game->max_players) {
             return back()->withErrors(['invitation' => 'This operation roster is already full.']);
         }
 
-        GamePlayer::create([
-            'game_id' => $game->id,
-            'user_id' => $request->user()->id,
-            'is_host' => false,
-            'status' => 'ready',
-            'joined_at' => now(),
-        ]);
+        DB::transaction(function () use ($alreadyJoined, $game, $request, $invitation): void {
+            if (! $alreadyJoined) {
+                GamePlayer::create([
+                    'game_id' => $game->id,
+                    'user_id' => $request->user()->id,
+                    'is_host' => false,
+                    'status' => 'ready',
+                    'joined_at' => now(),
+                ]);
+            }
 
-        $invitation->update(['status' => 'accepted']);
+            $invitation->update(['status' => 'accepted']);
+        });
 
         return to_route('games.show', $game);
     }
@@ -103,7 +128,9 @@ class InvitationController extends Controller
     {
         abort_unless($invitation->to_user_id === $request->user()->id, 403);
 
-        $invitation->update(['status' => 'declined']);
+        if ($invitation->status === 'pending') {
+            $invitation->update(['status' => 'declined']);
+        }
 
         return to_route('dashboard');
     }

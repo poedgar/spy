@@ -21,7 +21,7 @@ test('declining an already-resolved invitation does not change an accepted statu
 
     $this->actingAs($recipient)->post(route('invitations.decline', $invitation));
 
-    expect($invitation->fresh()->status)->toBe('declined');
+    expect($invitation->fresh()->status)->toBe('accepted');
 });
 
 test('only the invitations recipient can decline it', function () {

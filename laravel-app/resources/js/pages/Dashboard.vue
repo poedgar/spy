@@ -3,7 +3,6 @@ import { Head, Link, usePage } from '@inertiajs/vue3';
 import CreateGameForm from '@/components/CreateGameForm.vue';
 import JoinGameForm from '@/components/JoinGameForm.vue';
 import { dashboard } from '@/routes';
-import { useInvitationNotifications } from '@/composables/useInvitationNotifications';
 
 interface GameRow {
     id: number;
@@ -35,8 +34,7 @@ defineOptions({
     },
 });
 
-const page = usePage<{ auth: { user: { id: number } } }>();
-useInvitationNotifications(page.props.auth.user.id);
+const page = usePage<{ errors: { invitation?: string } }>();
 </script>
 
 <template>
@@ -68,6 +66,12 @@ useInvitationNotifications(page.props.auth.user.id);
             class="rounded-xl border border-sidebar-border/70 p-4 dark:border-sidebar-border"
         >
             <h2 class="mb-2 font-semibold">Pending Invitations</h2>
+            <p
+                v-if="page.props.errors.invitation"
+                class="mb-2 text-sm text-red-600"
+            >
+                {{ page.props.errors.invitation }}
+            </p>
             <ul class="space-y-2">
                 <li
                     v-for="invitation in pendingInvitations"
