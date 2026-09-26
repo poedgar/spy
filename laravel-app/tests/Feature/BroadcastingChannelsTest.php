@@ -1,5 +1,7 @@
 <?php
 
+use App\Models\Game;
+use App\Models\GamePlayer;
 use App\Models\User;
 
 test('a user can authorize their own private channel', function () {
@@ -55,8 +57,8 @@ test('a guest cannot authorize any channel', function () {
 
 test('a roster member can authorize their games private channel', function () {
     $user = User::factory()->create();
-    $game = \App\Models\Game::factory()->create();
-    \App\Models\GamePlayer::factory()->create(['game_id' => $game->id, 'user_id' => $user->id]);
+    $game = Game::factory()->create();
+    GamePlayer::factory()->create(['game_id' => $game->id, 'user_id' => $user->id]);
 
     $response = $this->actingAs($user)->post('/broadcasting/auth', [
         'channel_name' => 'private-game.'.$game->id,
@@ -67,7 +69,7 @@ test('a roster member can authorize their games private channel', function () {
 });
 
 test('a non-member cannot authorize a games private channel', function () {
-    $game = \App\Models\Game::factory()->create();
+    $game = Game::factory()->create();
 
     $response = $this->actingAs(User::factory()->create())->post('/broadcasting/auth', [
         'channel_name' => 'private-game.'.$game->id,

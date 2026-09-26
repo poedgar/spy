@@ -6,6 +6,7 @@ use App\Exceptions\GameRuleException;
 use App\Models\Game;
 use App\Models\GamePlayer;
 use App\Models\User;
+use Illuminate\Http\Request;
 
 test('CreateGame creates the game and the host roster row', function () {
     $host = User::factory()->create();
@@ -61,7 +62,7 @@ test('JoinGame rejects a full roster with a code-field rule exception', function
 });
 
 test('GameRuleException renders as a 422 validation body for API requests', function () {
-    $request = Illuminate\Http\Request::create('/api/v1/anything', 'POST');
+    $request = Request::create('/api/v1/anything', 'POST');
 
     $response = (new GameRuleException('code', 'Nope.'))->render($request);
 

@@ -14,9 +14,6 @@ class PlayerJoined implements ShouldBroadcastNow
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
-    /**
-     * @param GamePlayer $player
-     */
     public function __construct(
         public GamePlayer $player,
     ) {}
@@ -51,7 +48,7 @@ class PlayerJoined implements ShouldBroadcastNow
                 ],
                 'is_host' => $this->player->is_host,
                 'status' => $this->player->status,
-                'joined_at' => $this->player->joined_at?->toIso8601String(),
+                'joined_at' => $this->player->joined_at->toIso8601String(),
             ],
             'player_count' => GamePlayer::where('game_id', $this->player->game_id)->count(),
         ];

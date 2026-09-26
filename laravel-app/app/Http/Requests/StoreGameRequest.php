@@ -23,4 +23,12 @@ class StoreGameRequest extends FormRequest
             'mission_briefing' => ['required', 'string', 'max:2000'],
         ];
     }
+
+    /**
+     * @return array{title: string, game_mode: string, max_players: int, mission_briefing: string}
+     */
+    public function validated($key = null, $default = null): array
+    {
+        return parent::validated($key, $default);
+    }
 }
