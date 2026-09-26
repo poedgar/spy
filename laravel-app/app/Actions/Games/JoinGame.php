@@ -2,10 +2,12 @@
 
 namespace App\Actions\Games;
 
+use App\Events\PlayerJoined;
 use App\Exceptions\GameRuleException;
 use App\Models\Game;
 use App\Models\GamePlayer;
 use App\Models\User;
+use App\Support\BestEffortBroadcast;
 
 class JoinGame
 {
@@ -22,13 +24,15 @@ class JoinGame
             throw new GameRuleException('code', 'This operation roster is already full.');
         }
 
-        GamePlayer::create([
+        $player = GamePlayer::create([
             'game_id' => $game->id,
             'user_id' => $user->id,
             'is_host' => false,
             'status' => 'ready',
             'joined_at' => now(),
         ]);
+
+        BestEffortBroadcast::dispatch(new PlayerJoined($player));
 
         return $game;
     }

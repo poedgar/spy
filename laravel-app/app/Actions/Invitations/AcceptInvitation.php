@@ -2,11 +2,13 @@
 
 namespace App\Actions\Invitations;
 
+use App\Events\PlayerJoined;
 use App\Exceptions\GameRuleException;
 use App\Models\Game;
 use App\Models\GamePlayer;
 use App\Models\Invitation;
 use App\Models\User;
+use App\Support\BestEffortBroadcast;
 use Illuminate\Support\Facades\DB;
 
 class AcceptInvitation
@@ -37,9 +39,11 @@ class AcceptInvitation
             throw new GameRuleException('invitation', 'This operation roster is already full.');
         }
 
-        DB::transaction(function () use ($alreadyJoined, $game, $user, $invitation): void {
+        $player = DB::transaction(function () use ($alreadyJoined, $game, $user, $invitation): ?GamePlayer {
+            $player = null;
+
             if (! $alreadyJoined) {
-                GamePlayer::create([
+                $player = GamePlayer::create([
                     'game_id' => $game->id,
                     'user_id' => $user->id,
                     'is_host' => false,
@@ -49,7 +53,13 @@ class AcceptInvitation
             }
 
             $invitation->update(['status' => 'accepted']);
+
+            return $player;
         });
+
+        if ($player) {
+            BestEffortBroadcast::dispatch(new PlayerJoined($player));
+        }
 
         return $game;
     }
