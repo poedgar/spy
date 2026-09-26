@@ -11,7 +11,7 @@ use Illuminate\Support\Facades\DB;
 class CreateGame
 {
     /**
-     * @param  array{title: string, game_mode: string, max_players: int, mission_briefing: string}  $attributes
+     * @param  array<string, mixed>  $attributes  Expected keys: title, game_mode, max_players, mission_briefing
      */
     public function handle(User $host, array $attributes): Game
     {
