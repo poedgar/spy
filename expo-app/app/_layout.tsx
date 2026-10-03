@@ -5,6 +5,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { bindQueryClientToAppState, createQueryClient } from '@/api/queryClient';
 import { AuthProvider } from '@/auth/AuthProvider';
 import { BannerProvider } from '@/banner/BannerProvider';
+import { NotificationsProvider } from '@/notifications/NotificationsProvider';
 import { RealtimeProvider } from '@/realtime/RealtimeProvider';
 
 export default function RootLayout() {
@@ -18,7 +19,9 @@ export default function RootLayout() {
         <AuthProvider>
           <BannerProvider>
             <RealtimeProvider>
-              <Slot />
+              <NotificationsProvider>
+                <Slot />
+              </NotificationsProvider>
             </RealtimeProvider>
           </BannerProvider>
         </AuthProvider>
