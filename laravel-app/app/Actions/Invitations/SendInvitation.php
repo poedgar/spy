@@ -2,6 +2,7 @@
 
 namespace App\Actions\Invitations;
 
+use App\Events\InvitationIssued;
 use App\Events\InvitationSent;
 use App\Exceptions\GameRuleException;
 use App\Models\Game;
@@ -36,6 +37,7 @@ class SendInvitation
             ['from_user_id' => $host->id, 'status' => 'pending'],
         );
 
+        InvitationIssued::dispatch($invitation);
         BestEffortBroadcast::dispatch(new InvitationSent($invitation));
 
         return $invitation;

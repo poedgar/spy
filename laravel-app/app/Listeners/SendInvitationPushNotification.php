@@ -2,7 +2,7 @@
 
 namespace App\Listeners;
 
-use App\Events\InvitationSent;
+use App\Events\InvitationIssued;
 use App\Models\PushToken;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Support\Facades\Http;
@@ -11,7 +11,7 @@ class SendInvitationPushNotification implements ShouldQueue
 {
     private const EXPO_PUSH_URL = 'https://exp.host/--/api/v2/push/send';
 
-    public function handle(InvitationSent $event): void
+    public function handle(InvitationIssued $event): void
     {
         $invitation = $event->invitation->loadMissing(['game', 'fromUser', 'toUser.pushTokens']);
         $tokens = $invitation->toUser->pushTokens->values();

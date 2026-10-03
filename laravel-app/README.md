@@ -86,7 +86,7 @@ both clients share the Action classes in `app/Actions`.
 - **Real-time:** mobile clients authorize channels at
   `/api/broadcasting/auth`. `PlayerJoined` (`player.joined`) broadcasts on
   `private-game.{id}` to roster members; web lobbies refresh on it too.
-- **Push:** devices register Expo push tokens; `InvitationSent` queues
+- **Push:** devices register Expo push tokens; `InvitationIssued` queues
   `SendInvitationPushNotification`, which calls Expo's push API. Production
   needs a queue worker. Set `EXPO_ACCESS_TOKEN` if Expo enhanced push
   security is enabled.

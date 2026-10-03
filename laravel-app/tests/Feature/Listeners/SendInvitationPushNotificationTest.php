@@ -1,6 +1,6 @@
 <?php
 
-use App\Events\InvitationSent;
+use App\Events\InvitationIssued;
 use App\Listeners\SendInvitationPushNotification;
 use App\Models\Invitation;
 use App\Models\PushToken;
@@ -8,11 +8,9 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Http;
 
-test('the listener is registered for InvitationSent and queued', function () {
-    // Dispatching the real event here would also attempt a Pusher broadcast
-    // with the fake test credentials, so assert the wiring directly.
+test('the listener is registered for InvitationIssued and queued', function () {
     Event::fake();
-    Event::assertListening(InvitationSent::class, SendInvitationPushNotification::class);
+    Event::assertListening(InvitationIssued::class, SendInvitationPushNotification::class);
 
     expect(new SendInvitationPushNotification)->toBeInstanceOf(ShouldQueue::class);
 });
@@ -23,7 +21,7 @@ test('it sends one Expo message per device with the invitation data', function (
     PushToken::create(['user_id' => $invitation->to_user_id, 'token' => 'ExponentPushToken[one]', 'platform' => 'ios']);
     PushToken::create(['user_id' => $invitation->to_user_id, 'token' => 'ExponentPushToken[two]', 'platform' => 'android']);
 
-    app(SendInvitationPushNotification::class)->handle(new InvitationSent($invitation));
+    app(SendInvitationPushNotification::class)->handle(new InvitationIssued($invitation));
 
     Http::assertSent(function ($request) use ($invitation) {
         $messages = $request->data();
@@ -40,7 +38,7 @@ test('it sends one Expo message per device with the invitation data', function (
 test('it makes no request when the invitee has no devices', function () {
     Http::fake();
 
-    app(SendInvitationPushNotification::class)->handle(new InvitationSent(Invitation::factory()->create()));
+    app(SendInvitationPushNotification::class)->handle(new InvitationIssued(Invitation::factory()->create()));
 
     Http::assertNothingSent();
 });
@@ -54,7 +52,7 @@ test('it deletes tokens Expo reports as DeviceNotRegistered', function () {
     PushToken::create(['user_id' => $invitation->to_user_id, 'token' => 'ExponentPushToken[dead]', 'platform' => 'ios']);
     PushToken::create(['user_id' => $invitation->to_user_id, 'token' => 'ExponentPushToken[live]', 'platform' => 'ios']);
 
-    app(SendInvitationPushNotification::class)->handle(new InvitationSent($invitation));
+    app(SendInvitationPushNotification::class)->handle(new InvitationIssued($invitation));
 
     expect(PushToken::pluck('token')->all())->toBe(['ExponentPushToken[live]']);
 });
@@ -65,7 +63,7 @@ test('it sends the Expo access token when configured', function () {
     $invitation = Invitation::factory()->create();
     PushToken::create(['user_id' => $invitation->to_user_id, 'token' => 'ExponentPushToken[one]', 'platform' => 'ios']);
 
-    app(SendInvitationPushNotification::class)->handle(new InvitationSent($invitation));
+    app(SendInvitationPushNotification::class)->handle(new InvitationIssued($invitation));
 
     Http::assertSent(fn ($request) => $request->hasHeader('Authorization', 'Bearer expo-secret'));
 });
