@@ -2,7 +2,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useFocusEffect } from 'expo-router';
 import { useCallback, useRef } from 'react';
 import { gamesApi } from './endpoints';
-import type { Game } from './types';
+import type { CreateGameInput, Game } from './types';
 
 export const queryKeys = {
   spyHome: ['spyHome'] as const,
@@ -30,22 +30,24 @@ function useCacheLobby() {
   };
 }
 
+// mutationFn receives a second context argument in TanStack Query 5, so the
+// endpoints are wrapped to pass only the variables through.
 export function useCreateGame() {
-  return useMutation({ mutationFn: gamesApi.create, onSuccess: useCacheLobby() });
+  return useMutation({ mutationFn: (input: CreateGameInput) => gamesApi.create(input), onSuccess: useCacheLobby() });
 }
 
 export function useJoinGame() {
-  return useMutation({ mutationFn: gamesApi.join, onSuccess: useCacheLobby() });
+  return useMutation({ mutationFn: (code: string) => gamesApi.join(code), onSuccess: useCacheLobby() });
 }
 
 export function useAcceptInvitation() {
-  return useMutation({ mutationFn: gamesApi.accept, onSuccess: useCacheLobby() });
+  return useMutation({ mutationFn: (invitationId: number) => gamesApi.accept(invitationId), onSuccess: useCacheLobby() });
 }
 
 export function useDeclineInvitation() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: gamesApi.decline,
+    mutationFn: (invitationId: number) => gamesApi.decline(invitationId),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: queryKeys.spyHome }),
   });
 }
