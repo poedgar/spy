@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\GameController;
+use App\Http\Controllers\Api\InvitationController;
 use App\Http\Controllers\Api\MeController;
 use Illuminate\Support\Facades\Route;
 
@@ -22,5 +23,10 @@ Route::prefix('v1')->group(function () {
         Route::post('games', [GameController::class, 'store']);
         Route::get('games/{code}', [GameController::class, 'show']);
         Route::post('games/{code}/join', [GameController::class, 'join']);
+
+        Route::get('games/{code}/invitable-users', [InvitationController::class, 'invitable']);
+        Route::post('games/{code}/invitations', [InvitationController::class, 'store']);
+        Route::post('invitations/{invitation}/accept', [InvitationController::class, 'accept']);
+        Route::post('invitations/{invitation}/decline', [InvitationController::class, 'decline']);
     });
 });
