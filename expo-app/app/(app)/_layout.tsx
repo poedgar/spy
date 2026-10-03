@@ -1,9 +1,11 @@
 import { Redirect, Stack, usePathname } from 'expo-router';
 import { useEffect } from 'react';
 import { useAuth } from '@/auth/AuthProvider';
+import { useTheme } from '@/theme/useTheme';
 
 export default function AppLayout() {
   const { state, setPendingHref } = useAuth();
+  const { colors } = useTheme();
   const pathname = usePathname();
   const signedOut = state.status === 'signedOut';
 
@@ -17,5 +19,13 @@ export default function AppLayout() {
   if (state.status === 'loading') return null;
   if (signedOut) return <Redirect href="/welcome" />;
 
-  return <Stack />;
+  return (
+    <Stack
+      screenOptions={{
+        headerStyle: { backgroundColor: colors.background },
+        headerTintColor: colors.foreground,
+        contentStyle: { backgroundColor: colors.background },
+      }}
+    />
+  );
 }
