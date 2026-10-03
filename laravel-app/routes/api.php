@@ -4,6 +4,7 @@ use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\GameController;
 use App\Http\Controllers\Api\InvitationController;
 use App\Http\Controllers\Api\MeController;
+use Illuminate\Support\Facades\Broadcast;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('v1')->group(function () {
@@ -30,3 +31,5 @@ Route::prefix('v1')->group(function () {
         Route::post('invitations/{invitation}/decline', [InvitationController::class, 'decline']);
     });
 });
+
+Broadcast::routes(['middleware' => ['auth:sanctum']]);
