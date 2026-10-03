@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\GameController;
 use App\Http\Controllers\Api\MeController;
 use Illuminate\Support\Facades\Route;
 
@@ -16,5 +17,10 @@ Route::prefix('v1')->group(function () {
         Route::patch('me', [MeController::class, 'update']);
         Route::put('me/password', [MeController::class, 'updatePassword'])->middleware('throttle:6,1');
         Route::delete('me', [MeController::class, 'destroy']);
+
+        Route::get('games/spy', [GameController::class, 'spy']);
+        Route::post('games', [GameController::class, 'store']);
+        Route::get('games/{code}', [GameController::class, 'show']);
+        Route::post('games/{code}/join', [GameController::class, 'join']);
     });
 });
