@@ -27,3 +27,13 @@ jest.mock('expo-secure-store', () => {
 beforeEach(() => {
   jest.requireMock<{ __store: Map<string, string> }>('expo-secure-store').__store.clear();
 });
+
+jest.mock('@/realtime/echo', () => {
+  const { createFakeEcho } = jest.requireActual('./tests/support/fakeEcho');
+  const echo = createFakeEcho();
+  return { createEcho: jest.fn(() => echo), __echo: echo };
+});
+
+beforeEach(() => {
+  jest.requireMock<{ __echo: { reset(): void } }>('@/realtime/echo').__echo.reset();
+});

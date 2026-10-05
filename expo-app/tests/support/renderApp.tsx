@@ -8,6 +8,7 @@ import type { User } from '@/api/types';
 import { AuthProvider } from '@/auth/AuthProvider';
 import { SESSION_KEY } from '@/auth/session';
 import { BannerProvider } from '@/banner/BannerProvider';
+import { RealtimeProvider } from '@/realtime/RealtimeProvider';
 
 type Routes = Record<string, ComponentType>;
 
@@ -30,7 +31,9 @@ export async function renderApp(routes: Routes, options: { initialUrl: string; u
     return (
       <QueryClientProvider client={queryClient}>
         <AuthProvider>
-          <BannerProvider>{children}</BannerProvider>
+          <BannerProvider>
+            <RealtimeProvider>{children}</RealtimeProvider>
+          </BannerProvider>
         </AuthProvider>
       </QueryClientProvider>
     );
