@@ -7,6 +7,7 @@ import { createQueryClient } from '@/api/queryClient';
 import type { User } from '@/api/types';
 import { AuthProvider } from '@/auth/AuthProvider';
 import { SESSION_KEY } from '@/auth/session';
+import { BannerProvider } from '@/banner/BannerProvider';
 
 type Routes = Record<string, ComponentType>;
 
@@ -28,7 +29,9 @@ export async function renderApp(routes: Routes, options: { initialUrl: string; u
   function Providers({ children }: { children: ReactNode }) {
     return (
       <QueryClientProvider client={queryClient}>
-        <AuthProvider>{children}</AuthProvider>
+        <AuthProvider>
+          <BannerProvider>{children}</BannerProvider>
+        </AuthProvider>
       </QueryClientProvider>
     );
   }
