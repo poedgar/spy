@@ -1,5 +1,7 @@
 <?php
 
+use App\Models\Game;
+use App\Models\GamePlayer;
 use App\Models\User;
 
 test('a user can authorize their own private channel', function () {
@@ -51,4 +53,28 @@ test('a guest cannot authorize any channel', function () {
     ]);
 
     $response->assertRedirect(route('login'));
+});
+
+test('a roster member can authorize their games private channel', function () {
+    $user = User::factory()->create();
+    $game = Game::factory()->create();
+    GamePlayer::factory()->create(['game_id' => $game->id, 'user_id' => $user->id]);
+
+    $response = $this->actingAs($user)->post('/broadcasting/auth', [
+        'channel_name' => 'private-game.'.$game->id,
+        'socket_id' => '1234.5678',
+    ]);
+
+    $response->assertOk();
+});
+
+test('a non-member cannot authorize a games private channel', function () {
+    $game = Game::factory()->create();
+
+    $response = $this->actingAs(User::factory()->create())->post('/broadcasting/auth', [
+        'channel_name' => 'private-game.'.$game->id,
+        'socket_id' => '1234.5678',
+    ]);
+
+    $response->assertForbidden();
 });

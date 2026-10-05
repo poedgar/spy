@@ -1,0 +1,38 @@
+# Requires a dev build installed on a simulator/emulator and laravel-app
+# reachable at EXPO_PUBLIC_API_URL. Run: maestro test .maestro/01_register_and_create.yaml
+appId: com.example.spynet
+---
+- launchApp:
+    clearState: true
+- tapOn:
+    id: btn-welcome-register
+- tapOn:
+    id: input-name
+- inputText: Maestro Host
+- tapOn:
+    id: input-email
+- inputRandomEmail
+- tapOn:
+    id: input-password
+- inputText: password
+- tapOn:
+    id: input-password-confirmation
+- inputText: password
+- tapOn:
+    id: btn-register
+- assertVisible: Choose a Game
+- tapOn:
+    id: tile-spy
+- tapOn:
+    id: btn-open-create
+- tapOn:
+    id: input-game-title
+- inputText: Operation Maestro
+- tapOn:
+    id: input-mission-briefing
+- inputText: Find the mole.
+- tapOn:
+    id: btn-create-game
+- assertVisible:
+    id: lobby-code
+- assertVisible: Roster
