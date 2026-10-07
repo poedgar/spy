@@ -34,7 +34,7 @@ class UserFactory extends Factory
             'two_factor_secret' => null,
             'two_factor_recovery_codes' => null,
             'two_factor_confirmed_at' => null,
-            'codename' => CodenameGenerator::forName($this->faker->name()),
+            'codename' => CodenameGenerator::random().'_'.fake()->unique()->numberBetween(10, 999999),
         ];
     }
 

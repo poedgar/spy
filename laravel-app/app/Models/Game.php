@@ -27,9 +27,10 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
  * @property GameStatus $status
  * @property int $host_id
  * @property int $max_players
+ * @property bool $requires_approval
  * @property int|null $players_count
  */
-#[Fillable(['title', 'game_mode', 'age_tier', 'phrase_language', 'code', 'host_id', 'max_players', 'mission_briefing', 'status', 'game_type'])]
+#[Fillable(['title', 'game_mode', 'age_tier', 'phrase_language', 'code', 'host_id', 'max_players', 'mission_briefing', 'status', 'game_type', 'requires_approval'])]
 class Game extends Model
 {
     /** @use HasFactory<GameFactory> */
@@ -56,6 +57,7 @@ class Game extends Model
             'game_type' => GameType::class,
             'game_mode' => GameMode::class,
             'phrase_language' => Locale::class,
+            'requires_approval' => 'boolean',
             'age_tier' => AgeTier::class,
             'status' => GameStatus::class,
         ];
@@ -151,6 +153,14 @@ class Game extends Model
     public function invitations(): HasMany
     {
         return $this->hasMany(Invitation::class);
+    }
+
+    /**
+     * @return HasMany<JoinRequest, $this>
+     */
+    public function joinRequests(): HasMany
+    {
+        return $this->hasMany(JoinRequest::class);
     }
 
     /**

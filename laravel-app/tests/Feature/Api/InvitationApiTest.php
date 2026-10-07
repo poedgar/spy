@@ -15,13 +15,22 @@ beforeEach(function () {
     GamePlayer::factory()->create(['game_id' => $this->game->id, 'user_id' => $this->host->id, 'is_host' => true]);
 });
 
-test('the host lists invitable users', function () {
+test('the host lists invitable users: past teammates, or anyone matching a search', function () {
     $other = User::factory()->create();
+    $earlier = Game::factory()->create();
+    GamePlayer::factory()->create(['game_id' => $earlier->id, 'user_id' => $this->host->id]);
+    GamePlayer::factory()->create(['game_id' => $earlier->id, 'user_id' => $other->id]);
+    $stranger = User::factory()->create(['codename' => 'LUNAR_HERON']);
     Sanctum::actingAs($this->host);
 
     $this->getJson("/api/v1/games/{$this->game->code}/invitable-users")
         ->assertOk()
         ->assertExactJson([['id' => $other->id, 'name' => $other->name, 'codename' => $other->codename, 'invite_status' => null]]);
+
+    $this->getJson("/api/v1/games/{$this->game->code}/invitable-users?q=heron")
+        ->assertOk()
+        ->assertJsonPath('0.id', $stranger->id)
+        ->assertJsonCount(1);
 });
 
 test('a non-host cannot list invitable users', function () {

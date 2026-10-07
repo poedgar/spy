@@ -130,6 +130,10 @@ test('InvitableUsersQuery excludes the host and roster and flags pending invitat
     GamePlayer::factory()->create(['game_id' => $game->id, 'user_id' => $member->id]);
     $invited = User::factory()->create(['name' => 'Alpha']);
     $free = User::factory()->create(['name' => 'Bravo']);
+    $earlier = Game::factory()->create();
+    foreach ([$host, $member, $invited, $free] as $teammate) {
+        GamePlayer::factory()->create(['game_id' => $earlier->id, 'user_id' => $teammate->id]);
+    }
     Invitation::factory()->create(['game_id' => $game->id, 'from_user_id' => $host->id, 'to_user_id' => $invited->id, 'status' => 'pending']);
 
     $rows = app(InvitableUsersQuery::class)->for($game, $host);

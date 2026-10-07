@@ -5,11 +5,26 @@ use App\Models\GamePlayer;
 use App\Models\Invitation;
 use App\Models\User;
 
+/**
+ * A user who once played in another game with the host: the people a host
+ * is offered without searching.
+ */
+function formerTeammate(User $host, array $attributes = []): User
+{
+    $user = User::factory()->create($attributes);
+    $earlier = Game::factory()->create(['status' => 'completed']);
+    GamePlayer::factory()->create(['game_id' => $earlier->id, 'user_id' => $host->id]);
+    GamePlayer::factory()->create(['game_id' => $earlier->id, 'user_id' => $user->id]);
+
+    return $user;
+}
+
 test('the host sees the invite page listing other users', function () {
     $host = User::factory()->create();
     $game = Game::factory()->create(['host_id' => $host->id]);
     GamePlayer::factory()->create(['game_id' => $game->id, 'user_id' => $host->id, 'is_host' => true]);
-    $candidate = User::factory()->create();
+    $candidate = formerTeammate($host);
+    User::factory()->create(); // a stranger stays hidden until searched for
 
     $response = $this->actingAs($host)->get(route('invitations.index', $game));
 
@@ -25,9 +40,9 @@ test('the current user and existing roster members are excluded from the candida
     $host = User::factory()->create();
     $game = Game::factory()->create(['host_id' => $host->id]);
     GamePlayer::factory()->create(['game_id' => $game->id, 'user_id' => $host->id, 'is_host' => true]);
-    $alreadyIn = User::factory()->create();
+    $alreadyIn = formerTeammate($host);
     GamePlayer::factory()->create(['game_id' => $game->id, 'user_id' => $alreadyIn->id]);
-    $candidate = User::factory()->create();
+    $candidate = formerTeammate($host);
 
     $response = $this->actingAs($host)->get(route('invitations.index', $game));
 
@@ -39,7 +54,7 @@ test('the current user and existing roster members are excluded from the candida
 test('a user with a pending invitation is annotated as pending', function () {
     $host = User::factory()->create();
     $game = Game::factory()->create(['host_id' => $host->id]);
-    $invitee = User::factory()->create();
+    $invitee = formerTeammate($host);
     Invitation::factory()->create(['game_id' => $game->id, 'from_user_id' => $host->id, 'to_user_id' => $invitee->id, 'status' => 'pending']);
 
     $response = $this->actingAs($host)->get(route('invitations.index', $game));
@@ -51,7 +66,7 @@ test('a user with a pending invitation is annotated as pending', function () {
 test('a user with a declined invitation is annotated as invitable again', function () {
     $host = User::factory()->create();
     $game = Game::factory()->create(['host_id' => $host->id]);
-    $invitee = User::factory()->create();
+    $invitee = formerTeammate($host);
     Invitation::factory()->create(['game_id' => $game->id, 'from_user_id' => $host->id, 'to_user_id' => $invitee->id, 'status' => 'declined']);
 
     $response = $this->actingAs($host)->get(route('invitations.index', $game));
@@ -85,4 +100,22 @@ test('a guest is redirected to login when trying to view the invite page', funct
     $response = $this->get(route('invitations.index', $game));
 
     $response->assertRedirect(route('login'));
+});
+
+test('searching finds anyone by name or codename, and only past teammates show without one', function () {
+    $host = User::factory()->create();
+    $game = Game::factory()->create(['host_id' => $host->id]);
+    GamePlayer::factory()->create(['game_id' => $game->id, 'user_id' => $host->id, 'is_host' => true]);
+    $teammate = formerTeammate($host, ['name' => 'Tess Teammate']);
+    $stranger = User::factory()->create(['name' => 'Sam Stranger', 'codename' => 'QUIET_OTTER']);
+
+    $this->actingAs($host)->get(route('invitations.index', $game))
+        ->assertInertia(fn ($page) => $page->has('users', 1)->where('users.0.id', $teammate->id));
+
+    $this->get(route('invitations.index', [$game, 'q' => 'otter']))
+        ->assertInertia(fn ($page) => $page->has('users', 1)->where('users.0.id', $stranger->id)->where('search', 'otter'));
+
+    // One character is too broad to search with.
+    $this->get(route('invitations.index', [$game, 'q' => 's']))
+        ->assertInertia(fn ($page) => $page->has('users', 1)->where('users.0.id', $teammate->id));
 });

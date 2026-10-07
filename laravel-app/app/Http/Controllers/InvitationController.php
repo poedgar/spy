@@ -23,7 +23,8 @@ class InvitationController extends Controller
 
         return inertia('games/InviteUsers', [
             'game' => $game->only(['id', 'code', 'title']),
-            'users' => $invitableUsers->for($game, $request->user()),
+            'users' => $invitableUsers->for($game, $request->user(), $request->string('q')->toString()),
+            'search' => $request->string('q')->toString(),
         ]);
     }
 

@@ -60,6 +60,28 @@ and other players' words until a phrase ends. The pools are in
 `app/Support/PhraseData.php` — append only, and keep enough phrases of 10+
 words for the largest tables (a test checks this).
 
+## Lobbies
+
+Shared by both games (`app/Actions/Lobby`):
+
+- **Inviting:** hosts are offered people they've played with before, and
+  can search anyone by name or codename (2+ characters, 20 results). The
+  full user list is never exposed. Invitations that weren't accepted stay
+  visible to the host, who can send them again or cancel them.
+- **Approving players:** with "approve new players" on, joining by code
+  creates a request the host lets in or declines (invited players skip
+  it). The host is pushed about requests; the player is told live (and
+  pushed when approved). Joining is rate limited to 20 attempts a minute.
+- **Hosts:** a host can hand over hosting, remove players between rounds,
+  and leave — hosting passes to the longest-standing player, and the last
+  player out closes the game. Deleting an account hands its games over the
+  same way instead of deleting them for everyone.
+- **Codenames** are unique: generated from 1,600 word pairs at sign-up and
+  editable in the profile. A migration renamed existing duplicates.
+- **Invitation emails** go out (queued, in the invitee's language) unless
+  the player switches them off in their profile. Configure `MAIL_*` in
+  production; locally mail goes to the log.
+
 ## Languages
 
 English and Ukrainian. The language is saved on the account

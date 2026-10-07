@@ -3,6 +3,7 @@
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\GameController;
 use App\Http\Controllers\InvitationController;
+use App\Http\Controllers\LobbyController;
 use App\Http\Controllers\LocaleController;
 use App\Http\Controllers\LocationController;
 use App\Http\Controllers\PhraseController;
@@ -19,7 +20,7 @@ Route::middleware(['auth'])->group(function () {
     Route::post('games/phrase', [PhraseController::class, 'store'])->name('phrase.store');
     Route::get('games/{game}', [GameController::class, 'show'])->name('games.show');
     Route::post('games', [GameController::class, 'store'])->name('games.store');
-    Route::post('games/{code}/join', [GameController::class, 'join'])->name('games.join');
+    Route::post('games/{code}/join', [GameController::class, 'join'])->middleware('throttle:join')->name('games.join');
     Route::post('games/{game}/leave', [GameController::class, 'leave'])->name('games.leave');
     Route::post('games/{game}/ready', [GameController::class, 'ready'])->name('games.ready');
     Route::post('games/{game}/start', [GameController::class, 'start'])->name('games.start');
@@ -31,6 +32,12 @@ Route::middleware(['auth'])->group(function () {
     Route::post('games/{game}/phrase/start', [PhraseController::class, 'start'])->name('phrase.start');
     Route::post('games/{game}/phrase/turn', [PhraseController::class, 'turn'])->name('phrase.turn');
     Route::post('games/{game}/phrase/guess', [PhraseController::class, 'guess'])->name('phrase.guess');
+    Route::post('games/{game}/settings', [LobbyController::class, 'settings'])->name('games.settings');
+    Route::delete('games/{game}/players/{user}', [LobbyController::class, 'removePlayer'])->name('games.players.remove');
+    Route::post('games/{game}/host', [LobbyController::class, 'transferHost'])->name('games.host');
+    Route::post('games/{game}/join-requests/{joinRequest}/approve', [LobbyController::class, 'approve'])->name('join-requests.approve');
+    Route::post('games/{game}/join-requests/{joinRequest}/decline', [LobbyController::class, 'decline'])->name('join-requests.decline');
+    Route::delete('games/{game}/invitations/{invitation}', [LobbyController::class, 'cancelInvitation'])->name('invitations.cancel');
     Route::get('games/{game}/invite', [InvitationController::class, 'index'])->name('invitations.index');
     Route::post('games/{game}/invitations', [InvitationController::class, 'store'])->name('invitations.store');
     Route::post('invitations/{invitation}/accept', [InvitationController::class, 'accept'])->name('invitations.accept');

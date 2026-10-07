@@ -5,14 +5,15 @@ namespace App\Http\Controllers;
 use App\Actions\Games\CastVote;
 use App\Actions\Games\CreateGame;
 use App\Actions\Games\GuessLocation;
-use App\Actions\Games\JoinGame;
 use App\Actions\Games\LeaveGame;
 use App\Actions\Games\ResetGame;
 use App\Actions\Games\StartRound;
 use App\Actions\Games\StartVoting;
 use App\Actions\Games\TallyVotes;
 use App\Actions\Games\ToggleReady;
+use App\Actions\Lobby\JoinByCode;
 use App\Enums\GameType;
+use App\Enums\JoinOutcome;
 use App\Http\Requests\StoreGameRequest;
 use App\Http\Resources\GameResource;
 use App\Models\Game;
@@ -24,11 +25,17 @@ use Inertia\Response;
 
 class GameController extends Controller
 {
-    public function show(Request $request, Game $game): Response
+    public function show(Request $request, Game $game): Response|RedirectResponse
     {
-        abort_unless($game->isHost($request->user()) || $game->hasPlayer($request->user()), 403);
+        // Someone removed, or who left in another tab, lands back on the
+        // game's home with an explanation rather than an error page.
+        if (! $game->isHost($request->user()) && ! $game->hasPlayer($request->user())) {
+            Inertia::flash('toast', ['type' => 'error', 'message' => __('You are not in that game. Join it with its invite code.')]);
 
-        $game->load(['host', 'players.user', 'currentRound.votes', 'currentPhraseRound.guesses']);
+            return to_route(self::homeRoute($game));
+        }
+
+        $game->load(['host', 'players.user', 'currentRound.votes', 'currentPhraseRound.guesses', 'joinRequests.user', 'invitations.toUser']);
 
         if ($game->game_type === GameType::Phrase) {
             return inertia('games/PhraseLobby', [
@@ -53,7 +60,7 @@ class GameController extends Controller
         return to_route('games.show', $game);
     }
 
-    public function join(Request $request, string $code, JoinGame $joinGame): RedirectResponse
+    public function join(Request $request, string $code, JoinByCode $joinByCode): RedirectResponse
     {
         $game = Game::where('code', $code)->first();
 
@@ -61,16 +68,25 @@ class GameController extends Controller
             return back()->withErrors(['code' => __('No operation found with that invite code.')]);
         }
 
-        $joinGame->handle($game, $request->user());
+        if ($joinByCode->handle($game, $request->user()) === JoinOutcome::Requested) {
+            Inertia::flash('toast', ['type' => 'success', 'message' => __('Request sent. The host will let you in.')]);
+
+            return back();
+        }
 
         return to_route('games.show', $game);
+    }
+
+    public static function homeRoute(Game $game): string
+    {
+        return $game->game_type === GameType::Phrase ? 'games.phrase' : 'games.spy';
     }
 
     public function leave(Request $request, Game $game, LeaveGame $leaveGame): RedirectResponse
     {
         $leaveGame->handle($game, $request->user());
 
-        return to_route($game->game_type === GameType::Phrase ? 'games.phrase' : 'games.spy');
+        return to_route(self::homeRoute($game));
     }
 
     public function ready(Request $request, Game $game, ToggleReady $toggleReady): RedirectResponse

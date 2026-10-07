@@ -28,10 +28,10 @@ test('an existing player re-joining a running game is a no-op, not an error', fu
     expect(app(JoinGame::class)->handle($game, $user)->id)->toBe($game->id);
 });
 
-test('the web lobby is only visible to its host and players', function () {
+test('someone not in a game is sent to its home instead of the lobby', function () {
     $game = Game::factory()->create();
 
-    $this->actingAs(User::factory()->create())->get(route('games.show', $game))->assertForbidden();
+    $this->actingAs(User::factory()->create())->get(route('games.show', $game))->assertRedirect(route('games.spy'));
 });
 
 test('the web lobby shows a full round flow to its players', function () {

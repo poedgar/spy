@@ -40,6 +40,10 @@ class AppServiceProvider extends ServiceProvider
         RateLimiter::for('register', fn (Request $request) => app()->isLocal()
             ? Limit::none()
             : Limit::perMinute(5)->by($request->ip()));
+
+        // Invite codes are short; this stops anyone walking the code space
+        // with join attempts (now that a join can also create a request).
+        RateLimiter::for('join', fn (Request $request) => Limit::perMinute(20)->by($request->user()?->id ?: $request->ip()));
     }
 
     /**

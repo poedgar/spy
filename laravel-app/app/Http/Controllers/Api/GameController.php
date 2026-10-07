@@ -5,13 +5,14 @@ namespace App\Http\Controllers\Api;
 use App\Actions\Games\CastVote;
 use App\Actions\Games\CreateGame;
 use App\Actions\Games\GuessLocation;
-use App\Actions\Games\JoinGame;
 use App\Actions\Games\LeaveGame;
 use App\Actions\Games\ResetGame;
 use App\Actions\Games\StartRound;
 use App\Actions\Games\StartVoting;
 use App\Actions\Games\TallyVotes;
 use App\Actions\Games\ToggleReady;
+use App\Actions\Lobby\JoinByCode;
+use App\Enums\JoinOutcome;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreGameRequest;
 use App\Http\Resources\GameResource;
@@ -46,11 +47,24 @@ class GameController extends Controller
         return self::lobby($game);
     }
 
-    public function join(Request $request, string $code, JoinGame $joinGame): GameResource
+    /**
+     * Joined: the lobby. Waiting on the host's approval: 202 with just
+     * enough to tell the player where they asked to go.
+     */
+    public function join(Request $request, string $code, JoinByCode $joinByCode): GameResource|JsonResponse
     {
         $game = Game::where('code', $code)->firstOrFail();
 
-        return self::lobby($joinGame->handle($game, $request->user()));
+        if ($joinByCode->handle($game, $request->user()) === JoinOutcome::Requested) {
+            return response()->json([
+                'status' => JoinOutcome::Requested,
+                'code' => $game->code,
+                'title' => $game->title,
+                'game_type' => $game->game_type,
+            ], 202);
+        }
+
+        return self::lobby($game);
     }
 
     public function leave(Request $request, string $code, LeaveGame $leaveGame): Response
@@ -138,6 +152,6 @@ class GameController extends Controller
      */
     public static function lobby(Game $game): GameResource
     {
-        return GameResource::make($game->refresh()->load(['host', 'players.user', 'currentRound.votes', 'currentPhraseRound.guesses']));
+        return GameResource::make($game->refresh()->load(['host', 'players.user', 'currentRound.votes', 'currentPhraseRound.guesses', 'joinRequests.user', 'invitations.toUser']));
     }
 }

@@ -1,14 +1,20 @@
 <?php
 
+use App\Models\User;
 use App\Support\CodenameGenerator;
 
-test('assigns the same codename for the same name every time', function () {
-    expect(CodenameGenerator::forName('Agent_007'))
-        ->toBe(CodenameGenerator::forName('Agent_007'));
+test('generated codenames match the codename format', function () {
+    foreach (range(1, 50) as $attempt) {
+        expect(CodenameGenerator::random())->toMatch(CodenameGenerator::PATTERN);
+    }
 });
 
-test('assigns a codename from the known wordlist', function () {
-    $wordlist = ['SHADOW_FOX', 'NIGHT_HAWK', 'CIPHER_NINE', 'GHOST_PROTOCOL', 'VIPER_ONE', 'COVERT_RAVEN'];
+test('a unique codename is never one already taken', function () {
+    $taken = User::factory()->count(5)->create()->pluck('codename');
 
-    expect($wordlist)->toContain(CodenameGenerator::forName('Some Random Name'));
+    expect($taken)->not->toContain(CodenameGenerator::unique());
+});
+
+test('typed codenames are normalized to the stored form', function () {
+    expect(CodenameGenerator::normalize('  night owl '))->toBe('NIGHT_OWL');
 });

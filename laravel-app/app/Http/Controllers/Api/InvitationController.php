@@ -25,7 +25,7 @@ class InvitationController extends Controller
         abort_unless($game->host_id === $request->user()->id, 403);
         abort_unless($game->status === GameStatus::Recruiting, 403);
 
-        return response()->json($invitableUsers->for($game, $request->user()));
+        return response()->json($invitableUsers->for($game, $request->user(), $request->string('q')->toString()));
     }
 
     public function store(Request $request, string $code, SendInvitation $sendInvitation): JsonResponse

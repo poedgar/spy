@@ -29,7 +29,7 @@ class CreateNewUser implements CreatesNewUsers
             'name' => $input['name'],
             'email' => $input['email'],
             'password' => $input['password'],
-            'codename' => CodenameGenerator::forName($input['name']),
+            'codename' => CodenameGenerator::unique(),
         ]);
     }
 }

@@ -84,6 +84,8 @@ return [
 
     'attributes' => [
         'name' => 'імʼя',
+        'codename' => 'кодове імʼя',
+        'email_notifications' => 'сповіщення email',
         'password' => 'пароль',
         'current_password' => 'поточний пароль',
         'password_confirmation' => 'підтвердження пароля',

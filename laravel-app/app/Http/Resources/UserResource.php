@@ -22,6 +22,7 @@ class UserResource extends JsonResource
             'codename' => $this->codename,
             'email' => $this->when($request->user()?->id === $this->id, $this->email),
             'locale' => $this->when($request->user()?->id === $this->id, fn () => $this->locale),
+            'email_notifications' => $this->when($request->user()?->id === $this->id, fn () => $this->email_notifications),
         ];
     }
 }

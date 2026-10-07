@@ -3,6 +3,7 @@
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\GameController;
 use App\Http\Controllers\Api\InvitationController;
+use App\Http\Controllers\Api\LobbyController;
 use App\Http\Controllers\Api\LocationController;
 use App\Http\Controllers\Api\MeController;
 use App\Http\Controllers\Api\PhraseController;
@@ -31,7 +32,7 @@ Route::prefix('v1')->group(function () {
         Route::post('games/phrase', [PhraseController::class, 'store']);
         Route::post('games', [GameController::class, 'store']);
         Route::get('games/{code}', [GameController::class, 'show']);
-        Route::post('games/{code}/join', [GameController::class, 'join']);
+        Route::post('games/{code}/join', [GameController::class, 'join'])->middleware('throttle:join');
         Route::post('games/{code}/leave', [GameController::class, 'leave']);
         Route::post('games/{code}/ready', [GameController::class, 'ready']);
         Route::post('games/{code}/start', [GameController::class, 'start']);
@@ -46,6 +47,12 @@ Route::prefix('v1')->group(function () {
 
         Route::get('locations', [LocationController::class, 'index']);
 
+        Route::post('games/{code}/settings', [LobbyController::class, 'settings']);
+        Route::delete('games/{code}/players/{user}', [LobbyController::class, 'removePlayer']);
+        Route::post('games/{code}/host', [LobbyController::class, 'transferHost']);
+        Route::post('games/{code}/join-requests/{joinRequest}/approve', [LobbyController::class, 'approve']);
+        Route::post('games/{code}/join-requests/{joinRequest}/decline', [LobbyController::class, 'decline']);
+        Route::delete('games/{code}/invitations/{invitation}', [LobbyController::class, 'cancelInvitation']);
         Route::get('games/{code}/invitable-users', [InvitationController::class, 'invitable']);
         Route::post('games/{code}/invitations', [InvitationController::class, 'store']);
         Route::post('invitations/{invitation}/accept', [InvitationController::class, 'accept']);

@@ -23,6 +23,7 @@ use Laravel\Sanctum\HasApiTokens;
  * @property string $email
  * @property string $codename
  * @property Locale $locale
+ * @property bool $email_notifications
  * @property Carbon|null $email_verified_at
  * @property string $password
  * @property string|null $two_factor_secret
@@ -32,7 +33,7 @@ use Laravel\Sanctum\HasApiTokens;
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  */
-#[Fillable(['name', 'email', 'password', 'codename', 'locale'])]
+#[Fillable(['name', 'email', 'password', 'codename', 'locale', 'email_notifications'])]
 #[Hidden(['password', 'two_factor_secret', 'two_factor_recovery_codes', 'remember_token'])]
 class User extends Authenticatable implements HasLocalePreference, PasskeyUser
 {
@@ -44,6 +45,7 @@ class User extends Authenticatable implements HasLocalePreference, PasskeyUser
      */
     protected $attributes = [
         'locale' => 'en',
+        'email_notifications' => true,
     ];
 
     /**
@@ -58,6 +60,7 @@ class User extends Authenticatable implements HasLocalePreference, PasskeyUser
             'password' => 'hashed',
             'two_factor_confirmed_at' => 'datetime',
             'locale' => Locale::class,
+            'email_notifications' => 'boolean',
         ];
     }
 

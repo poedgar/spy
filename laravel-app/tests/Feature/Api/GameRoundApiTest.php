@@ -273,11 +273,8 @@ test('players toggle readiness between rounds only', function () {
     $this->postJson("/api/v1/games/{$game->code}/ready")->assertUnprocessable();
 });
 
-test('a player can leave a recruiting game but not mid-round, and the host cannot leave', function () {
+test('a player can leave a recruiting game but not mid-round', function () {
     [$game, $host, $players] = gameWithPlayers(4);
-
-    Sanctum::actingAs($host);
-    $this->postJson("/api/v1/games/{$game->code}/leave")->assertUnprocessable();
 
     startedRound($game, $host);
     Sanctum::actingAs($players[1]);

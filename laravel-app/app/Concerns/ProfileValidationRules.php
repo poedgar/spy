@@ -3,6 +3,7 @@
 namespace App\Concerns;
 
 use App\Models\User;
+use App\Support\CodenameGenerator;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Validation\Rule;
 
@@ -18,6 +19,9 @@ trait ProfileValidationRules
         return [
             'name' => $this->nameRules(),
             'email' => $this->emailRules($userId),
+            // Optional so older mobile clients that only send name and email still work.
+            'codename' => ['sometimes', 'string', 'regex:'.CodenameGenerator::PATTERN, Rule::unique(User::class)->ignore($userId)],
+            'email_notifications' => ['sometimes', 'boolean'],
         ];
     }
 

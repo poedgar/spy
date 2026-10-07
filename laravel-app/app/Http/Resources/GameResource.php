@@ -4,7 +4,10 @@ namespace App\Http\Resources;
 
 use App\Enums\GameStatus;
 use App\Enums\GameType;
+use App\Enums\InvitationStatus;
 use App\Models\Game;
+use App\Models\Invitation;
+use App\Models\JoinRequest;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -21,6 +24,7 @@ class GameResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
+        $viewerIsHost = $request->user()?->id === $this->host_id;
         $playerCount = $this->players_count
             ?? ($this->relationLoaded('players') ? $this->players->count() : $this->players()->count());
 
@@ -38,11 +42,35 @@ class GameResource extends JsonResource
             'mission_briefing' => $this->mission_briefing,
             'status' => $this->status,
             'host_id' => $this->host_id,
+            'requires_approval' => $this->requires_approval,
             'player_count' => $playerCount,
             'spy_count' => Game::spyCountFor($playerCount),
             'created_at' => $this->created_at?->toIso8601String(),
             'host' => OperativeResource::make($this->whenLoaded('host')),
             'players' => PlayerResource::collection($this->whenLoaded('players')),
+            // The host's to-do list: who is waiting to get in, and who was
+            // invited but hasn't joined (or turned it down).
+            'join_requests' => $this->when(
+                $viewerIsHost && $this->relationLoaded('joinRequests'),
+                fn () => $this->joinRequests
+                    ->where('status', InvitationStatus::Pending)
+                    ->map(fn (JoinRequest $joinRequest) => [
+                        'id' => $joinRequest->id,
+                        'user' => OperativeResource::make($joinRequest->user),
+                        'created_at' => $joinRequest->created_at?->toIso8601String(),
+                    ])->values(),
+            ),
+            'invitations' => $this->when(
+                $viewerIsHost && $this->relationLoaded('invitations'),
+                fn () => $this->invitations
+                    ->where('status', '!=', InvitationStatus::Accepted)
+                    ->map(fn (Invitation $invitation) => [
+                        'id' => $invitation->id,
+                        'status' => $invitation->status,
+                        'user' => OperativeResource::make($invitation->toUser),
+                        'updated_at' => $invitation->updated_at?->toIso8601String(),
+                    ])->values(),
+            ),
             // A reset game keeps its last round in the database, but the
             // lobby has moved on, so it is only shown while still relevant.
             'round' => $this->when(

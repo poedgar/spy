@@ -35,6 +35,7 @@ class StoreGameRequest extends FormRequest
             'age_tier' => ['required', 'string', Rule::enum(AgeTier::class)],
             'max_players' => ['required', 'integer', 'min:3', 'max:12'],
             'mission_briefing' => ['required', 'string', 'max:2000'],
+            'requires_approval' => ['sometimes', 'boolean'],
         ];
     }
 }
