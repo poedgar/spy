@@ -56,10 +56,15 @@ describe('A game of Phrase', () => {
                 cy.task<string>('phraseFor', code).then((phrase) => {
                     cy.get('#input-phrase-guess').type(phrase.toLowerCase());
                     cy.get('#btn-guess-phrase').click();
-                    cy.get('#phrase-results', { timeout: 8000 }).should('be.visible');
+                    cy.get('#phrase-results', { timeout: 8000 }).should(
+                        'be.visible',
+                    );
                     cy.get('#revealed-phrase').should('contain', phrase);
                     cy.get('#roster-list').should('contain', '2 pts');
-                    cy.get('#btn-start-phrase').should('contain', 'Deal the next phrase');
+                    cy.get('#btn-start-phrase').should(
+                        'contain',
+                        'Deal the next phrase',
+                    );
                 });
             });
     });

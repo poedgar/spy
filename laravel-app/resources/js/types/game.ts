@@ -88,6 +88,16 @@ export interface Game {
     spy_count: number;
     host: Operative;
     players: Player[];
+    requires_approval: boolean;
+    /** Host only. */
+    join_requests?: { id: number; user: Operative; created_at: string }[];
+    /** Host only: invitations not (yet) accepted. */
+    invitations?: {
+        id: number;
+        status: 'pending' | 'declined';
+        user: Operative;
+        updated_at: string;
+    }[];
     round: Round | null;
     phrase?: PhraseRound | null;
 }

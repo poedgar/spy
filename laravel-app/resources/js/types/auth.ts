@@ -2,6 +2,9 @@ export type User = {
     id: number;
     name: string;
     email: string;
+    codename: string;
+    locale?: 'en' | 'uk';
+    email_notifications?: boolean;
     avatar?: string;
     email_verified_at: string | null;
     two_factor_enabled?: boolean;

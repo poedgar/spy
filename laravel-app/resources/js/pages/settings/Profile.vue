@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { Form, Head, usePage } from '@inertiajs/vue3';
 import { Link } from '@inertiajs/vue3';
-import { computed } from 'vue';
+import { computed, ref } from 'vue';
 import ProfileController from '@/actions/App/Http/Controllers/Settings/ProfileController';
 import DeleteUser from '@/components/DeleteUser.vue';
 import Heading from '@/components/Heading.vue';
@@ -25,6 +25,7 @@ defineOptions({
 
 const page = usePage();
 const user = computed(() => page.props.auth.user);
+const emailNotifications = ref(user.value.email_notifications !== false);
 
 const { t } = useTrans();
 </script>
@@ -38,7 +39,7 @@ const { t } = useTrans();
         <Heading
             variant="small"
             title="Profile"
-            description="Update your name and email address"
+            description="Update your name, codename and email address"
         />
 
         <Form
@@ -74,6 +75,40 @@ const { t } = useTrans();
                 />
                 <InputError class="mt-2" :message="errors.email" />
             </div>
+
+            <div class="grid gap-2">
+                <Label for="codename">{{ t('Codename') }}</Label>
+                <Input
+                    id="codename"
+                    class="mt-1 block w-full font-mono uppercase"
+                    name="codename"
+                    :default-value="user.codename"
+                    required
+                    autocomplete="off"
+                />
+                <p class="text-xs text-muted-foreground">
+                    {{
+                        t(
+                            'How other players see you. 3 to 24 letters, digits or underscores.',
+                        )
+                    }}
+                </p>
+                <InputError class="mt-2" :message="errors.codename" />
+            </div>
+
+            <label class="flex items-center gap-2 text-sm">
+                <input
+                    v-model="emailNotifications"
+                    type="checkbox"
+                    data-test="email-notifications"
+                />
+                <input
+                    type="hidden"
+                    name="email_notifications"
+                    :value="emailNotifications ? 1 : 0"
+                />
+                {{ t('Email me when someone invites me to a game') }}
+            </label>
 
             <div class="flex items-center gap-4">
                 <Button

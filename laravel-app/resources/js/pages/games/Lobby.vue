@@ -14,6 +14,8 @@ import LocationGuideDialog from '@/components/game/LocationGuideDialog.vue';
 import RoleCard from '@/components/game/RoleCard.vue';
 import RoundResults from '@/components/game/RoundResults.vue';
 import VotingPanel from '@/components/game/VotingPanel.vue';
+import HostPanel from '@/components/game/HostPanel.vue';
+import PlayerActions from '@/components/game/PlayerActions.vue';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { useGameChannel } from '@/composables/useGameChannel';
@@ -194,11 +196,20 @@ async function copyInvite() {
                     </Link>
                 </template>
                 <Button
-                    v-else-if="!inRound"
+                    v-if="!inRound"
                     id="btn-leave-game"
                     variant="outline"
                     :disabled="busy"
-                    @click="act('leave', t('Leave this operation?'))"
+                    @click="
+                        act(
+                            'leave',
+                            isHost
+                                ? t(
+                                      'Leave? Hosting passes to the next player, or the game closes if nobody is left.',
+                                  )
+                                : t('Leave this operation?'),
+                        )
+                    "
                 >
                     <LogOut />
                     {{ t('Leave') }}
@@ -225,6 +236,8 @@ async function copyInvite() {
                 {{ t('Waiting for the host to start the game…') }}
             </p>
         </div>
+
+        <HostPanel v-if="isHost && game.status === 'recruiting'" :game="game" />
 
         <RoleCard
             v-if="inRound && round"
@@ -313,9 +326,16 @@ async function copyInvite() {
                             >{{ t('voted') }}</Badge
                         >
                     </span>
-                    <span class="text-xs text-muted-foreground">{{
-                        t(':score pts', { score: player.score })
-                    }}</span>
+                    <span class="flex items-center gap-2">
+                        <PlayerActions
+                            v-if="isHost && !inRound && player.user.id !== myId"
+                            :code="game.code"
+                            :player="player.user"
+                        />
+                        <span class="text-xs text-muted-foreground">{{
+                            t(':score pts', { score: player.score })
+                        }}</span>
+                    </span>
                 </li>
             </ul>
         </div>

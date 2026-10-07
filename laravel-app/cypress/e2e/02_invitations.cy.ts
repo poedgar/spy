@@ -8,7 +8,7 @@ describe('Game invitations (non-realtime path)', () => {
         const recruitName = `Recruit Echo ${suffix}`;
         const hostName = `Host Falcon ${suffix}`;
 
-        // The invited user registers FIRST, so they exist as a candidate on the invite page.
+        // The invited user registers FIRST, so the host can find them by name.
         cy.registerAgent(recruitName, recruitEmail);
         cy.clearCookies();
 
@@ -21,12 +21,13 @@ describe('Game invitations (non-realtime path)', () => {
         cy.get('#lobby-header', { timeout: 8000 }).should('be.visible');
 
         cy.get('#btn-invite-players').click();
-        cy.get('#invite-users-list', { timeout: 8000 }).should('be.visible');
-        // The invite-candidates list is shared across every spec in a CI run
-        // (same database), and only shows `codename` (drawn from a pool of
-        // just 6 words) — never `name` — so select the recruit's row by the
-        // `name`-carrying data attribute, the one value guaranteed unique to
-        // this test run, rather than by visible text.
+        // The recruit has never played with the host, so find them by name.
+        cy.get('#input-invite-search', { timeout: 8000 }).type(recruitName);
+        cy.get(`#invite-users-list li[data-user-name="${recruitName}"]`, {
+            timeout: 8000,
+        }).should('be.visible');
+        // Select the recruit's row by the `name`-carrying data attribute,
+        // the one value guaranteed unique to this test run.
         cy.get(`#invite-users-list li[data-user-name="${recruitName}"]`).within(
             () => {
                 cy.contains('button', 'Invite').click();
@@ -67,7 +68,11 @@ describe('Game invitations (non-realtime path)', () => {
         cy.get('#lobby-header', { timeout: 8000 }).should('be.visible');
 
         cy.get('#btn-invite-players').click();
-        cy.get('#invite-users-list', { timeout: 8000 }).should('be.visible');
+        // The recruit has never played with the host, so find them by name.
+        cy.get('#input-invite-search', { timeout: 8000 }).type(recruitName);
+        cy.get(`#invite-users-list li[data-user-name="${recruitName}"]`, {
+            timeout: 8000,
+        }).should('be.visible');
         cy.get(`#invite-users-list li[data-user-name="${recruitName}"]`).within(
             () => {
                 cy.contains('button', 'Invite').click();

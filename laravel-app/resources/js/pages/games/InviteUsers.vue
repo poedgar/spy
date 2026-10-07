@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { computed } from 'vue';
-import { Head, Link, useForm } from '@inertiajs/vue3';
+import { computed, ref, watch } from 'vue';
+import { Head, Link, router, useForm } from '@inertiajs/vue3';
+import { Input } from '@/components/ui/input';
 import { usePresence } from '@/composables/usePresence';
 import { useTrans } from '@/composables/useTrans';
 
@@ -20,7 +21,23 @@ interface GameProp {
 const props = defineProps<{
     game: GameProp;
     users: UserRow[];
+    search: string;
 }>();
+
+const query = ref(props.search);
+let searchTimer: number | undefined;
+
+// Without a search the list shows past teammates; searching reaches anyone.
+watch(query, (value) => {
+    window.clearTimeout(searchTimer);
+    searchTimer = window.setTimeout(() => {
+        router.get(
+            `/games/${props.game.code}/invite`,
+            value.trim() ? { q: value.trim() } : {},
+            { only: ['users', 'search'], preserveState: true, replace: true },
+        );
+    }, 300);
+});
 
 const { onlineUserIds } = usePresence();
 const { t } = useTrans();
@@ -60,6 +77,22 @@ function invite(userId: number) {
         >
         <p v-if="form.errors.to_user_id" class="text-sm text-red-600">
             {{ form.errors.to_user_id }}
+        </p>
+
+        <Input
+            id="input-invite-search"
+            v-model="query"
+            type="search"
+            :placeholder="t('Search players by name or codename')"
+        />
+        <p v-if="users.length === 0" class="text-sm text-muted-foreground">
+            {{
+                query.trim().length >= 2
+                    ? t('Nobody matches that search.')
+                    : t(
+                          'Players you have played with appear here. Search to find anyone else.',
+                      )
+            }}
         </p>
 
         <ul id="invite-users-list" class="space-y-2">

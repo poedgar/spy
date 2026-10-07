@@ -13,6 +13,8 @@ import {
     UserPlus,
 } from '@lucide/vue';
 import { computed, ref } from 'vue';
+import HostPanel from '@/components/game/HostPanel.vue';
+import PlayerActions from '@/components/game/PlayerActions.vue';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -196,11 +198,20 @@ async function copyInvite() {
                     </Link>
                 </template>
                 <Button
-                    v-else-if="!active"
+                    v-if="!active"
                     id="btn-leave-game"
                     variant="outline"
                     :disabled="busy"
-                    @click="act('leave', t('Leave this game?'))"
+                    @click="
+                        act(
+                            'leave',
+                            isHost
+                                ? t(
+                                      'Leave? Hosting passes to the next player, or the game closes if nobody is left.',
+                                  )
+                                : t('Leave this game?'),
+                        )
+                    "
                 >
                     <LogOut />
                     {{ t('Leave') }}
@@ -223,6 +234,8 @@ async function copyInvite() {
                 {{ t('Waiting for the host to start the game…') }}
             </p>
         </div>
+
+        <HostPanel v-if="isHost && game.status === 'recruiting'" :game="game" />
 
         <template v-if="active && phrase">
             <div
@@ -472,9 +485,16 @@ async function copyInvite() {
                             >{{ t('asking') }}</Badge
                         >
                     </span>
-                    <span class="text-xs text-muted-foreground">{{
-                        t(':score pts', { score: player.score })
-                    }}</span>
+                    <span class="flex items-center gap-2">
+                        <PlayerActions
+                            v-if="isHost && !active && player.user.id !== myId"
+                            :code="game.code"
+                            :player="player.user"
+                        />
+                        <span class="text-xs text-muted-foreground">{{
+                            t(':score pts', { score: player.score })
+                        }}</span>
+                    </span>
                 </li>
             </ul>
         </div>

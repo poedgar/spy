@@ -16,6 +16,7 @@ const form = useForm({
     mission_briefing: t(
         'A rogue operative has intercepted intelligence files.',
     ),
+    requires_approval: false,
 });
 
 /** Mirrors Game::spyCountFor on the server. */
@@ -151,6 +152,15 @@ function submit() {
                 {{ form.errors.mission_briefing }}
             </p>
         </div>
+
+        <label class="flex items-center gap-2 text-sm">
+            <input
+                id="input-requires-approval"
+                v-model="form.requires_approval"
+                type="checkbox"
+            />
+            {{ t('Approve new players before they join') }}
+        </label>
 
         <button
             id="btn-create-game"

@@ -11,6 +11,7 @@ const form = useForm({
     // Phrases come from a pool in this language, independent of the UI's.
     phrase_language: locale.value as Locale,
     max_players: 6,
+    requires_approval: false,
 });
 
 function submit() {
@@ -83,6 +84,15 @@ function submit() {
                 {{ form.errors.max_players }}
             </p>
         </div>
+
+        <label class="flex items-center gap-2 text-sm">
+            <input
+                id="input-requires-approval"
+                v-model="form.requires_approval"
+                type="checkbox"
+            />
+            {{ t('Approve new players before they join') }}
+        </label>
 
         <button
             id="btn-create-phrase"
