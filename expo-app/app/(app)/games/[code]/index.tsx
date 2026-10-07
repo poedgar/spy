@@ -1,7 +1,7 @@
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
-import { Share, View } from 'react-native';
+import { Alert, Share, View } from 'react-native';
 import { ApiError } from '@/api/errors';
-import { useGame, useJoinGame, useRefreshOnFocus } from '@/api/queries';
+import { useGame, useJoinGame, useLeaveGame, useLobbyAction, useRefreshOnFocus } from '@/api/queries';
 import { useSignedInUser } from '@/auth/AuthProvider';
 import { useBanner } from '@/banner/BannerProvider';
 import { AppText } from '@/components/AppText';
@@ -12,35 +12,48 @@ import { FormError } from '@/components/FormError';
 import { OnlineDot } from '@/components/OnlineDot';
 import { Screen } from '@/components/Screen';
 import { applyServerErrors } from '@/forms/applyServerErrors';
+import { modeLabels, spyCountFor, statusLabels, tierLabels } from '@/game/labels';
+import { ResultsCard } from '@/game/ResultsCard';
+import { RoleCard } from '@/game/RoleCard';
+import { VotingCard } from '@/game/VotingCard';
+import { useI18n } from '@/i18n/I18nProvider';
 import { useGameChannel, useOnlineUserIds } from '@/realtime/RealtimeProvider';
 import { useTheme } from '@/theme/useTheme';
+
+const DEFAULT_MIN_PLAYERS = 3;
 
 export default function Lobby() {
   const { code } = useLocalSearchParams<{ code: string }>();
   const router = useRouter();
   const me = useSignedInUser();
+  const { t } = useI18n();
   const { spacing } = useTheme();
   const { showBanner } = useBanner();
   const online = useOnlineUserIds();
   const game = useGame(code);
   const joinGame = useJoinGame();
+  const action = useLobbyAction(code);
+  const leave = useLeaveGame(code);
   useRefreshOnFocus(game.refetch);
   useGameChannel(game.data?.id, () => void game.refetch());
+
+  const onError = (error: unknown) =>
+    showBanner({ tone: 'error', message: applyServerErrors(error, () => {}, []) ?? t('Something went wrong.') });
 
   if (game.error instanceof ApiError && game.error.status === 403) {
     return (
       <Screen testID="not-on-operation">
         <Stack.Screen options={{ title: code }} />
-        <AppText variant="heading">{"You're not on this operation"}</AppText>
-        <AppText variant="muted">Join with invite code {code} to see the roster.</AppText>
+        <AppText variant="heading">{t("You're not on this operation")}</AppText>
+        <AppText variant="muted">{t('Join with invite code :code to see the roster.', { code })}</AppText>
         <Button
           testID="btn-join-from-lobby"
-          label="Join Operation"
+          label={t('Join Operation')}
           loading={joinGame.isPending}
           onPress={() =>
             joinGame.mutate(code, {
               onError: (error) =>
-                showBanner({ tone: 'error', message: applyServerErrors(error, () => {}, []) ?? 'Could not join.' }),
+                showBanner({ tone: 'error', message: applyServerErrors(error, () => {}, []) ?? t('Could not join.') }),
             })
           }
         />
@@ -50,10 +63,28 @@ export default function Lobby() {
 
   const data = game.data;
   const isHost = data?.host_id === me.id;
+  const players = data?.players ?? [];
+  const mine = players.find((player) => player.user.id === me.id);
+  const round = data?.round ?? null;
+  const inRound = data?.status === 'active' || data?.status === 'voting';
+  const minPlayers = data?.min_players ?? DEFAULT_MIN_PLAYERS;
+  const canStart = (data?.player_count ?? 0) >= minPlayers;
+  const busy = action.isPending;
+  const run = (next: Parameters<typeof action.mutate>[0]) => action.mutate(next, { onError });
+
+  const confirm = (title: string, onConfirm: () => void) =>
+    Alert.alert(title, undefined, [
+      { text: t('Cancel'), style: 'cancel' },
+      { text: t('Confirm'), style: 'destructive', onPress: onConfirm },
+    ]);
 
   const share = () =>
     Share.share({
-      message: `Join my SpyNet operation "${data?.title}" with invite code ${code}: spynet://join/${code}`,
+      message: t('Join my SpyNet operation ":title" with invite code :code: :link', {
+        title: data?.title ?? '',
+        code,
+        link: `spynet://join/${code}`,
+      }),
     });
 
   return (
@@ -61,41 +92,161 @@ export default function Lobby() {
       <Stack.Screen options={{ title: data?.title ?? code }} />
       {game.error ? <FormError message={applyServerErrors(game.error, () => {}, [])} /> : null}
       <Card>
-        <AppText variant="muted">Invite code</AppText>
+        <AppText variant="muted">{t('Invite code')}</AppText>
         <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-          <AppText testID="lobby-code" variant="mono">{code}</AppText>
-          <Button testID="btn-share" label="Share" variant="secondary" onPress={() => void share()} />
+          <AppText testID="lobby-code" variant="mono">
+            {code}
+          </AppText>
+          <Button testID="btn-share" label={t('Share')} variant="secondary" onPress={() => void share()} />
         </View>
         {data ? (
           <>
-            <AppText variant="heading">{data.title}</AppText>
-            <AppText variant="muted">
-              {data.player_count} / {data.max_players} operatives · {data.game_mode} · {data.status}
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.sm }}>
+              <AppText variant="heading" style={{ flex: 1 }}>
+                {data.title}
+              </AppText>
+              <Badge label={statusLabels(t)[data.status]} />
+            </View>
+            <AppText variant="muted" testID="lobby-meta">
+              {t(':count / :max operatives', { count: data.player_count, max: data.max_players })} ·{' '}
+              {(data.spy_count ?? spyCountFor(data.player_count)) === 1
+                ? t('1 spy')
+                : t(':count spies', { count: data.spy_count ?? spyCountFor(data.player_count) })}{' '}
+              · {modeLabels(t)[data.game_mode]}
+              {data.age_tier ? ` · ${tierLabels(t)[data.age_tier].label}` : ''}
             </AppText>
             <AppText>{data.mission_briefing}</AppText>
           </>
         ) : (
-          <AppText variant="muted">Loading…</AppText>
+          <AppText variant="muted">{t('Loading…')}</AppText>
         )}
-        {isHost && data?.status === 'recruiting' ? (
-          <Button testID="btn-invite-players" label="Invite Players" onPress={() => router.push(`/games/${code}/invite`)} />
+
+        {isHost && data ? (
+          <>
+            {!inRound ? (
+              <Button
+                testID="btn-start-round"
+                label={data.status === 'completed' ? t('Start next round') : t('Start the game')}
+                loading={busy && action.variables?.type === 'start'}
+                disabled={!canStart || busy}
+                onPress={() => run({ type: 'start' })}
+              />
+            ) : null}
+            {!inRound && !canStart ? (
+              <AppText variant="muted">{t('At least :count operatives are required to start.', { count: minPlayers })}</AppText>
+            ) : null}
+            {data.status === 'active' ? (
+              <Button
+                testID="btn-start-voting"
+                label={t('Call a vote')}
+                loading={busy && action.variables?.type === 'voting'}
+                onPress={() => run({ type: 'voting' })}
+              />
+            ) : null}
+            {data.status === 'recruiting' ? (
+              <Button
+                testID="btn-invite-players"
+                label={t('Invite Players')}
+                variant="secondary"
+                onPress={() => router.push(`/games/${code}/invite`)}
+              />
+            ) : (
+              <Button
+                testID="btn-reset-game"
+                label={t('Back to recruiting')}
+                variant="secondary"
+                disabled={busy}
+                onPress={() =>
+                  inRound
+                    ? confirm(t('End this round without scoring and reopen recruiting?'), () => run({ type: 'reset' }))
+                    : run({ type: 'reset' })
+                }
+              />
+            )}
+          </>
+        ) : null}
+        {!isHost && data?.status === 'recruiting' ? (
+          <AppText variant="muted">{t('Waiting for the host to start the game…')}</AppText>
+        ) : null}
+        <Button
+          testID="btn-location-guide"
+          label={t('Location guide')}
+          variant="secondary"
+          onPress={() => router.push({ pathname: '/locations', params: { tier: data?.age_tier ?? 'adults' } })}
+        />
+      </Card>
+
+      {data && round && inRound ? <RoleCard key={round.number} game={data} round={round} /> : null}
+
+      {data && round && data.status === 'voting' ? (
+        <VotingCard
+          game={data}
+          round={round}
+          meId={me.id}
+          isHost={isHost}
+          busy={busy}
+          onVote={(suspectId) => run({ type: 'vote', suspectId })}
+          onClose={() => run({ type: 'tally' })}
+        />
+      ) : null}
+
+      {data && round?.result && data.status === 'completed' ? (
+        <ResultsCard game={data} round={round} result={round.result} />
+      ) : null}
+
+      <Card>
+        <AppText variant="heading">{t('Roster')}</AppText>
+        {[...players]
+          .sort((a, b) => (b.score ?? 0) - (a.score ?? 0))
+          .map((player) => (
+            <View
+              key={player.id}
+              testID={`roster-${player.user.id}`}
+              style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.sm }}
+            >
+              <OnlineDot online={online.has(player.user.id)} />
+              <View style={{ flex: 1 }}>
+                <AppText>
+                  {player.user.codename}
+                  {player.user.id === me.id ? ` (${t('you')})` : ''}
+                </AppText>
+                <AppText variant="muted">
+                  {player.user.name} · {player.status === 'ready' ? t('Ready') : t('Not ready')}
+                </AppText>
+              </View>
+              {player.is_host ? <Badge label={t('Host')} /> : null}
+              {data?.status === 'voting' && round?.voted_user_ids.includes(player.user.id) ? (
+                <Badge label={t('voted')} tone="muted" />
+              ) : null}
+              <AppText variant="muted" testID={`score-${player.user.id}`}>
+                {t(':score pts', { score: player.score ?? 0 })}
+              </AppText>
+            </View>
+          ))}
+        {mine && !inRound ? (
+          <Button
+            testID="btn-toggle-ready"
+            label={mine.status === 'ready' ? t('Mark me not ready') : t('Mark me ready')}
+            variant="secondary"
+            disabled={busy}
+            onPress={() => run({ type: 'ready' })}
+          />
         ) : null}
       </Card>
 
-      <Card>
-        <AppText variant="heading">Roster</AppText>
-        {data?.players?.map((player) => (
-          <View
-            key={player.id}
-            testID={`roster-${player.user.id}`}
-            style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.sm }}
-          >
-            <OnlineDot online={online.has(player.user.id)} />
-            <AppText style={{ flex: 1 }}>{player.user.codename}</AppText>
-            {player.is_host ? <Badge label="Host" /> : null}
-          </View>
-        ))}
-      </Card>
+      {!isHost && data && !inRound ? (
+        <Button
+          testID="btn-leave-game"
+          label={t('Leave')}
+          variant="destructive"
+          loading={leave.isPending}
+          onPress={() =>
+            confirm(t('Leave this operation?'), () =>
+              leave.mutate(undefined, { onSuccess: () => router.replace('/spy'), onError }),
+            )
+          }
+        />
+      ) : null}
     </Screen>
   );
 }

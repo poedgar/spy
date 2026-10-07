@@ -15,8 +15,10 @@ import { applyServerErrors } from '@/forms/applyServerErrors';
 import { useOnlineUserIds } from '@/realtime/RealtimeProvider';
 import { sortByPresence } from '@/realtime/sortByPresence';
 import { useTheme } from '@/theme/useTheme';
+import { useI18n } from '@/i18n/I18nProvider';
 
 export default function InvitePlayers() {
+  const { t } = useI18n();
   const { code } = useLocalSearchParams<{ code: string }>();
   const { spacing } = useTheme();
   const { showBanner } = useBanner();
@@ -29,9 +31,9 @@ export default function InvitePlayers() {
 
   return (
     <Screen refreshing={users.isRefetching} onRefresh={() => void users.refetch()}>
-      <Stack.Screen options={{ title: 'Invite Players' }} />
+      <Stack.Screen options={{ title: t('Invite Players') }} />
       {users.error ? <FormError message={applyServerErrors(users.error, () => {}, [])} /> : null}
-      {sorted.length === 0 && !users.isLoading ? <EmptyState message="Everyone is already on this operation." /> : null}
+      {sorted.length === 0 && !users.isLoading ? <EmptyState message={t('Everyone is already on this operation.')} /> : null}
       {sorted.map((user) => (
         <Card key={user.id} testID={`invitable-${user.id}`}>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.sm }}>
@@ -41,16 +43,16 @@ export default function InvitePlayers() {
               <AppText variant="muted">{user.name}</AppText>
             </View>
             {user.invite_status === 'pending' ? (
-              <Badge label="Pending" tone="muted" />
+              <Badge label={t('Pending')} tone="muted" />
             ) : (
               <Button
                 testID={`btn-invite-${user.id}`}
-                label="Invite"
+                label={t('Invite')}
                 loading={invite.isPending && invite.variables === user.id}
                 onPress={() =>
                   invite.mutate(user.id, {
                     onError: (error) =>
-                      showBanner({ tone: 'error', message: applyServerErrors(error, () => {}, []) ?? 'Could not invite.' }),
+                      showBanner({ tone: 'error', message: applyServerErrors(error, () => {}, []) ?? t('Could not invite.') }),
                   })
                 }
               />

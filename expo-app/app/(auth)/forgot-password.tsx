@@ -7,10 +7,12 @@ import { FormError } from '@/components/FormError';
 import { FormTextField } from '@/components/FormTextField';
 import { Screen } from '@/components/Screen';
 import { applyServerErrors } from '@/forms/applyServerErrors';
+import { useI18n } from '@/i18n/I18nProvider';
 
 type Form = { email: string };
 
 export default function ForgotPassword() {
+  const { t } = useI18n();
   const [sent, setSent] = useState<string | null>(null);
   const [formError, setFormError] = useState<string | null>(null);
   const { control, handleSubmit, setError, formState } = useForm<Form>({ defaultValues: { email: '' } });
@@ -25,14 +27,14 @@ export default function ForgotPassword() {
   });
 
   return (
-    <Screen title="Reset your password">
+    <Screen title={t('Reset your password')}>
       <AppText variant="muted">
-        {"We'll email you a link. You'll finish resetting your password in your browser."}
+        {t("We'll email you a link. You'll finish resetting your password in your browser.")}
       </AppText>
-      <FormTextField control={control} name="email" label="Email" autoCapitalize="none" keyboardType="email-address" />
+      <FormTextField control={control} name="email" label={t('Email')} autoCapitalize="none" keyboardType="email-address" />
       <FormError message={formError} />
       {sent ? <AppText>{sent}</AppText> : null}
-      <Button label="Send reset link" loading={formState.isSubmitting} onPress={onSubmit} />
+      <Button label={t('Send reset link')} loading={formState.isSubmitting} onPress={onSubmit} />
     </Screen>
   );
 }

@@ -1,4 +1,4 @@
-import { invitationHrefFrom, isInviteCode, normalizeInviteCode } from '@/linking';
+import { invitationHrefFrom, isInviteCode, normalizeInviteCode, roundHrefFrom } from '@/linking';
 
 test('normalizes typed codes', () => {
   expect(normalizeInviteCode('  spy-ab3d ')).toBe('SPY-AB3D');
@@ -18,4 +18,10 @@ test('maps an invitation push payload to the spy home with a highlight', () => {
   });
   expect(invitationHrefFrom({ type: 'other' })).toBeNull();
   expect(invitationHrefFrom(undefined)).toBeNull();
+});
+
+test('maps a round-start push payload to that game\'s lobby', () => {
+  expect(roundHrefFrom({ type: 'round', code: 'SPY-AB3D' })).toBe('/games/SPY-AB3D');
+  expect(roundHrefFrom({ type: 'round', code: 'not a code' })).toBeNull();
+  expect(roundHrefFrom({ type: 'invitation', invitation_id: 7 })).toBeNull();
 });

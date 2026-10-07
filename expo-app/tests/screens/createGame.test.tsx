@@ -21,6 +21,7 @@ test('creates an operation with the chosen settings and opens the lobby', async 
 
   fireEvent.changeText(await screen.findByTestId('input-game-title'), 'Operation Nightfall');
   fireEvent.press(screen.getByTestId('mode-codebreaker'));
+  fireEvent.press(screen.getByTestId('tier-children'));
   fireEvent.press(screen.getByTestId('btn-players-plus'));
   fireEvent.changeText(screen.getByTestId('input-mission-briefing'), 'Find the mole.');
   await act(async () => {
@@ -30,6 +31,7 @@ test('creates an operation with the chosen settings and opens the lobby', async 
   expect(gamesApi.create).toHaveBeenCalledWith({
     title: 'Operation Nightfall',
     game_mode: 'codebreaker',
+    age_tier: 'children',
     max_players: 7,
     mission_briefing: 'Find the mole.',
   });

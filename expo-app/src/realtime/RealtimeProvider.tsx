@@ -6,6 +6,7 @@ import { queryKeys } from '@/api/queries';
 import type { InvitationSentPayload, PlayerJoinedPayload } from '@/api/types';
 import { useAuth } from '@/auth/AuthProvider';
 import { useBanner } from '@/banner/BannerProvider';
+import { useI18n } from '@/i18n/I18nProvider';
 import { PUSHER_KEY } from '@/config';
 import { createEcho, type EchoClient } from './echo';
 
@@ -25,6 +26,12 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
   const userId = state.status === 'signedIn' ? state.user.id : null;
   const queryClient = useQueryClient();
   const { showBanner } = useBanner();
+  // Read through a ref so a language change doesn't reconnect the socket.
+  const { t } = useI18n();
+  const tRef = useRef(t);
+  useEffect(() => {
+    tRef.current = t;
+  });
   const [echo, setEcho] = useState<EchoClient | null>(null);
   const [onlineUserIds, setOnlineUserIds] = useState<Set<number>>(new Set());
 
@@ -52,7 +59,10 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
     instance.private(`user.${userId}`).listen('.invitation.sent', (payload: InvitationSentPayload) => {
       void queryClient.invalidateQueries({ queryKey: queryKeys.spyHome });
       showBanner({
-        message: `${payload.from_codename} invited you to ${payload.game_title}`,
+        message: tRef.current(':codename invited you to :title', {
+          codename: payload.from_codename,
+          title: payload.game_title,
+        }),
         onPress: () => router.push({ pathname: '/spy', params: { highlight: String(payload.invitation_id) } }),
       });
     });
@@ -81,19 +91,25 @@ export function useOnlineUserIds(): Set<number> {
   return useContext(RealtimeContext).onlineUserIds;
 }
 
-/** Subscribes to a game's channel while the calling screen is focused. */
-export function useGameChannel(gameId: number | undefined, onPlayerJoined: (payload: PlayerJoinedPayload) => void) {
+/**
+ * Subscribes to a game's channel while the calling screen is focused. Both
+ * events carry no secrets, so the handler refetches the player's own view.
+ */
+export function useGameChannel(gameId: number | undefined, onChange: (payload?: PlayerJoinedPayload) => void) {
   const { echo } = useContext(RealtimeContext);
-  const handler = useRef(onPlayerJoined);
+  const handler = useRef(onChange);
   useEffect(() => {
-    handler.current = onPlayerJoined;
+    handler.current = onChange;
   });
 
   useFocusEffect(
     useCallback(() => {
       if (!echo || gameId === undefined) return;
       const name = `game.${gameId}`;
-      echo.private(name).listen('.player.joined', (payload: PlayerJoinedPayload) => handler.current(payload));
+      echo
+        .private(name)
+        .listen('.player.joined', (payload: PlayerJoinedPayload) => handler.current(payload))
+        .listen('.game.updated', () => handler.current());
       return () => echo.leave(name);
     }, [echo, gameId]),
   );

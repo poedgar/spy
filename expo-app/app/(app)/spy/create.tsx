@@ -3,30 +3,30 @@ import { useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { Pressable, View } from 'react-native';
 import { useCreateGame } from '@/api/queries';
-import type { CreateGameInput, GameMode } from '@/api/types';
+import type { AgeTier, CreateGameInput, GameMode } from '@/api/types';
 import { AppText } from '@/components/AppText';
 import { Button } from '@/components/Button';
 import { FormError } from '@/components/FormError';
 import { FormTextField } from '@/components/FormTextField';
 import { Screen } from '@/components/Screen';
 import { applyServerErrors } from '@/forms/applyServerErrors';
+import { modeLabels, spyCountFor, tierLabels } from '@/game/labels';
+import { useI18n } from '@/i18n/I18nProvider';
 import { useTheme } from '@/theme/useTheme';
 
-const MODES: { value: GameMode; label: string }[] = [
-  { value: 'mole', label: 'Mole' },
-  { value: 'codebreaker', label: 'Codebreaker' },
-  { value: 'counterintel', label: 'Counterintel' },
-];
+const MODES: GameMode[] = ['mole', 'codebreaker', 'counterintel'];
+const TIERS: AgeTier[] = ['children', 'teens', 'adults'];
 const MIN_PLAYERS = 3;
 const MAX_PLAYERS = 12;
 
 export default function CreateGame() {
   const router = useRouter();
+  const { t } = useI18n();
   const { colors, spacing, radius } = useTheme();
   const createGame = useCreateGame();
   const [formError, setFormError] = useState<string | null>(null);
   const { control, handleSubmit, setError } = useForm<CreateGameInput>({
-    defaultValues: { title: '', game_mode: 'mole', max_players: 6, mission_briefing: '' },
+    defaultValues: { title: '', game_mode: 'mole', age_tier: 'adults', max_players: 6, mission_briefing: '' },
   });
 
   const onSubmit = handleSubmit(async (input) => {
@@ -35,39 +35,79 @@ export default function CreateGame() {
       const game = await createGame.mutateAsync({ ...input, title: input.title.trim(), mission_briefing: input.mission_briefing.trim() });
       router.replace(`/games/${game.code}`);
     } catch (error) {
-      setFormError(applyServerErrors(error, setError, ['title', 'game_mode', 'max_players', 'mission_briefing']));
+      setFormError(applyServerErrors(error, setError, ['title', 'game_mode', 'age_tier', 'max_players', 'mission_briefing']));
     }
   });
 
   return (
     <Screen>
-      <Stack.Screen options={{ title: 'Create Operation' }} />
-      <FormTextField control={control} name="title" label="Operation title" placeholder="Operation title" testID="input-game-title" />
+      <Stack.Screen options={{ title: t('Create Operation') }} />
+      <FormTextField
+        control={control}
+        name="title"
+        label={t('Operation title')}
+        placeholder={t('Operation title')}
+        testID="input-game-title"
+      />
 
       <Controller
         control={control}
         name="game_mode"
         render={({ field: { value, onChange } }) => (
           <View style={{ gap: spacing.xs }}>
-            <AppText variant="muted">Mode</AppText>
+            <AppText variant="muted">{t('Game mode')}</AppText>
             <View style={{ flexDirection: 'row', gap: spacing.sm }}>
               {MODES.map((mode) => (
                 <Pressable
-                  key={mode.value}
-                  testID={`mode-${mode.value}`}
+                  key={mode}
+                  testID={`mode-${mode}`}
                   accessibilityRole="radio"
-                  accessibilityState={{ selected: value === mode.value }}
-                  onPress={() => onChange(mode.value)}
+                  accessibilityState={{ selected: value === mode }}
+                  onPress={() => onChange(mode)}
                   style={{
                     flex: 1,
                     padding: spacing.sm,
                     borderRadius: radius.md,
                     borderWidth: 1,
-                    borderColor: value === mode.value ? colors.primary : colors.border,
+                    borderColor: value === mode ? colors.primary : colors.border,
                     alignItems: 'center',
                   }}
                 >
-                  <AppText>{mode.label}</AppText>
+                  <AppText>{modeLabels(t)[mode]}</AppText>
+                </Pressable>
+              ))}
+            </View>
+          </View>
+        )}
+      />
+
+      <Controller
+        control={control}
+        name="age_tier"
+        render={({ field: { value, onChange } }) => (
+          <View style={{ gap: spacing.xs }}>
+            <AppText variant="muted">{t('Player age group')}</AppText>
+            <View style={{ flexDirection: 'row', gap: spacing.sm }}>
+              {TIERS.map((tier) => (
+                <Pressable
+                  key={tier}
+                  testID={`tier-${tier}`}
+                  accessibilityRole="radio"
+                  accessibilityState={{ selected: value === tier }}
+                  onPress={() => onChange(tier)}
+                  style={{
+                    flex: 1,
+                    padding: spacing.sm,
+                    borderRadius: radius.md,
+                    borderWidth: 1,
+                    borderColor: value === tier ? colors.primary : colors.border,
+                    alignItems: 'center',
+                  }}
+                >
+                  <AppText>{tierLabels(t)[tier].label}</AppText>
+                  <AppText variant="muted" style={{ textAlign: 'center' }}>
+                    {tierLabels(t)[tier].description}
+                  </AppText>
                 </Pressable>
               ))}
             </View>
@@ -80,7 +120,12 @@ export default function CreateGame() {
         name="max_players"
         render={({ field: { value, onChange }, fieldState: { error } }) => (
           <View style={{ gap: spacing.xs }}>
-            <AppText variant="muted">Max operatives</AppText>
+            <AppText variant="muted">
+              {t('Operatives')} ·{' '}
+              {spyCountFor(value) === 1
+                ? t('1 spy when full')
+                : t(':count spies when full', { count: spyCountFor(value) })}
+            </AppText>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.lg }}>
               <Button testID="btn-players-minus" label="−" variant="secondary" onPress={() => onChange(Math.max(MIN_PLAYERS, value - 1))} />
               <AppText testID="players-count" variant="heading">{String(value)}</AppText>
@@ -94,14 +139,14 @@ export default function CreateGame() {
       <FormTextField
         control={control}
         name="mission_briefing"
-        label="Mission briefing"
+        label={t('Mission briefing')}
         testID="input-mission-briefing"
         multiline
         numberOfLines={4}
         style={{ minHeight: 96, textAlignVertical: 'top' }}
       />
       <FormError message={formError} />
-      <Button testID="btn-create-game" label="Create Operation" loading={createGame.isPending} onPress={onSubmit} />
+      <Button testID="btn-create-game" label={t('Create Operation')} loading={createGame.isPending} onPress={onSubmit} />
     </Screen>
   );
 }

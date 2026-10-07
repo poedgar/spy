@@ -8,10 +8,12 @@ import { FormTextField } from '@/components/FormTextField';
 import { Screen } from '@/components/Screen';
 import { useAuth } from '@/auth/AuthProvider';
 import { applyServerErrors } from '@/forms/applyServerErrors';
+import { useI18n } from '@/i18n/I18nProvider';
 
 type Form = { email: string; password: string };
 
 export default function Login() {
+  const { t } = useI18n();
   const { login } = useAuth();
   const router = useRouter();
   const [formError, setFormError] = useState<string | null>(null);
@@ -28,13 +30,13 @@ export default function Login() {
   });
 
   return (
-    <Screen title="Log in">
-      <FormTextField control={control} name="email" label="Email" testID="input-email" autoCapitalize="none" autoComplete="email" keyboardType="email-address" />
-      <FormTextField control={control} name="password" label="Password" testID="input-password" secureTextEntry autoComplete="password" />
+    <Screen title={t('Log in')}>
+      <FormTextField control={control} name="email" label={t('Email')} testID="input-email" autoCapitalize="none" autoComplete="email" keyboardType="email-address" />
+      <FormTextField control={control} name="password" label={t('Password')} testID="input-password" secureTextEntry autoComplete="password" />
       <FormError message={formError} />
-      <Button testID="btn-login" label="Log in" loading={formState.isSubmitting} onPress={onSubmit} />
+      <Button testID="btn-login" label={t('Log in')} loading={formState.isSubmitting} onPress={onSubmit} />
       <Link href="/forgot-password">
-        <AppText variant="muted">Forgot your password?</AppText>
+        <AppText variant="muted">{t('Forgot your password?')}</AppText>
       </Link>
     </Screen>
   );

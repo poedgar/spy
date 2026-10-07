@@ -9,10 +9,12 @@ import { FormTextField } from '@/components/FormTextField';
 import { Screen } from '@/components/Screen';
 import { useAuth } from '@/auth/AuthProvider';
 import { applyServerErrors } from '@/forms/applyServerErrors';
+import { useI18n } from '@/i18n/I18nProvider';
 
 type Form = { password: string };
 
 export default function DeleteAccount() {
+  const { t } = useI18n();
   const { signOutLocally } = useAuth();
   const [formError, setFormError] = useState<string | null>(null);
   const { control, handleSubmit, setError, formState } = useForm<Form>({ defaultValues: { password: '' } });
@@ -29,15 +31,16 @@ export default function DeleteAccount() {
 
   return (
     <Screen>
-      <Stack.Screen options={{ title: 'Delete account' }} />
-      <AppText variant="heading">Delete your account</AppText>
+      <Stack.Screen options={{ title: t('Delete account') }} />
+      <AppText variant="heading">{t('Delete your account')}</AppText>
       <AppText variant="muted">
-        This permanently deletes your account, your operations roster places and your invitations, on the web and on
-        every device. It cannot be undone.
+        {t(
+          'This permanently deletes your account, your operations roster places and your invitations, on the web and on every device. It cannot be undone.',
+        )}
       </AppText>
-      <FormTextField control={control} name="password" label="Confirm with your password" testID="input-delete-password" secureTextEntry />
+      <FormTextField control={control} name="password" label={t('Confirm with your password')} testID="input-delete-password" secureTextEntry />
       <FormError message={formError} />
-      <Button testID="btn-delete-account" label="Delete account permanently" variant="destructive" loading={formState.isSubmitting} onPress={onSubmit} />
+      <Button testID="btn-delete-account" label={t('Delete account permanently')} variant="destructive" loading={formState.isSubmitting} onPress={onSubmit} />
     </Screen>
   );
 }

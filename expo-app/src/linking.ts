@@ -14,3 +14,11 @@ export function invitationHrefFrom(data: unknown): { pathname: '/spy'; params: {
   if (type !== 'invitation' || typeof invitationId !== 'number') return null;
   return { pathname: '/spy', params: { highlight: String(invitationId) } };
 }
+
+/** A round-start push opens that game's lobby, where the role is waiting. */
+export function roundHrefFrom(data: unknown): `/games/${string}` | null {
+  if (typeof data !== 'object' || data === null) return null;
+  const { type, code } = data as { type?: unknown; code?: unknown };
+  if (type !== 'round' || typeof code !== 'string' || !isInviteCode(code)) return null;
+  return `/games/${code}`;
+}

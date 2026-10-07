@@ -9,10 +9,12 @@ import { FormTextField } from '@/components/FormTextField';
 import { Screen } from '@/components/Screen';
 import { useAuth } from '@/auth/AuthProvider';
 import { applyServerErrors } from '@/forms/applyServerErrors';
+import { useI18n } from '@/i18n/I18nProvider';
 
 type Form = { code: string };
 
 export default function TwoFactor() {
+  const { t } = useI18n();
   const { challenge } = useLocalSearchParams<{ challenge: string }>();
   const { completeTwoFactor } = useAuth();
   const [useRecovery, setUseRecovery] = useState(false);
@@ -29,28 +31,28 @@ export default function TwoFactor() {
   });
 
   return (
-    <Screen title="Two-factor authentication">
+    <Screen title={t('Two-factor authentication')}>
       <AppText variant="muted">
-        {useRecovery ? 'Enter one of your emergency recovery codes.' : 'Enter the code from your authenticator app.'}
+        {useRecovery ? t('Enter one of your emergency recovery codes.') : t('Enter the code from your authenticator app.')}
       </AppText>
       <FormTextField
         control={control}
         name="code"
-        label={useRecovery ? 'Recovery code' : 'Code'}
+        label={useRecovery ? t('Recovery code') : t('Code')}
         testID="input-2fa-code"
         autoCapitalize="none"
         keyboardType={useRecovery ? 'default' : 'number-pad'}
         autoComplete="one-time-code"
       />
       <FormError message={formError} />
-      <Button testID="btn-2fa-submit" label="Continue" loading={formState.isSubmitting} onPress={onSubmit} />
+      <Button testID="btn-2fa-submit" label={t('Continue')} loading={formState.isSubmitting} onPress={onSubmit} />
       <Pressable
         onPress={() => {
           setUseRecovery(!useRecovery);
           reset({ code: '' });
         }}
       >
-        <AppText variant="muted">{useRecovery ? 'Use an authentication code' : 'Use a recovery code'}</AppText>
+        <AppText variant="muted">{useRecovery ? t('Use an authentication code') : t('Use a recovery code')}</AppText>
       </Pressable>
     </Screen>
   );

@@ -5,6 +5,12 @@ type Method = 'GET' | 'POST' | 'PATCH' | 'PUT' | 'DELETE';
 
 let getToken: () => string | null = () => null;
 let onUnauthorized: () => void = () => {};
+let locale: string | null = null;
+
+/** Sent as Accept-Language, so server messages match the app's language. */
+export function setRequestLocale(next: string | null): void {
+  locale = next;
+}
 
 export function configureClient(options: { getToken: () => string | null; onUnauthorized: () => void }): void {
   getToken = options.getToken;
@@ -14,6 +20,8 @@ export function configureClient(options: { getToken: () => string | null; onUnau
 export async function request<T>(method: Method, path: string, body?: unknown): Promise<T> {
   const headers: Record<string, string> = { Accept: 'application/json' };
   if (body !== undefined) headers['Content-Type'] = 'application/json';
+
+  if (locale) headers['Accept-Language'] = locale;
 
   const token = getToken();
   if (token) headers.Authorization = `Bearer ${token}`;

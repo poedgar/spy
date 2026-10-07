@@ -9,10 +9,12 @@ import { FormTextField } from '@/components/FormTextField';
 import { Screen } from '@/components/Screen';
 import { useAuth, useSignedInUser } from '@/auth/AuthProvider';
 import { applyServerErrors } from '@/forms/applyServerErrors';
+import { useI18n } from '@/i18n/I18nProvider';
 
 type Form = { name: string; email: string };
 
 export default function Profile() {
+  const { t } = useI18n();
   const user = useSignedInUser();
   const { setUser } = useAuth();
   const [status, setStatus] = useState<string | null>(null);
@@ -26,7 +28,7 @@ export default function Profile() {
     setFormError(null);
     try {
       setUser(await meApi.update({ name: input.name.trim(), email: input.email.trim() }));
-      setStatus('Profile updated.');
+      setStatus(t('Profile updated.'));
     } catch (error) {
       setFormError(applyServerErrors(error, setError, ['name', 'email']));
     }
@@ -34,12 +36,12 @@ export default function Profile() {
 
   return (
     <Screen>
-      <Stack.Screen options={{ title: 'Profile' }} />
-      <FormTextField control={control} name="name" label="Name" testID="input-profile-name" />
-      <FormTextField control={control} name="email" label="Email" testID="input-profile-email" autoCapitalize="none" keyboardType="email-address" />
+      <Stack.Screen options={{ title: t('Profile') }} />
+      <FormTextField control={control} name="name" label={t('Name')} testID="input-profile-name" />
+      <FormTextField control={control} name="email" label={t('Email')} testID="input-profile-email" autoCapitalize="none" keyboardType="email-address" />
       <FormError message={formError} />
       {status ? <AppText>{status}</AppText> : null}
-      <Button testID="btn-save-profile" label="Save" loading={formState.isSubmitting} onPress={onSubmit} />
+      <Button testID="btn-save-profile" label={t('Save')} loading={formState.isSubmitting} onPress={onSubmit} />
     </Screen>
   );
 }
