@@ -1,5 +1,6 @@
 <?php
 
+use App\Enums\InvitationStatus;
 use App\Models\GamePlayer;
 use App\Models\Invitation;
 use App\Models\User;
@@ -11,7 +12,7 @@ test('declining an invitation marks it declined without joining the game', funct
     $response = $this->actingAs($recipient)->post(route('invitations.decline', $invitation));
 
     $response->assertRedirect(route('games.spy'));
-    expect($invitation->fresh()->status)->toBe('declined');
+    expect($invitation->fresh()->status)->toBe(InvitationStatus::Declined);
     expect(GamePlayer::where('game_id', $invitation->game_id)->where('user_id', $recipient->id)->exists())->toBeFalse();
 });
 
@@ -21,7 +22,7 @@ test('declining an already-resolved invitation does not change an accepted statu
 
     $this->actingAs($recipient)->post(route('invitations.decline', $invitation));
 
-    expect($invitation->fresh()->status)->toBe('accepted');
+    expect($invitation->fresh()->status)->toBe(InvitationStatus::Accepted);
 });
 
 test('only the invitations recipient can decline it', function () {
@@ -32,7 +33,7 @@ test('only the invitations recipient can decline it', function () {
     $response = $this->actingAs($someoneElse)->post(route('invitations.decline', $invitation));
 
     $response->assertForbidden();
-    expect($invitation->fresh()->status)->toBe('pending');
+    expect($invitation->fresh()->status)->toBe(InvitationStatus::Pending);
 });
 
 test('a guest is redirected to login when trying to decline', function () {

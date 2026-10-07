@@ -76,7 +76,7 @@ class AuthController extends Controller
         $user = $pending ? User::whereKey($pending['user_id'])->first() : null;
 
         if (! $user) {
-            throw ValidationException::withMessages(['challenge' => ['This sign-in attempt has expired. Please log in again.']]);
+            throw ValidationException::withMessages(['challenge' => [__('This sign-in attempt has expired. Please log in again.')]]);
         }
 
         if (! empty($data['recovery_code'])) {
@@ -111,7 +111,7 @@ class AuthController extends Controller
         Password::sendResetLink($request->only('email'));
 
         return response()->json([
-            'message' => 'If that email is registered, a reset link is on its way.',
+            'message' => __('If that email is registered, a reset link is on its way.'),
         ]);
     }
 

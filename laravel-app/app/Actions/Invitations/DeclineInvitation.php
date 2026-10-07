@@ -2,6 +2,7 @@
 
 namespace App\Actions\Invitations;
 
+use App\Enums\InvitationStatus;
 use App\Models\Invitation;
 use App\Models\User;
 
@@ -11,8 +12,8 @@ class DeclineInvitation
     {
         abort_unless($invitation->to_user_id === $user->id, 403);
 
-        if ($invitation->status === 'pending') {
-            $invitation->update(['status' => 'declined']);
+        if ($invitation->status === InvitationStatus::Pending) {
+            $invitation->update(['status' => InvitationStatus::Declined]);
         }
     }
 }

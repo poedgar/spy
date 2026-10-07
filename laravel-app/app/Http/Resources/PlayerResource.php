@@ -18,9 +18,10 @@ class PlayerResource extends JsonResource
     {
         return [
             'id' => $this->id,
-            'user' => UserResource::make($this->whenLoaded('user')),
+            'user' => OperativeResource::make($this->whenLoaded('user')),
             'is_host' => $this->is_host,
             'status' => $this->status,
+            'score' => $this->score,
             'joined_at' => $this->joined_at->toIso8601String(),
         ];
     }

@@ -3,6 +3,9 @@
 namespace App\Http\Middleware;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\App;
+use Illuminate\Support\Facades\File;
+use Inertia\Inertia;
 use Inertia\Middleware;
 
 class HandleInertiaRequests extends Middleware
@@ -41,7 +44,22 @@ class HandleInertiaRequests extends Middleware
             'auth' => [
                 'user' => $request->user(),
             ],
+            'locale' => App::getLocale(),
+            // English strings are their own keys, so English ships nothing.
+            // Keyed per language so switching languages refetches it.
+            'translations' => Inertia::once(fn () => $this->translations(App::getLocale()))
+                ->as('translations.'.App::getLocale()),
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
         ];
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    protected function translations(string $locale): array
+    {
+        $path = lang_path("{$locale}.json");
+
+        return is_file($path) ? File::json($path) : [];
     }
 }

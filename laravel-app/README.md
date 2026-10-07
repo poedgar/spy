@@ -1,15 +1,47 @@
-# SpyNet Terminal — Laravel/Vue/SQLite Rebuild (Phase 1)
+# SpyNet Terminal — Laravel/Vue rebuild
 
 Phase 1 of a phased rebuild of the React/Firebase app at the repo root, in
 Laravel 13 + Inertia + Vue 3 + SQLite. See
 `../docs/superpowers/specs/2026-09-22-laravel-vue-rebuild-phase1-design.md`
 for the full design and phase roadmap.
 
-## What Phase 1 does
+## The game
 
-Register, log in, create a game, and join a game by its invite code. No
-real-time updates, no spies/voting/scoring, no i18n, no locations dataset
-— those arrive in later phases.
+Spy is played in rounds, with the same rules on the web and in the Expo app:
+
+1. The host creates an operation (mode, age group, 3–12 operatives) and
+   shares its code. Players join while it is **recruiting**, can mark
+   themselves ready, and can leave between rounds.
+2. **Starting a round** (host, at least 3 players) draws a secret location
+   from the age group's pool and secretly picks the spies (1 for 3–4
+   players, 2 for 5–7, then one more per 3 players). Each player sees only
+   their own role; loyalists also see the location.
+3. During the round a **spy may guess the location** once: right and the
+   spies win, wrong and the loyalists win.
+4. The host **calls a vote**. Votes can change until voting closes, which
+   happens automatically once everyone has voted (or when the host closes
+   it). The most-voted player is accused; a tie or no votes lets the spies
+   win.
+5. Everyone on the winning side scores a point. The host can start the
+   next round (scores carry over) or send the game **back to recruiting**,
+   which abandons a round in progress without points.
+
+Rules live in `app/Actions/Games`. Role secrecy is enforced by
+`RoundResource`, which shapes each round for the requesting player.
+
+The 502 locations (ported from the original SPA, in English and Ukrainian,
+with age tiers that include every younger tier) are in
+`app/Support/LocationData.php`; their ids are stored in `game_rounds`, so
+only ever append to that list.
+
+## Languages
+
+English and Ukrainian. The language is saved on the account
+(`users.locale`) so it follows the player across the web, the app and push
+notifications; guests choose per session (web) or per device (app), with
+`Accept-Language` as the fallback. Translations are keyed by their English
+text in `lang/uk.json` (shared with the Vue app as a once-loaded Inertia
+prop) and `lang/uk/*.php` for validation and auth messages.
 
 ## Real-time presence and invitations
 
@@ -78,16 +110,23 @@ both clients share the Action classes in `app/Actions`.
   with `POST /api/v1/auth/two-factor` within 5 minutes.
 - **Endpoints:** `auth/register`, `auth/login`, `auth/two-factor`,
   `auth/forgot-password`, `auth/logout`, `me` (GET/PATCH/DELETE),
-  `me/password`, `me/push-tokens`, `games/spy`, `games`, `games/{code}`,
-  `games/{code}/join`, `games/{code}/invitable-users`,
-  `games/{code}/invitations`, `invitations/{id}/accept|decline`.
+  `me/locale`, `me/password`, `me/push-tokens`, `games/spy`, `games`,
+  `games/{code}`, `games/{code}/join|leave|ready|start|voting|votes|tally|guess|reset`,
+  `games/{code}/invitable-users`, `games/{code}/invitations`,
+  `invitations/{id}/accept|decline`, `locations?tier=`. Every game action
+  except `leave` answers with the caller's view of the lobby (`guess`
+  wraps it as `{ correct, game }`).
+- **Rate limits:** `auth/register` (and the web sign-up form) allow 5
+  attempts per minute per IP, except when `APP_ENV=local`.
 - **Errors:** 422 responses use Laravel's validation shape
   (`{ message, errors: { field: [..] } }`), including game-rule violations.
 - **Real-time:** mobile clients authorize channels at
-  `/api/broadcasting/auth`. `PlayerJoined` (`player.joined`) broadcasts on
-  `private-game.{id}` to roster members; web lobbies refresh on it too.
-- **Push:** devices register Expo push tokens; `InvitationIssued` queues
-  `SendInvitationPushNotification`, which calls Expo's push API. Production
+  `/api/broadcasting/auth`. `PlayerJoined` (`player.joined`) and
+  `GameUpdated` (`game.updated`) broadcast on `private-game.{id}` to roster
+  members. Neither carries round secrets, so clients refetch the lobby.
+- **Push:** devices register Expo push tokens; `InvitationIssued` and
+  `RoundStarted` queue push notifications (in each recipient's language)
+  through `App\Support\ExpoPush`. Production
   needs a queue worker. Set `EXPO_ACCESS_TOKEN` if Expo enhanced push
   security is enabled.
 - **Production (Laravel Cloud):** use a managed database rather than the

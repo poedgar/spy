@@ -1,5 +1,6 @@
 <?php
 
+use App\Enums\InvitationStatus;
 use App\Events\InvitationSent;
 use App\Models\Game;
 use App\Models\GamePlayer;
@@ -83,7 +84,7 @@ test('the recipient declines', function () {
 
     $this->postJson("/api/v1/invitations/{$invitation->id}/decline")->assertNoContent();
 
-    expect($invitation->fresh()->status)->toBe('declined');
+    expect($invitation->fresh()->status)->toBe(InvitationStatus::Declined);
 });
 
 test('only the recipient can accept or decline', function () {

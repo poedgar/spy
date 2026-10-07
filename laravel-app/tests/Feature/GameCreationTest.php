@@ -1,5 +1,8 @@
 <?php
 
+use App\Enums\AgeTier;
+use App\Enums\GameStatus;
+use App\Enums\PlayerStatus;
 use App\Models\Game;
 use App\Models\GamePlayer;
 use App\Models\User;
@@ -18,11 +21,12 @@ test('creating a game creates the game and the hosts game_players row', function
 
     $response->assertRedirect(route('games.show', $game));
     expect($game->code)->toMatch('/^SPY-[A-Z0-9]{4}$/');
-    expect(config('locations.names'))->toContain($game->secret_location);
+    expect($game->age_tier)->toBe(AgeTier::Adults);
+    expect($game->status)->toBe(GameStatus::Recruiting);
 
     $hostRow = GamePlayer::where('game_id', $game->id)->where('user_id', $user->id)->firstOrFail();
     expect($hostRow->is_host)->toBeTrue();
-    expect($hostRow->status)->toBe('ready');
+    expect($hostRow->status)->toBe(PlayerStatus::Ready);
 });
 
 test('a guest cannot create a game', function () {

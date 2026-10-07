@@ -1,5 +1,6 @@
 <?php
 
+use App\Enums\InvitationStatus;
 use App\Models\Game;
 use App\Models\Invitation;
 use App\Models\User;
@@ -16,7 +17,7 @@ test('an invitation belongs to a game, a sender, and a recipient', function () {
 test('an invitation defaults to pending status', function () {
     $invitation = Invitation::factory()->create();
 
-    expect($invitation->status)->toBe('pending');
+    expect($invitation->status)->toBe(InvitationStatus::Pending);
 });
 
 test('a game has many invitations', function () {

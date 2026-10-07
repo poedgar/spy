@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Actions\DeleteUser;
+use App\Enums\Locale;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Settings\PasswordUpdateRequest;
 use App\Http\Requests\Settings\ProfileDeleteRequest;
@@ -10,6 +11,7 @@ use App\Http\Requests\Settings\ProfileUpdateRequest;
 use App\Http\Resources\UserResource;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
+use Illuminate\Validation\Rule;
 
 class MeController extends Controller
 {
@@ -30,6 +32,15 @@ class MeController extends Controller
         $user->save();
 
         return UserResource::make($user);
+    }
+
+    public function updateLocale(Request $request): UserResource
+    {
+        $validated = $request->validate(['locale' => ['required', Rule::enum(Locale::class)]]);
+
+        $request->user()->update(['locale' => $validated['locale']]);
+
+        return UserResource::make($request->user());
     }
 
     public function updatePassword(PasswordUpdateRequest $request): Response

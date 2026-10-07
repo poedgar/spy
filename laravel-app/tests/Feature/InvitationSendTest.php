@@ -1,5 +1,6 @@
 <?php
 
+use App\Enums\InvitationStatus;
 use App\Events\InvitationSent;
 use App\Models\Game;
 use App\Models\GamePlayer;
@@ -21,7 +22,7 @@ test('a host can send an invitation to a game', function () {
 
     $response->assertRedirect();
     $invitation = Invitation::where('game_id', $game->id)->where('to_user_id', $invitee->id)->firstOrFail();
-    expect($invitation->status)->toBe('pending')
+    expect($invitation->status)->toBe(InvitationStatus::Pending)
         ->and($invitation->from_user_id)->toBe($host->id);
 
     Event::assertDispatched(InvitationSent::class, fn (InvitationSent $event) => $event->invitation->is($invitation));
@@ -44,7 +45,7 @@ test('re-inviting a previously declined user reactivates the same row instead of
     ]);
 
     expect(Invitation::where('game_id', $game->id)->where('to_user_id', $invitee->id)->count())->toBe(1);
-    expect($existing->fresh()->status)->toBe('pending');
+    expect($existing->fresh()->status)->toBe(InvitationStatus::Pending);
 });
 
 test('a host cannot invite themselves', function () {

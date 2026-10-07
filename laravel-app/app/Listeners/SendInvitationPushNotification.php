@@ -3,27 +3,22 @@
 namespace App\Listeners;
 
 use App\Events\InvitationIssued;
-use App\Models\PushToken;
+use App\Support\ExpoPush;
 use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Support\Facades\Http;
 
 class SendInvitationPushNotification implements ShouldQueue
 {
-    private const EXPO_PUSH_URL = 'https://exp.host/--/api/v2/push/send';
-
     public function handle(InvitationIssued $event): void
     {
         $invitation = $event->invitation->loadMissing(['game', 'fromUser', 'toUser.pushTokens']);
-        $tokens = $invitation->toUser->pushTokens->values();
+        $locale = $invitation->toUser->preferredLocale();
 
-        if ($tokens->isEmpty()) {
-            return;
-        }
-
-        $messages = array_values($tokens->map(fn (PushToken $token) => [
-            'to' => $token->token,
-            'title' => 'New operation invite',
-            'body' => "{$invitation->fromUser->codename} invited you to {$invitation->game->title}",
+        ExpoPush::send($invitation->toUser->pushTokens, fn () => [
+            'title' => __('New operation invite', [], $locale),
+            'body' => __(':codename invited you to :title', [
+                'codename' => $invitation->fromUser->codename,
+                'title' => $invitation->game->title,
+            ], $locale),
             'sound' => 'default',
             'channelId' => 'invitations',
             'data' => [
@@ -31,21 +26,6 @@ class SendInvitationPushNotification implements ShouldQueue
                 'invitation_id' => $invitation->id,
                 'code' => $invitation->game->code,
             ],
-        ])->all());
-
-        $request = Http::acceptJson()->asJson();
-
-        if ($accessToken = config('services.expo.access_token')) {
-            $request = $request->withToken($accessToken);
-        }
-
-        // Tickets come back in the same order as the messages.
-        $tickets = $request->post(self::EXPO_PUSH_URL, $messages)->throw()->json('data', []);
-
-        foreach ($tickets as $index => $ticket) {
-            if (($ticket['details']['error'] ?? null) === 'DeviceNotRegistered') {
-                $tokens[$index]->delete();
-            }
-        }
+        ]);
     }
 }

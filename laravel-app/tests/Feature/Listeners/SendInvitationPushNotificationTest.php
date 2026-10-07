@@ -67,3 +67,14 @@ test('it sends the Expo access token when configured', function () {
 
     Http::assertSent(fn ($request) => $request->hasHeader('Authorization', 'Bearer expo-secret'));
 });
+
+test('the push is written in the invitees language', function () {
+    Http::fake(['exp.host/*' => Http::response(['data' => [['status' => 'ok', 'id' => 'a']]])]);
+    $invitation = Invitation::factory()->create();
+    $invitation->toUser->update(['locale' => 'uk']);
+    PushToken::create(['user_id' => $invitation->to_user_id, 'token' => 'ExponentPushToken[one]', 'platform' => 'ios']);
+
+    app(SendInvitationPushNotification::class)->handle(new InvitationIssued($invitation));
+
+    Http::assertSent(fn ($request) => $request->data()[0]['title'] === 'Нове запрошення до операції');
+});

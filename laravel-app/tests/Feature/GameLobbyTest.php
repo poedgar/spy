@@ -33,7 +33,7 @@ test('the lobby route resolves games by their invite code, not their numeric id'
 
 test('the lobby payload does not leak player emails, email verification timestamps, or the secret location', function () {
     $host = User::factory()->create();
-    $game = Game::factory()->create(['host_id' => $host->id, 'secret_location' => 'Church']);
+    $game = Game::factory()->create(['host_id' => $host->id]);
     GamePlayer::factory()->create(['game_id' => $game->id, 'user_id' => $host->id, 'is_host' => true]);
 
     $recruit = User::factory()->create();
@@ -59,8 +59,8 @@ test('the lobby payload does not leak player emails, email verification timestam
         ->not->toContain($host->email)
         ->not->toContain($recruit->email)
         ->not->toContain('email_verified_at')
-        ->not->toContain('secret_location')
-        ->not->toContain($game->secret_location);
+        ->not->toContain('spy_user_ids')
+        ->not->toContain('location_id');
 
     expect($props['game']['players'][0]['user'])
         ->toHaveKeys(['id', 'name', 'codename'])

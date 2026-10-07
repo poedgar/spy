@@ -23,7 +23,7 @@ class GameFactory extends Factory
             'host_id' => User::factory(),
             'max_players' => 6,
             'mission_briefing' => 'A rogue operative has intercepted intelligence files.',
-            'secret_location' => 'Church',
+            'age_tier' => 'adults',
             'status' => 'recruiting',
         ];
     }

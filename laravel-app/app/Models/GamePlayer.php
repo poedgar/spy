@@ -2,12 +2,21 @@
 
 namespace App\Models;
 
+use App\Enums\PlayerStatus;
 use Database\Factories\GamePlayerFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
+/**
+ * @property int $id
+ * @property int $game_id
+ * @property int $user_id
+ * @property bool $is_host
+ * @property PlayerStatus $status
+ * @property int $score
+ */
 #[Fillable(['game_id', 'user_id', 'is_host', 'status', 'score', 'joined_at'])]
 class GamePlayer extends Model
 {
@@ -18,6 +27,7 @@ class GamePlayer extends Model
     {
         return [
             'is_host' => 'boolean',
+            'status' => PlayerStatus::class,
             'joined_at' => 'datetime',
         ];
     }

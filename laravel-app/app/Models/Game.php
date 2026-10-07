@@ -2,20 +2,57 @@
 
 namespace App\Models;
 
+use App\Enums\AgeTier;
+use App\Enums\GameMode;
+use App\Enums\GameStatus;
 use Database\Factories\GameFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
-#[Fillable(['title', 'game_mode', 'code', 'host_id', 'max_players', 'mission_briefing', 'secret_location', 'status', 'game_type'])]
+/**
+ * @property int $id
+ * @property string $code
+ * @property string $title
+ * @property GameMode $game_mode
+ * @property AgeTier $age_tier
+ * @property GameStatus $status
+ * @property int $host_id
+ * @property int $max_players
+ * @property int|null $players_count
+ */
+#[Fillable(['title', 'game_mode', 'age_tier', 'code', 'host_id', 'max_players', 'mission_briefing', 'status', 'game_type'])]
 class Game extends Model
 {
     /** @use HasFactory<GameFactory> */
     use HasFactory;
 
+    public const MIN_PLAYERS = 3;
+
     private const CODE_CHARS = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+
+    /**
+     * Mirrors the column defaults so a freshly created model has them too.
+     *
+     * @var array<string, mixed>
+     */
+    protected $attributes = [
+        'status' => 'recruiting',
+        'age_tier' => 'adults',
+        'game_type' => 'spy',
+    ];
+
+    protected function casts(): array
+    {
+        return [
+            'game_mode' => GameMode::class,
+            'age_tier' => AgeTier::class,
+            'status' => GameStatus::class,
+        ];
+    }
 
     public function getRouteKeyName(): string
     {
@@ -34,6 +71,45 @@ class Game extends Model
     }
 
     /**
+     * 3-4 players: 1 spy, 5-7: 2, 8-10: 3, then one more per 3 players.
+     */
+    public static function spyCountFor(int $playerCount): int
+    {
+        if ($playerCount < 5) {
+            return 1;
+        }
+
+        if ($playerCount < 8) {
+            return 2;
+        }
+
+        return 1 + intdiv($playerCount - 2, 3);
+    }
+
+    public function isHost(User $user): bool
+    {
+        return $this->host_id === $user->id;
+    }
+
+    public function hasPlayer(User|int $user): bool
+    {
+        $userId = $user instanceof User ? $user->id : $user;
+
+        return $this->relationLoaded('players')
+            ? $this->players->contains('user_id', $userId)
+            : $this->players()->where('user_id', $userId)->exists();
+    }
+
+    /**
+     * Re-reads the game row under a write lock, so roster and round changes
+     * made inside the surrounding transaction cannot race each other.
+     */
+    public function freshLocked(): self
+    {
+        return self::whereKey($this->id)->lockForUpdate()->firstOrFail();
+    }
+
+    /**
      * @return BelongsTo<User, $this>
      */
     public function host(): BelongsTo
@@ -46,7 +122,7 @@ class Game extends Model
      */
     public function players(): HasMany
     {
-        return $this->hasMany(GamePlayer::class)->orderBy('joined_at');
+        return $this->hasMany(GamePlayer::class)->orderBy('joined_at')->orderBy('id');
     }
 
     /**
@@ -55,5 +131,21 @@ class Game extends Model
     public function invitations(): HasMany
     {
         return $this->hasMany(Invitation::class);
+    }
+
+    /**
+     * @return HasMany<GameRound, $this>
+     */
+    public function rounds(): HasMany
+    {
+        return $this->hasMany(GameRound::class);
+    }
+
+    /**
+     * @return HasOne<GameRound, $this>
+     */
+    public function currentRound(): HasOne
+    {
+        return $this->hasOne(GameRound::class)->latestOfMany('number');
     }
 }

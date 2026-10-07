@@ -2,6 +2,8 @@
 
 use App\Actions\Games\CreateGame;
 use App\Actions\Games\JoinGame;
+use App\Enums\GameStatus;
+use App\Enums\PlayerStatus;
 use App\Exceptions\GameRuleException;
 use App\Models\Game;
 use App\Models\GamePlayer;
@@ -21,12 +23,12 @@ test('CreateGame creates the game and the host roster row', function () {
     expect($game->code)->toMatch('/^SPY-[A-Z2-9]{4}$/')
         ->and($game->game_type)->toBe('spy')
         ->and($game->host_id)->toBe($host->id)
-        ->and($game->secret_location)->not->toBeEmpty();
+        ->and($game->status)->toBe(GameStatus::Recruiting);
 
     $player = GamePlayer::where('game_id', $game->id)->sole();
     expect($player->user_id)->toBe($host->id)
         ->and($player->is_host)->toBeTrue()
-        ->and($player->status)->toBe('ready');
+        ->and($player->status)->toBe(PlayerStatus::Ready);
 });
 
 test('JoinGame adds the user to the roster', function () {

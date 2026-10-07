@@ -2,6 +2,7 @@
 
 namespace App\Queries;
 
+use App\Enums\InvitationStatus;
 use App\Models\Game;
 use App\Models\Invitation;
 use App\Models\User;
@@ -18,9 +19,10 @@ class SpyHomeQuery
         return $user
             ->gamePlayers()
             ->whereHas('game', fn ($query) => $query->where('game_type', 'spy'))
-            ->with('game')
+            ->with(['game' => fn ($query) => $query->withCount('players')])
             ->get()
             ->pluck('game')
+            ->sortByDesc('created_at')
             ->values();
     }
 
@@ -31,7 +33,7 @@ class SpyHomeQuery
     {
         return $user
             ->receivedInvitations()
-            ->where('status', 'pending')
+            ->where('status', InvitationStatus::Pending)
             ->whereHas('game', fn ($query) => $query->where('game_type', 'spy'))
             ->with('game:id,title,code', 'fromUser:id,codename')
             ->get();

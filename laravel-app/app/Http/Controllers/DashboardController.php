@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Resources\GameResource;
 use App\Models\Invitation;
 use App\Queries\SpyHomeQuery;
 use Illuminate\Http\Request;
@@ -25,7 +26,7 @@ class DashboardController extends Controller
             ]);
 
         return inertia('games/Spy', [
-            'games' => $spyHome->games($request->user()),
+            'games' => GameResource::collection($spyHome->games($request->user()))->resolve($request),
             'pendingInvitations' => $pendingInvitations,
         ]);
     }

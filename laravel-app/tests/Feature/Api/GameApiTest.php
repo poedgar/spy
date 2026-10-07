@@ -49,7 +49,7 @@ test('creating a game validates input', function () {
 
 test('a member can view the lobby without leaking secrets or other players emails', function () {
     $host = User::factory()->create();
-    $game = Game::factory()->create(['host_id' => $host->id, 'secret_location' => 'Church']);
+    $game = Game::factory()->create(['host_id' => $host->id]);
     GamePlayer::factory()->create(['game_id' => $game->id, 'user_id' => $host->id, 'is_host' => true]);
     $member = User::factory()->create();
     GamePlayer::factory()->create(['game_id' => $game->id, 'user_id' => $member->id]);

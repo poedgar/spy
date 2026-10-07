@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Actions\Invitations\AcceptInvitation;
 use App\Actions\Invitations\DeclineInvitation;
 use App\Actions\Invitations\SendInvitation;
+use App\Enums\GameStatus;
 use App\Models\Game;
 use App\Models\Invitation;
 use App\Queries\InvitableUsersQuery;
@@ -17,7 +18,7 @@ class InvitationController extends Controller
     public function index(Request $request, Game $game, InvitableUsersQuery $invitableUsers): Response
     {
         abort_unless($game->host_id === $request->user()->id, 403);
-        abort_unless($game->status === 'recruiting', 403);
+        abort_unless($game->status === GameStatus::Recruiting, 403);
 
         return inertia('games/InviteUsers', [
             'game' => $game->only(['id', 'code', 'title']),
@@ -28,7 +29,7 @@ class InvitationController extends Controller
     public function store(Request $request, Game $game, SendInvitation $sendInvitation): RedirectResponse
     {
         abort_unless($game->host_id === $request->user()->id, 403);
-        abort_unless($game->status === 'recruiting', 403);
+        abort_unless($game->status === GameStatus::Recruiting, 403);
 
         $validated = $request->validate([
             'to_user_id' => ['required', 'integer', 'exists:users,id'],

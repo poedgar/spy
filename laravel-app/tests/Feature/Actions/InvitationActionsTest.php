@@ -3,6 +3,7 @@
 use App\Actions\Invitations\AcceptInvitation;
 use App\Actions\Invitations\DeclineInvitation;
 use App\Actions\Invitations\SendInvitation;
+use App\Enums\InvitationStatus;
 use App\Events\InvitationSent;
 use App\Exceptions\GameRuleException;
 use App\Models\Game;
@@ -44,7 +45,7 @@ test('SendInvitation creates a pending invitation and dispatches InvitationSent'
 
     $invitation = app(SendInvitation::class)->handle($game, $host, $invitee->id);
 
-    expect($invitation->status)->toBe('pending');
+    expect($invitation->status)->toBe(InvitationStatus::Pending);
     Event::assertDispatched(InvitationSent::class);
 });
 
@@ -73,7 +74,7 @@ test('AcceptInvitation joins the game and marks the invitation accepted', functi
     $result = app(AcceptInvitation::class)->handle($invitation, $recipient);
 
     expect($result->is($game))->toBeTrue()
-        ->and($invitation->fresh()->status)->toBe('accepted')
+        ->and($invitation->fresh()->status)->toBe(InvitationStatus::Accepted)
         ->and(GamePlayer::where('game_id', $game->id)->where('user_id', $recipient->id)->exists())->toBeTrue();
 });
 
@@ -103,7 +104,7 @@ test('DeclineInvitation marks a pending invitation declined', function () {
 
     app(DeclineInvitation::class)->handle($invitation, $recipient);
 
-    expect($invitation->fresh()->status)->toBe('declined');
+    expect($invitation->fresh()->status)->toBe(InvitationStatus::Declined);
 });
 
 test('SpyHomeQuery returns the users spy games and pending invitations only', function () {

@@ -1,5 +1,6 @@
 <?php
 
+use App\Enums\InvitationStatus;
 use App\Models\Game;
 use App\Models\GamePlayer;
 use App\Models\Invitation;
@@ -14,7 +15,7 @@ test('accepting an invitation adds the user to the game and marks it accepted', 
 
     $response->assertRedirect(route('games.show', $game));
     expect(GamePlayer::where('game_id', $game->id)->where('user_id', $recipient->id)->exists())->toBeTrue();
-    expect($invitation->fresh()->status)->toBe('accepted');
+    expect($invitation->fresh()->status)->toBe(InvitationStatus::Accepted);
 });
 
 test('accepting an already-resolved invitation fails gracefully without duplicating', function () {
@@ -30,7 +31,7 @@ test('accepting an already-resolved invitation fails gracefully without duplicat
 
     $response->assertSessionHasErrors('invitation');
     expect(GamePlayer::where('game_id', $game->id)->where('user_id', $recipient->id)->exists())->toBeFalse();
-    expect($invitation->fresh()->status)->toBe('declined');
+    expect($invitation->fresh()->status)->toBe(InvitationStatus::Declined);
 });
 
 test('accepting into a game that filled up in the meantime fails gracefully', function () {
@@ -44,7 +45,7 @@ test('accepting into a game that filled up in the meantime fails gracefully', fu
 
     $response->assertSessionHasErrors('invitation');
     expect(GamePlayer::where('game_id', $game->id)->where('user_id', $recipient->id)->exists())->toBeFalse();
-    expect($invitation->fresh()->status)->toBe('pending');
+    expect($invitation->fresh()->status)->toBe(InvitationStatus::Pending);
 });
 
 test('accepting an invitation for a user who already joined by code resolves it without duplicating', function () {
@@ -57,7 +58,7 @@ test('accepting an invitation for a user who already joined by code resolves it 
 
     $response->assertRedirect(route('games.show', $game));
     expect(GamePlayer::where('game_id', $game->id)->where('user_id', $recipient->id)->count())->toBe(1);
-    expect($invitation->fresh()->status)->toBe('accepted');
+    expect($invitation->fresh()->status)->toBe(InvitationStatus::Accepted);
 });
 
 test('accepting an invitation for a game that is no longer recruiting fails gracefully', function () {
@@ -69,7 +70,7 @@ test('accepting an invitation for a game that is no longer recruiting fails grac
 
     $response->assertSessionHasErrors('invitation');
     expect(GamePlayer::where('game_id', $game->id)->where('user_id', $recipient->id)->exists())->toBeFalse();
-    expect($invitation->fresh()->status)->toBe('pending');
+    expect($invitation->fresh()->status)->toBe(InvitationStatus::Pending);
 });
 
 test('only the invitations recipient can accept it', function () {

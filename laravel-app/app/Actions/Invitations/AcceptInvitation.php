@@ -2,6 +2,9 @@
 
 namespace App\Actions\Invitations;
 
+use App\Enums\GameStatus;
+use App\Enums\InvitationStatus;
+use App\Enums\PlayerStatus;
 use App\Events\PlayerJoined;
 use App\Exceptions\GameRuleException;
 use App\Models\Game;
@@ -20,47 +23,44 @@ class AcceptInvitation
     {
         abort_unless($invitation->to_user_id === $user->id, 403);
 
-        if ($invitation->status !== 'pending') {
-            throw new GameRuleException('invitation', 'This invitation is no longer available.');
-        }
+        $player = DB::transaction(function () use ($invitation, $user): ?GamePlayer {
+            // Locked like JoinGame, so an invite and a code join racing for
+            // the last seat cannot both take it.
+            $game = $invitation->game->freshLocked();
+            $invitation->refresh();
 
-        $game = $invitation->game;
-
-        if ($game->status !== 'recruiting') {
-            throw new GameRuleException('invitation', 'This operation is no longer recruiting.');
-        }
-
-        // Mirrors JoinGame's already-joined guard: a user who joined by code
-        // after being invited should have their invitation resolved
-        // gracefully, not hit the game_players unique constraint.
-        $alreadyJoined = $game->players()->where('user_id', $user->id)->exists();
-
-        if (! $alreadyJoined && $game->players()->count() >= $game->max_players) {
-            throw new GameRuleException('invitation', 'This operation roster is already full.');
-        }
-
-        $player = DB::transaction(function () use ($alreadyJoined, $game, $user, $invitation): ?GamePlayer {
-            $player = null;
-
-            if (! $alreadyJoined) {
-                $player = GamePlayer::create([
-                    'game_id' => $game->id,
-                    'user_id' => $user->id,
-                    'is_host' => false,
-                    'status' => 'ready',
-                    'joined_at' => now(),
-                ]);
+            if ($invitation->status !== InvitationStatus::Pending) {
+                throw new GameRuleException('invitation', __('This invitation is no longer available.'));
             }
 
-            $invitation->update(['status' => 'accepted']);
+            if ($game->status !== GameStatus::Recruiting) {
+                throw new GameRuleException('invitation', __('This operation is no longer recruiting.'));
+            }
 
-            return $player;
+            // A user who joined by code after being invited should have their
+            // invitation resolved gracefully, not hit the game_players unique
+            // constraint.
+            $alreadyJoined = $game->hasPlayer($user);
+
+            if (! $alreadyJoined && $game->players()->count() >= $game->max_players) {
+                throw new GameRuleException('invitation', __('This operation roster is already full.'));
+            }
+
+            $invitation->update(['status' => InvitationStatus::Accepted]);
+
+            return $alreadyJoined ? null : GamePlayer::create([
+                'game_id' => $game->id,
+                'user_id' => $user->id,
+                'is_host' => false,
+                'status' => PlayerStatus::Ready,
+                'joined_at' => now(),
+            ]);
         });
 
         if ($player) {
             BestEffortBroadcast::dispatch(new PlayerJoined($player));
         }
 
-        return $game;
+        return $invitation->game->refresh();
     }
 }

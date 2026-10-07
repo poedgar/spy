@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Actions\Invitations\AcceptInvitation;
 use App\Actions\Invitations\DeclineInvitation;
 use App\Actions\Invitations\SendInvitation;
+use App\Enums\GameStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\GameResource;
 use App\Http\Resources\InvitationResource;
@@ -22,7 +23,7 @@ class InvitationController extends Controller
         $game = Game::where('code', $code)->firstOrFail();
 
         abort_unless($game->host_id === $request->user()->id, 403);
-        abort_unless($game->status === 'recruiting', 403);
+        abort_unless($game->status === GameStatus::Recruiting, 403);
 
         return response()->json($invitableUsers->for($game, $request->user()));
     }
@@ -32,7 +33,7 @@ class InvitationController extends Controller
         $game = Game::where('code', $code)->firstOrFail();
 
         abort_unless($game->host_id === $request->user()->id, 403);
-        abort_unless($game->status === 'recruiting', 403);
+        abort_unless($game->status === GameStatus::Recruiting, 403);
 
         $validated = $request->validate([
             'to_user_id' => ['required', 'integer', 'exists:users,id'],
