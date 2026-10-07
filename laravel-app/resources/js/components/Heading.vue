@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { useTrans } from '@/composables/useTrans';
+
 type Props = {
     title: string;
     description?: string;
@@ -8,6 +10,8 @@ type Props = {
 withDefaults(defineProps<Props>(), {
     variant: 'default',
 });
+
+const { t } = useTrans();
 </script>
 
 <template>
@@ -19,10 +23,10 @@ withDefaults(defineProps<Props>(), {
                     : 'text-xl font-semibold tracking-tight'
             "
         >
-            {{ title }}
+            {{ t(title) }}
         </h2>
         <p v-if="description" class="text-sm text-muted-foreground">
-            {{ description }}
+            {{ t(description) }}
         </p>
     </header>
 </template>

@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { computed } from 'vue';
-import { Head, useForm } from '@inertiajs/vue3';
+import { Head, Link, useForm } from '@inertiajs/vue3';
 import { usePresence } from '@/composables/usePresence';
+import { useTrans } from '@/composables/useTrans';
 
 interface UserRow {
     id: number;
@@ -22,6 +23,7 @@ const props = defineProps<{
 }>();
 
 const { onlineUserIds } = usePresence();
+const { t } = useTrans();
 
 const sortedUsers = computed(() =>
     [...props.users].sort((a, b) => {
@@ -45,10 +47,17 @@ function invite(userId: number) {
 </script>
 
 <template>
-    <Head :title="`Invite Players — ${game.title}`" />
+    <Head :title="t('Invite Players to :game', { game: game.title })" />
 
     <div class="flex flex-1 flex-col gap-4 p-4">
-        <h1 class="text-xl font-bold">Invite Players to {{ game.title }}</h1>
+        <h1 class="text-xl font-bold">
+            {{ t('Invite Players to :game', { game: game.title }) }}
+        </h1>
+        <Link
+            :href="`/games/${game.code}`"
+            class="text-sm text-primary underline underline-offset-4"
+            >← {{ t('Back to the lobby') }}</Link
+        >
         <p v-if="form.errors.to_user_id" class="text-sm text-red-600">
             {{ form.errors.to_user_id }}
         </p>
@@ -76,7 +85,7 @@ function invite(userId: number) {
                     v-if="user.invite_status === 'pending'"
                     class="text-sm text-muted-foreground"
                 >
-                    Invited
+                    {{ t('Invited') }}
                 </span>
                 <button
                     v-else
@@ -85,7 +94,7 @@ function invite(userId: number) {
                     :disabled="form.processing"
                     @click="invite(user.id)"
                 >
-                    Invite
+                    {{ t('Invite') }}
                 </button>
             </li>
         </ul>

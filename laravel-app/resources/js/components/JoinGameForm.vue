@@ -1,8 +1,21 @@
 <script setup lang="ts">
 import { useForm } from '@inertiajs/vue3';
+import { onMounted } from 'vue';
+import { useTrans } from '@/composables/useTrans';
+
+const { t } = useTrans();
 
 const form = useForm({
     code: '',
+});
+
+// Invite links look like /games/spy?join=SPY-XXXX.
+onMounted(() => {
+    const shared = new URLSearchParams(window.location.search).get('join');
+
+    if (shared) {
+        form.code = shared.toUpperCase();
+    }
 });
 
 function submit() {
@@ -17,7 +30,7 @@ function submit() {
         class="rounded-xl border border-sidebar-border/70 p-4 dark:border-sidebar-border"
         @submit.prevent="submit"
     >
-        <h2 class="mb-2 font-semibold">Join Operation</h2>
+        <h2 class="mb-2 font-semibold">{{ t('Join Operation') }}</h2>
         <input
             id="input-join-code"
             v-model="form.code"
@@ -34,7 +47,7 @@ function submit() {
             :disabled="form.processing"
             class="rounded bg-primary px-3 py-1.5 text-primary-foreground"
         >
-            Join
+            {{ t('Join') }}
         </button>
     </form>
 </template>
