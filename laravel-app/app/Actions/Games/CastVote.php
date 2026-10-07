@@ -3,6 +3,7 @@
 namespace App\Actions\Games;
 
 use App\Enums\GameStatus;
+use App\Enums\GameType;
 use App\Events\GameUpdated;
 use App\Exceptions\GameRuleException;
 use App\Models\Game;
@@ -25,6 +26,7 @@ class CastVote
     public function handle(Game $game, User $voter, int $suspectId): void
     {
         abort_unless($game->hasPlayer($voter), 403);
+        $game->ensureType(GameType::Spy);
 
         if ($suspectId === $voter->id) {
             throw new GameRuleException('suspect_id', __('You cannot vote for yourself.'));

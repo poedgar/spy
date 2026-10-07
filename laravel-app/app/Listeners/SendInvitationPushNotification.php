@@ -25,6 +25,7 @@ class SendInvitationPushNotification implements ShouldQueue
                 'type' => 'invitation',
                 'invitation_id' => $invitation->id,
                 'code' => $invitation->game->code,
+                'game_type' => $invitation->game->game_type->value,
             ],
         ]);
     }

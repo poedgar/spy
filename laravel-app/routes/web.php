@@ -5,6 +5,7 @@ use App\Http\Controllers\GameController;
 use App\Http\Controllers\InvitationController;
 use App\Http\Controllers\LocaleController;
 use App\Http\Controllers\LocationController;
+use App\Http\Controllers\PhraseController;
 use Illuminate\Support\Facades\Route;
 
 Route::inertia('/', 'Welcome')->name('home');
@@ -14,6 +15,8 @@ Route::middleware(['auth'])->group(function () {
     Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard');
     Route::get('locations', [LocationController::class, 'index'])->name('locations.index');
     Route::get('games/spy', [DashboardController::class, 'spy'])->name('games.spy');
+    Route::get('games/phrase', [DashboardController::class, 'phrase'])->name('games.phrase');
+    Route::post('games/phrase', [PhraseController::class, 'store'])->name('phrase.store');
     Route::get('games/{game}', [GameController::class, 'show'])->name('games.show');
     Route::post('games', [GameController::class, 'store'])->name('games.store');
     Route::post('games/{code}/join', [GameController::class, 'join'])->name('games.join');
@@ -25,6 +28,9 @@ Route::middleware(['auth'])->group(function () {
     Route::post('games/{game}/tally', [GameController::class, 'tally'])->name('games.tally');
     Route::post('games/{game}/guess', [GameController::class, 'guess'])->name('games.guess');
     Route::post('games/{game}/reset', [GameController::class, 'reset'])->name('games.reset');
+    Route::post('games/{game}/phrase/start', [PhraseController::class, 'start'])->name('phrase.start');
+    Route::post('games/{game}/phrase/turn', [PhraseController::class, 'turn'])->name('phrase.turn');
+    Route::post('games/{game}/phrase/guess', [PhraseController::class, 'guess'])->name('phrase.guess');
     Route::get('games/{game}/invite', [InvitationController::class, 'index'])->name('invitations.index');
     Route::post('games/{game}/invitations', [InvitationController::class, 'store'])->name('invitations.store');
     Route::post('invitations/{invitation}/accept', [InvitationController::class, 'accept'])->name('invitations.accept');

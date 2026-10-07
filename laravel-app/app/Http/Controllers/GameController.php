@@ -12,6 +12,7 @@ use App\Actions\Games\StartRound;
 use App\Actions\Games\StartVoting;
 use App\Actions\Games\TallyVotes;
 use App\Actions\Games\ToggleReady;
+use App\Enums\GameType;
 use App\Http\Requests\StoreGameRequest;
 use App\Http\Resources\GameResource;
 use App\Models\Game;
@@ -27,7 +28,13 @@ class GameController extends Controller
     {
         abort_unless($game->isHost($request->user()) || $game->hasPlayer($request->user()), 403);
 
-        $game->load(['host', 'players.user', 'currentRound.votes']);
+        $game->load(['host', 'players.user', 'currentRound.votes', 'currentPhraseRound.guesses']);
+
+        if ($game->game_type === GameType::Phrase) {
+            return inertia('games/PhraseLobby', [
+                'game' => GameResource::make($game)->resolve($request),
+            ]);
+        }
 
         return inertia('games/Lobby', [
             'game' => GameResource::make($game)->resolve($request),
@@ -63,7 +70,7 @@ class GameController extends Controller
     {
         $leaveGame->handle($game, $request->user());
 
-        return to_route('games.spy');
+        return to_route($game->game_type === GameType::Phrase ? 'games.phrase' : 'games.spy');
     }
 
     public function ready(Request $request, Game $game, ToggleReady $toggleReady): RedirectResponse

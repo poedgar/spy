@@ -11,7 +11,7 @@ class SendRoundStartedPushNotification implements ShouldQueue
 {
     public function handle(RoundStarted $event): void
     {
-        $game = $event->round->game;
+        $game = $event->game;
 
         // The host started the round, so they are already looking at it.
         $tokens = PushToken::query()
@@ -23,7 +23,7 @@ class SendRoundStartedPushNotification implements ShouldQueue
             $locale = $token->user->preferredLocale();
 
             return [
-                'title' => __('Round :number has begun', ['number' => $event->round->number], $locale),
+                'title' => __('Round :number has begun', ['number' => $event->number], $locale),
                 'body' => __('Open :title to see your role.', ['title' => $game->title], $locale),
                 'sound' => 'default',
                 'channelId' => 'game',

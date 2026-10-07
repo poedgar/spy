@@ -39,6 +39,7 @@ class InvitationSent implements ShouldBroadcastNow
             'invitation_id' => $this->invitation->id,
             'game_title' => $this->invitation->game->title,
             'game_code' => $this->invitation->game->code,
+            'game_type' => $this->invitation->game->game_type->value,
             'from_codename' => $this->invitation->fromUser->codename,
         ];
     }

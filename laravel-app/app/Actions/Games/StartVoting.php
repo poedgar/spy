@@ -3,6 +3,7 @@
 namespace App\Actions\Games;
 
 use App\Enums\GameStatus;
+use App\Enums\GameType;
 use App\Events\GameUpdated;
 use App\Exceptions\GameRuleException;
 use App\Models\Game;
@@ -18,6 +19,7 @@ class StartVoting
     public function handle(Game $game, User $host): void
     {
         abort_unless($game->isHost($host), 403);
+        $game->ensureType(GameType::Spy);
 
         DB::transaction(function () use ($game) {
             $game = $game->freshLocked();

@@ -3,6 +3,7 @@
 namespace App\Http\Resources;
 
 use App\Enums\GameStatus;
+use App\Enums\GameType;
 use App\Models\Game;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
@@ -30,7 +31,9 @@ class GameResource extends JsonResource
             'game_type' => $this->game_type,
             'game_mode' => $this->game_mode,
             'age_tier' => $this->age_tier,
+            'phrase_language' => $this->phrase_language,
             'max_players' => $this->max_players,
+            'max_allowed_players' => $this->game_type->maxPlayers(),
             'min_players' => Game::MIN_PLAYERS,
             'mission_briefing' => $this->mission_briefing,
             'status' => $this->status,
@@ -43,10 +46,16 @@ class GameResource extends JsonResource
             // A reset game keeps its last round in the database, but the
             // lobby has moved on, so it is only shown while still relevant.
             'round' => $this->when(
-                $this->relationLoaded('currentRound'),
+                $this->game_type === GameType::Spy && $this->relationLoaded('currentRound'),
                 fn () => $this->status === GameStatus::Recruiting || $this->currentRound === null
                     ? null
                     : RoundResource::make($this->currentRound),
+            ),
+            'phrase' => $this->when(
+                $this->game_type === GameType::Phrase && $this->relationLoaded('currentPhraseRound'),
+                fn () => $this->status === GameStatus::Recruiting || $this->currentPhraseRound === null
+                    ? null
+                    : PhraseRoundResource::make($this->currentPhraseRound),
             ),
         ];
     }

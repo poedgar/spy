@@ -5,6 +5,7 @@ use App\Http\Controllers\Api\GameController;
 use App\Http\Controllers\Api\InvitationController;
 use App\Http\Controllers\Api\LocationController;
 use App\Http\Controllers\Api\MeController;
+use App\Http\Controllers\Api\PhraseController;
 use App\Http\Controllers\Api\PushTokenController;
 use Illuminate\Support\Facades\Broadcast;
 use Illuminate\Support\Facades\Route;
@@ -26,6 +27,8 @@ Route::prefix('v1')->group(function () {
         Route::delete('me/push-tokens/{token}', [PushTokenController::class, 'destroy']);
 
         Route::get('games/spy', [GameController::class, 'spy']);
+        Route::get('games/phrase', [PhraseController::class, 'home']);
+        Route::post('games/phrase', [PhraseController::class, 'store']);
         Route::post('games', [GameController::class, 'store']);
         Route::get('games/{code}', [GameController::class, 'show']);
         Route::post('games/{code}/join', [GameController::class, 'join']);
@@ -37,6 +40,9 @@ Route::prefix('v1')->group(function () {
         Route::post('games/{code}/tally', [GameController::class, 'tally']);
         Route::post('games/{code}/guess', [GameController::class, 'guess']);
         Route::post('games/{code}/reset', [GameController::class, 'reset']);
+        Route::post('games/{code}/phrase/start', [PhraseController::class, 'start']);
+        Route::post('games/{code}/phrase/turn', [PhraseController::class, 'turn']);
+        Route::post('games/{code}/phrase/guess', [PhraseController::class, 'guess']);
 
         Route::get('locations', [LocationController::class, 'index']);
 

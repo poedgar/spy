@@ -25,6 +25,7 @@ test('it broadcasts the invitation summary', function () {
         'invitation_id' => $invitation->id,
         'game_title' => $invitation->game->title,
         'game_code' => $invitation->game->code,
+        'game_type' => 'spy',
         'from_codename' => $invitation->fromUser->codename,
     ]);
 });

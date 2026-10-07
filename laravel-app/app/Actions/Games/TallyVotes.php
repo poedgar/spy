@@ -3,6 +3,7 @@
 namespace App\Actions\Games;
 
 use App\Enums\GameStatus;
+use App\Enums\GameType;
 use App\Enums\RoundEnding;
 use App\Enums\Team;
 use App\Exceptions\GameRuleException;
@@ -29,6 +30,8 @@ class TallyVotes
         if ($host) {
             abort_unless($game->isHost($host), 403);
         }
+
+        $game->ensureType(GameType::Spy);
 
         $ended = DB::transaction(function () use ($game): bool {
             $game = $game->freshLocked();

@@ -2,6 +2,7 @@
 
 namespace App\Actions\Games;
 
+use App\Enums\GameType;
 use App\Enums\RoundEnding;
 use App\Enums\Team;
 use App\Exceptions\GameRuleException;
@@ -24,6 +25,7 @@ class GuessLocation
     public function handle(Game $game, User $spy, int $locationId): bool
     {
         abort_unless($game->hasPlayer($spy), 403);
+        $game->ensureType(GameType::Spy);
 
         if (LocationCatalog::find($locationId) === null) {
             throw new GameRuleException('location_id', __('Unknown location.'));

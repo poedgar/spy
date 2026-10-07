@@ -2,6 +2,7 @@
 
 use App\Enums\AgeTier;
 use App\Enums\GameStatus;
+use App\Enums\GameType;
 use App\Enums\PlayerStatus;
 use App\Models\Game;
 use App\Models\GamePlayer;
@@ -60,5 +61,5 @@ test('creating a game sets its game_type to spy', function () {
 
     $response->assertRedirect();
     $game = Game::where('title', 'Operation Nightfall')->firstOrFail();
-    expect($game->game_type)->toBe('spy');
+    expect($game->game_type)->toBe(GameType::Spy);
 });

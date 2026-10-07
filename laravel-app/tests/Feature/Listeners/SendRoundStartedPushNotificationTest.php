@@ -4,7 +4,6 @@ use App\Events\RoundStarted;
 use App\Listeners\SendRoundStartedPushNotification;
 use App\Models\Game;
 use App\Models\GamePlayer;
-use App\Models\GameRound;
 use App\Models\PushToken;
 use App\Models\User;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -30,9 +29,7 @@ test('every player but the host is pushed, each in their own language', function
         PushToken::create(['user_id' => $user->id, 'token' => "ExponentPushToken[{$user->id}]", 'platform' => 'ios']);
     }
 
-    $round = GameRound::factory()->create(['game_id' => $game->id, 'number' => 2]);
-
-    app(SendRoundStartedPushNotification::class)->handle(new RoundStarted($round));
+    app(SendRoundStartedPushNotification::class)->handle(new RoundStarted($game, 2));
 
     Http::assertSent(function ($request) use ($english, $ukrainian, $game) {
         $messages = collect($request->data())->keyBy('to');

@@ -19,6 +19,7 @@ class InvitationResource extends JsonResource
         return [
             'id' => $this->id,
             'status' => $this->status,
+            'game_type' => $this->game->game_type,
             'game_title' => $this->game->title,
             'game_code' => $this->game->code,
             'from_codename' => $this->fromUser->codename,

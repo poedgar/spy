@@ -3,6 +3,7 @@
 use App\Actions\Invitations\AcceptInvitation;
 use App\Actions\Invitations\DeclineInvitation;
 use App\Actions\Invitations\SendInvitation;
+use App\Enums\GameType;
 use App\Enums\InvitationStatus;
 use App\Events\InvitationSent;
 use App\Exceptions\GameRuleException;
@@ -10,8 +11,8 @@ use App\Models\Game;
 use App\Models\GamePlayer;
 use App\Models\Invitation;
 use App\Models\User;
+use App\Queries\GameHomeQuery;
 use App\Queries\InvitableUsersQuery;
-use App\Queries\SpyHomeQuery;
 use Illuminate\Support\Facades\Event;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 
@@ -107,18 +108,20 @@ test('DeclineInvitation marks a pending invitation declined', function () {
     expect($invitation->fresh()->status)->toBe(InvitationStatus::Declined);
 });
 
-test('SpyHomeQuery returns the users spy games and pending invitations only', function () {
+test('GameHomeQuery returns the users games of one type and pending invitations only', function () {
     [$host, $game] = hostedGame();
-    $otherGame = Game::factory()->create(['game_type' => 'other']);
+    $otherGame = Game::factory()->create(['game_type' => 'phrase']);
     GamePlayer::factory()->create(['game_id' => $otherGame->id, 'user_id' => $host->id]);
     Invitation::factory()->create(['to_user_id' => $host->id, 'status' => 'pending']);
     Invitation::factory()->create(['to_user_id' => $host->id, 'status' => 'declined']);
 
-    $query = app(SpyHomeQuery::class);
+    $query = app(GameHomeQuery::class);
 
     expect($query->games($host)->pluck('id')->all())->toBe([$game->id])
         ->and($query->pendingInvitations($host))->toHaveCount(1)
-        ->and($query->pendingInvitations($host)->first()->relationLoaded('fromUser'))->toBeTrue();
+        ->and($query->pendingInvitations($host)->first()->relationLoaded('fromUser'))->toBeTrue()
+        ->and($query->games($host, GameType::Phrase)->pluck('id')->all())->toBe([$otherGame->id])
+        ->and($query->pendingInvitations($host, GameType::Phrase))->toHaveCount(0);
 });
 
 test('InvitableUsersQuery excludes the host and roster and flags pending invitations', function () {

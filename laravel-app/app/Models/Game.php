@@ -5,6 +5,9 @@ namespace App\Models;
 use App\Enums\AgeTier;
 use App\Enums\GameMode;
 use App\Enums\GameStatus;
+use App\Enums\GameType;
+use App\Enums\Locale;
+use App\Exceptions\GameRuleException;
 use Database\Factories\GameFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -17,14 +20,16 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
  * @property int $id
  * @property string $code
  * @property string $title
- * @property GameMode $game_mode
+ * @property GameType $game_type
+ * @property GameMode|null $game_mode
+ * @property Locale|null $phrase_language
  * @property AgeTier $age_tier
  * @property GameStatus $status
  * @property int $host_id
  * @property int $max_players
  * @property int|null $players_count
  */
-#[Fillable(['title', 'game_mode', 'age_tier', 'code', 'host_id', 'max_players', 'mission_briefing', 'status', 'game_type'])]
+#[Fillable(['title', 'game_mode', 'age_tier', 'phrase_language', 'code', 'host_id', 'max_players', 'mission_briefing', 'status', 'game_type'])]
 class Game extends Model
 {
     /** @use HasFactory<GameFactory> */
@@ -48,7 +53,9 @@ class Game extends Model
     protected function casts(): array
     {
         return [
+            'game_type' => GameType::class,
             'game_mode' => GameMode::class,
+            'phrase_language' => Locale::class,
             'age_tier' => AgeTier::class,
             'status' => GameStatus::class,
         ];
@@ -84,6 +91,19 @@ class Game extends Model
         }
 
         return 1 + intdiv($playerCount - 2, 3);
+    }
+
+    /**
+     * Guards actions that belong to one game: Spy's vote makes no sense in a
+     * Phrase game and vice versa.
+     *
+     * @throws GameRuleException
+     */
+    public function ensureType(GameType $type): void
+    {
+        if ($this->game_type !== $type) {
+            throw new GameRuleException('game', __('That action is not part of this game.'));
+        }
     }
 
     public function isHost(User $user): bool
@@ -147,5 +167,21 @@ class Game extends Model
     public function currentRound(): HasOne
     {
         return $this->hasOne(GameRound::class)->latestOfMany('number');
+    }
+
+    /**
+     * @return HasMany<PhraseRound, $this>
+     */
+    public function phraseRounds(): HasMany
+    {
+        return $this->hasMany(PhraseRound::class);
+    }
+
+    /**
+     * @return HasOne<PhraseRound, $this>
+     */
+    public function currentPhraseRound(): HasOne
+    {
+        return $this->hasOne(PhraseRound::class)->latestOfMany('number');
     }
 }

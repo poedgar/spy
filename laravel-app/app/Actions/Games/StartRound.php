@@ -3,6 +3,7 @@
 namespace App\Actions\Games;
 
 use App\Enums\GameStatus;
+use App\Enums\GameType;
 use App\Events\GameUpdated;
 use App\Events\RoundStarted;
 use App\Exceptions\GameRuleException;
@@ -26,6 +27,7 @@ class StartRound
     public function handle(Game $game, User $host): GameRound
     {
         abort_unless($game->isHost($host), 403);
+        $game->ensureType(GameType::Spy);
 
         $round = DB::transaction(function () use ($game): GameRound {
             $game = $game->freshLocked();
@@ -54,7 +56,7 @@ class StartRound
             return $round;
         });
 
-        RoundStarted::dispatch($round);
+        RoundStarted::dispatch($game, $round->number);
         BestEffortBroadcast::dispatch(new GameUpdated($game->refresh()));
 
         return $round;

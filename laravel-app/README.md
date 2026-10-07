@@ -34,6 +34,32 @@ with age tiers that include every younger tier) are in
 `app/Support/LocationData.php`; their ids are stored in `game_rounds`, so
 only ever append to that list.
 
+## Phrase
+
+The second game, played on the same lobby, invitation and readiness
+machinery (`games.game_type` is `spy` or `phrase`; Spy-only and Phrase-only
+actions refuse the other game):
+
+1. The host creates a game, picks the phrase language (English or
+   Ukrainian pool) and a table of 3–10 players.
+2. **Dealing** picks a well-known phrase with at least as many words as
+   players (preferring ones this game hasn't played) and gives every player
+   a different word of it, with its position; the rest stay hidden.
+3. Questions are asked **out loud**. The app shows whose turn it is; the
+   asker (or the host) passes the turn, and a question round ends when
+   everyone has asked.
+4. Anyone can **guess the whole phrase** at any time. Matching ignores
+   case, punctuation, apostrophe styles and hyphens. A right guess ends the
+   phrase and scores +3; a wrong one costs 1 point (scores can go
+   negative) and play goes on. Guesses are visible to everyone.
+5. The host deals the next phrase (scores carry over) or goes back to
+   recruiting.
+
+Rules live in `app/Actions/Phrase`; `PhraseRoundResource` hides the phrase
+and other players' words until a phrase ends. The pools are in
+`app/Support/PhraseData.php` — append only, and keep enough phrases of 10+
+words for the largest tables (a test checks this).
+
 ## Languages
 
 English and Ukrainian. The language is saved on the account
@@ -112,10 +138,12 @@ both clients share the Action classes in `app/Actions`.
   `auth/forgot-password`, `auth/logout`, `me` (GET/PATCH/DELETE),
   `me/locale`, `me/password`, `me/push-tokens`, `games/spy`, `games`,
   `games/{code}`, `games/{code}/join|leave|ready|start|voting|votes|tally|guess|reset`,
+  `games/phrase` (GET home, POST create),
+  `games/{code}/phrase/start|turn|guess`,
   `games/{code}/invitable-users`, `games/{code}/invitations`,
   `invitations/{id}/accept|decline`, `locations?tier=`. Every game action
-  except `leave` answers with the caller's view of the lobby (`guess`
-  wraps it as `{ correct, game }`).
+  except `leave` answers with the caller's view of the lobby (both
+  `guess` endpoints wrap it as `{ correct, game }`).
 - **Rate limits:** `auth/register` (and the web sign-up form) allow 5
   attempts per minute per IP, except when `APP_ENV=local`.
 - **Errors:** 422 responses use Laravel's validation shape

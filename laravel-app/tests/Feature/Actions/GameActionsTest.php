@@ -3,6 +3,7 @@
 use App\Actions\Games\CreateGame;
 use App\Actions\Games\JoinGame;
 use App\Enums\GameStatus;
+use App\Enums\GameType;
 use App\Enums\PlayerStatus;
 use App\Exceptions\GameRuleException;
 use App\Models\Game;
@@ -21,7 +22,7 @@ test('CreateGame creates the game and the host roster row', function () {
     ]);
 
     expect($game->code)->toMatch('/^SPY-[A-Z2-9]{4}$/')
-        ->and($game->game_type)->toBe('spy')
+        ->and($game->game_type)->toBe(GameType::Spy)
         ->and($game->host_id)->toBe($host->id)
         ->and($game->status)->toBe(GameStatus::Recruiting);
 

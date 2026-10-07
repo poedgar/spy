@@ -6,6 +6,7 @@ use App\Actions\Invitations\AcceptInvitation;
 use App\Actions\Invitations\DeclineInvitation;
 use App\Actions\Invitations\SendInvitation;
 use App\Enums\GameStatus;
+use App\Enums\GameType;
 use App\Models\Game;
 use App\Models\Invitation;
 use App\Queries\InvitableUsersQuery;
@@ -51,6 +52,6 @@ class InvitationController extends Controller
     {
         $declineInvitation->handle($invitation, $request->user());
 
-        return to_route('games.spy');
+        return to_route($invitation->game->game_type === GameType::Phrase ? 'games.phrase' : 'games.spy');
     }
 }

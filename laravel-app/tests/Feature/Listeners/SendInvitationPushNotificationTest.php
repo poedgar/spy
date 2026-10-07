@@ -31,7 +31,7 @@ test('it sends one Expo message per device with the invitation data', function (
             && $messages[0]['to'] === 'ExponentPushToken[one]'
             && $messages[0]['title'] === 'New operation invite'
             && $messages[0]['body'] === "{$invitation->fromUser->codename} invited you to {$invitation->game->title}"
-            && $messages[0]['data'] === ['type' => 'invitation', 'invitation_id' => $invitation->id, 'code' => $invitation->game->code];
+            && $messages[0]['data'] === ['type' => 'invitation', 'invitation_id' => $invitation->id, 'code' => $invitation->game->code, 'game_type' => 'spy'];
     });
 });
 
