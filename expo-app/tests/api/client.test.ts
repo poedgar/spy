@@ -2,7 +2,7 @@ import { configureClient, request } from '@/api/client';
 import { ApiError, NetworkError, ValidationError } from '@/api/errors';
 
 const fetchMock = jest.fn();
-global.fetch = fetchMock as unknown as typeof fetch;
+globalThis.fetch = fetchMock as unknown as typeof fetch;
 
 function respond(status: number, body?: unknown) {
   fetchMock.mockResolvedValueOnce({

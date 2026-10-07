@@ -4,7 +4,7 @@ import { useAuth } from '@/auth/AuthProvider';
 import { useTheme } from '@/theme/useTheme';
 
 export default function AppLayout() {
-  const { state, setPendingHref } = useAuth();
+  const { state, pendingHref, setPendingHref } = useAuth();
   const { colors } = useTheme();
   const pathname = usePathname();
   const signedOut = state.status === 'signedOut';
@@ -15,6 +15,11 @@ export default function AppLayout() {
   useEffect(() => {
     if (signedOut && pathname.startsWith('/join/')) setPendingHref(pathname);
   }, [signedOut, pathname, setPendingHref]);
+
+  // The auth layout has redirected to the remembered link; it is consumed now.
+  useEffect(() => {
+    if (state.status === 'signedIn' && pendingHref) setPendingHref(null);
+  }, [state.status, pendingHref, setPendingHref]);
 
   if (state.status === 'loading') return null;
   if (signedOut) return <Redirect href="/welcome" />;

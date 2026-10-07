@@ -33,7 +33,7 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
     if (!lastResponse || userId === null) return;
     const href = invitationHrefFrom(lastResponse.notification.request.content.data);
     if (href) router.push(href);
-    Notifications.clearLastNotificationResponse();
+    void Notifications.clearLastNotificationResponseAsync();
   }, [lastResponse, userId]);
 
   return <>{children}</>;

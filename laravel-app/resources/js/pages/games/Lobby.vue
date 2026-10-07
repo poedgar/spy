@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import { Head, Link, usePage } from '@inertiajs/vue3';
+import { useGameChannel } from '@/composables/useGameChannel';
 
 interface PlayerRow {
     id: number;
@@ -36,6 +37,8 @@ const props = defineProps<{
 
 const page = usePage<{ auth: { user: { id: number } } }>();
 const isHost = computed(() => page.props.auth.user.id === props.game.host.id);
+
+useGameChannel(props.game.id);
 </script>
 
 <template>

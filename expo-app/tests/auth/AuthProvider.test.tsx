@@ -97,7 +97,7 @@ test('a 401 from any request signs the user out', async () => {
   const { result } = renderHook(() => useAuth(), { wrapper });
   await waitFor(() => expect(result.current.state.status).toBe('signedIn'));
 
-  global.fetch = jest.fn().mockResolvedValue({ status: 401, ok: false, json: async () => ({}) }) as unknown as typeof fetch;
+  globalThis.fetch = jest.fn().mockResolvedValue({ status: 401, ok: false, json: async () => ({}) }) as unknown as typeof fetch;
   await act(async () => {
     await request('GET', '/games/spy').catch(() => undefined);
   });

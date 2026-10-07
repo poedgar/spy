@@ -32,7 +32,8 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
     if (!token || !userId || !PUSHER_KEY) return;
 
     const instance = createEcho(token);
-    // The connection is an external resource owned by this effect; screens get it through context.
+    // The Echo client is an external system created per session; exposing it
+    // through state costs one extra render on sign-in, which is intended.
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setEcho(instance);
 

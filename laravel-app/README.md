@@ -65,3 +65,31 @@ Visit http://127.0.0.1:8000.
 ./vendor/bin/pest          # backend
 npx cypress run            # E2E (app must be running, see above)
 ```
+
+## Mobile API
+
+The Expo app (`../expo-app`) talks to a token-authenticated JSON API under
+`/api/v1`, served alongside the Inertia web app. Web behaviour is unchanged;
+both clients share the Action classes in `app/Actions`.
+
+- **Auth:** Laravel Sanctum personal access tokens (`Authorization: Bearer …`).
+  `POST /api/v1/auth/login` returns `{ token, user }`, or
+  `{ two_factor: true, challenge }` for users with 2FA enabled — complete it
+  with `POST /api/v1/auth/two-factor` within 5 minutes.
+- **Endpoints:** `auth/register`, `auth/login`, `auth/two-factor`,
+  `auth/forgot-password`, `auth/logout`, `me` (GET/PATCH/DELETE),
+  `me/password`, `me/push-tokens`, `games/spy`, `games`, `games/{code}`,
+  `games/{code}/join`, `games/{code}/invitable-users`,
+  `games/{code}/invitations`, `invitations/{id}/accept|decline`.
+- **Errors:** 422 responses use Laravel's validation shape
+  (`{ message, errors: { field: [..] } }`), including game-rule violations.
+- **Real-time:** mobile clients authorize channels at
+  `/api/broadcasting/auth`. `PlayerJoined` (`player.joined`) broadcasts on
+  `private-game.{id}` to roster members; web lobbies refresh on it too.
+- **Push:** devices register Expo push tokens; `InvitationIssued` queues
+  `SendInvitationPushNotification`, which calls Expo's push API. Production
+  needs a queue worker. Set `EXPO_ACCESS_TOKEN` if Expo enhanced push
+  security is enabled.
+- **Production (Laravel Cloud):** use a managed database rather than the
+  SQLite file, enable a queue worker, configure mail (password resets), and
+  set the Pusher variables.

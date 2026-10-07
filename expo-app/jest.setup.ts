@@ -1,4 +1,4 @@
-// Importing the library registers its Jest matchers (toBeOnTheScreen, toHaveTextContent, …).
+// Importing RNTL registers its built-in Jest matchers (toBeOnTheScreen, ...).
 import '@testing-library/react-native';
 
 jest.mock('react-native-safe-area-context', () => jest.requireActual('react-native-safe-area-context/jest/mock').default);

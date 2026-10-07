@@ -26,7 +26,9 @@ export default function ForgotPassword() {
 
   return (
     <Screen title="Reset your password">
-      <AppText variant="muted">We&apos;ll email you a link. You&apos;ll finish resetting your password in your browser.</AppText>
+      <AppText variant="muted">
+        {"We'll email you a link. You'll finish resetting your password in your browser."}
+      </AppText>
       <FormTextField control={control} name="email" label="Email" autoCapitalize="none" keyboardType="email-address" />
       <FormError message={formError} />
       {sent ? <AppText>{sent}</AppText> : null}

@@ -30,8 +30,6 @@ function useCacheLobby() {
   };
 }
 
-// mutationFn receives a second context argument in TanStack Query 5, so the
-// endpoints are wrapped to pass only the variables through.
 export function useCreateGame() {
   return useMutation({ mutationFn: (input: CreateGameInput) => gamesApi.create(input), onSuccess: useCacheLobby() });
 }

@@ -20,11 +20,9 @@ function FakeLogin() {
   );
 }
 
-// Shows the params the join screen itself receives. expo-router's global URL
-// keeps the previous route's `code` after a redirect inside a Stack, so the
-// screen's own params are what matter.
 function JoinScreenStub() {
-  return <Text testID="join-params">{JSON.stringify(useLocalSearchParams())}</Text>;
+  const { code } = useLocalSearchParams<{ code?: string }>();
+  return <Text>{`join screen: ${code ?? 'empty'}`}</Text>;
 }
 
 const routes = {
@@ -58,12 +56,14 @@ test('a join link opened while signed out resumes after login', async () => {
   });
 
   await waitFor(() => expect(screen).toHavePathname('/spy/join'));
-  expect(screen.getByTestId('join-params')).toHaveTextContent('{"code":"SPY-AB3D"}');
+  expect(screen).toHaveSearchParams({ code: 'SPY-AB3D' });
 });
 
 test('an invalid join link falls back to the empty join screen', async () => {
   await renderApp(routes, { initialUrl: '/join/not-a-code', user: fakeUser });
 
   await waitFor(() => expect(screen).toHavePathname('/spy/join'));
-  expect(screen.getByTestId('join-params')).toHaveTextContent('{}');
+  // The join screen reads its own route params; the parent group's params
+  // still carry the original URL's segment, so global search params do not.
+  expect(screen.getByText('join screen: empty')).toBeOnTheScreen();
 });

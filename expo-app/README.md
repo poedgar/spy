@@ -5,9 +5,8 @@ iOS/Android client for the SpyNet platform. Talks to `../laravel-app`'s
 
 ## Develop
 
-Requires Node 24 or newer.
-
 ```bash
+export PATH=~/.nvm/versions/node/v24.13.0/bin:$PATH
 cp .env.example .env         # set EXPO_PUBLIC_API_URL to your machine's LAN IP or a tunnel
 npm install
 npx expo start               # then open the dev build (push needs a dev build, not Expo Go)

@@ -31,7 +31,7 @@ export default function Lobby() {
     return (
       <Screen testID="not-on-operation">
         <Stack.Screen options={{ title: code }} />
-        <AppText variant="heading">You&apos;re not on this operation</AppText>
+        <AppText variant="heading">{"You're not on this operation"}</AppText>
         <AppText variant="muted">Join with invite code {code} to see the roster.</AppText>
         <Button
           testID="btn-join-from-lobby"
