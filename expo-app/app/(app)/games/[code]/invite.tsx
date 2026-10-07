@@ -1,5 +1,5 @@
 import { Stack, useLocalSearchParams } from 'expo-router';
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { View } from 'react-native';
 import { useInvitableUsers, useInvite, useRefreshOnFocus } from '@/api/queries';
 import { useBanner } from '@/banner/BannerProvider';
@@ -11,6 +11,7 @@ import { EmptyState } from '@/components/EmptyState';
 import { FormError } from '@/components/FormError';
 import { OnlineDot } from '@/components/OnlineDot';
 import { Screen } from '@/components/Screen';
+import { TextField } from '@/components/TextField';
 import { applyServerErrors } from '@/forms/applyServerErrors';
 import { useOnlineUserIds } from '@/realtime/RealtimeProvider';
 import { sortByPresence } from '@/realtime/sortByPresence';
@@ -23,7 +24,8 @@ export default function InvitePlayers() {
   const { spacing } = useTheme();
   const { showBanner } = useBanner();
   const online = useOnlineUserIds();
-  const users = useInvitableUsers(code);
+  const [search, setSearch] = useState('');
+  const users = useInvitableUsers(code, search);
   const invite = useInvite(code);
   useRefreshOnFocus(users.refetch);
 
@@ -33,7 +35,23 @@ export default function InvitePlayers() {
     <Screen refreshing={users.isRefetching} onRefresh={() => void users.refetch()}>
       <Stack.Screen options={{ title: t('Invite Players') }} />
       {users.error ? <FormError message={applyServerErrors(users.error, () => {}, [])} /> : null}
-      {sorted.length === 0 && !users.isLoading ? <EmptyState message={t('Everyone is already on this operation.')} /> : null}
+      <TextField
+        testID="input-invite-search"
+        label={t('Search players by name or codename')}
+        value={search}
+        onChangeText={setSearch}
+        autoCapitalize="none"
+        autoCorrect={false}
+      />
+      {sorted.length === 0 && !users.isLoading ? (
+        <EmptyState
+          message={
+            search.trim().length >= 2
+              ? t('Nobody matches that search.')
+              : t('Players you have played with appear here. Search to find anyone else.')
+          }
+        />
+      ) : null}
       {sorted.map((user) => (
         <Card key={user.id} testID={`invitable-${user.id}`}>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.sm }}>

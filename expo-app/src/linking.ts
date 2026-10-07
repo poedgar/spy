@@ -30,6 +30,7 @@ export function invitationHrefFrom(
 export function roundHrefFrom(data: unknown): `/games/${string}` | null {
   if (typeof data !== 'object' || data === null) return null;
   const { type, code } = data as { type?: unknown; code?: unknown };
-  if (type !== 'round' || typeof code !== 'string' || !isInviteCode(code)) return null;
+  // Round starts, approved join requests and requests waiting on the host all open the lobby.
+  if ((type !== 'round' && type !== 'join_request') || typeof code !== 'string' || !isInviteCode(code)) return null;
   return `/games/${code}`;
 }

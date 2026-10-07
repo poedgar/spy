@@ -7,6 +7,7 @@ export interface User {
   email?: string;
   /** Only present on the signed-in user's own record. */
   locale?: Locale;
+  email_notifications?: boolean;
 }
 
 export interface Player {
@@ -100,6 +101,7 @@ export interface Game {
   mission_briefing: string;
   status: GameStatus;
   host_id: number;
+  requires_approval?: boolean;
   player_count: number;
   spy_count?: number;
   created_at: string | null;
@@ -107,6 +109,29 @@ export interface Game {
   players?: Player[];
   round?: Round | null;
   phrase?: PhraseRound | null;
+  /** Host only: players waiting to be let in. */
+  join_requests?: { id: number; user: User; created_at: string | null }[];
+  /** Host only: invitations not (yet) accepted. */
+  invitations?: { id: number; status: 'pending' | 'declined'; user: User; updated_at: string | null }[];
+}
+
+/** A code join in a game whose host approves new players. */
+export interface JoinRequested {
+  status: 'requested';
+  code: string;
+  title: string;
+  game_type: GameType;
+}
+
+export function isJoinRequested(result: Game | JoinRequested): result is JoinRequested {
+  return 'status' in result && result.status === 'requested';
+}
+
+export interface JoinAnsweredPayload {
+  approved: boolean;
+  game_code: string;
+  game_title: string;
+  game_type: GameType;
 }
 
 export interface Invitation {

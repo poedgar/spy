@@ -9,7 +9,9 @@ import { FormError } from '@/components/FormError';
 import { FormTextField } from '@/components/FormTextField';
 import { Screen } from '@/components/Screen';
 import { applyServerErrors } from '@/forms/applyServerErrors';
-import { isInviteCode, normalizeInviteCode } from '@/linking';
+import { homePathFor, isInviteCode, normalizeInviteCode } from '@/linking';
+import { isJoinRequested } from '@/api/types';
+import { useBanner } from '@/banner/BannerProvider';
 import { useI18n } from '@/i18n/I18nProvider';
 
 type Form = { code: string };
@@ -19,6 +21,7 @@ export default function JoinGame() {
   const router = useRouter();
   const params = useLocalSearchParams<{ code?: string }>();
   const joinGame = useJoinGame();
+  const { showBanner } = useBanner();
   const [formError, setFormError] = useState<string | null>(null);
   const { control, handleSubmit, setError } = useForm<Form>({ defaultValues: { code: params.code ?? '' } });
 
@@ -30,8 +33,13 @@ export default function JoinGame() {
       return;
     }
     try {
-      const game = await joinGame.mutateAsync(normalized);
-      router.replace(`/games/${game.code}`);
+      const result = await joinGame.mutateAsync(normalized);
+      if (isJoinRequested(result)) {
+        showBanner({ message: t('Request sent. The host will let you in.') });
+        router.replace(homePathFor(result.game_type));
+        return;
+      }
+      router.replace(`/games/${result.code}`);
     } catch (error) {
       if (error instanceof ApiError && error.status === 404) {
         setError('code', { type: 'server', message: t('No operation found with that invite code.') });

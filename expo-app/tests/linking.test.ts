@@ -29,3 +29,7 @@ test('maps a round-start push payload to that game\'s lobby', () => {
   expect(roundHrefFrom({ type: 'round', code: 'not a code' })).toBeNull();
   expect(roundHrefFrom({ type: 'invitation', invitation_id: 7 })).toBeNull();
 });
+
+test('a join-request push opens the lobby for the host', () => {
+  expect(roundHrefFrom({ type: 'join_request', code: 'SPY-AB3D' })).toBe('/games/SPY-AB3D');
+});

@@ -1,6 +1,6 @@
 import { Stack, useRouter } from 'expo-router';
 import { useState } from 'react';
-import { Alert, Share, View } from 'react-native';
+import { Alert, Pressable, Share, View } from 'react-native';
 import { useGuessPhrase, useLeaveGame, useLobbyAction } from '@/api/queries';
 import type { Game, PhraseRound } from '@/api/types';
 import { useSignedInUser } from '@/auth/AuthProvider';
@@ -16,7 +16,9 @@ import { applyServerErrors } from '@/forms/applyServerErrors';
 import { useI18n } from '@/i18n/I18nProvider';
 import { useOnlineUserIds } from '@/realtime/RealtimeProvider';
 import { useTheme } from '@/theme/useTheme';
+import { HostPanel } from './HostPanel';
 import { operativeName, statusLabels } from './labels';
+import { openPlayerMenu } from './playerMenu';
 
 const DEFAULT_MIN_PLAYERS = 3;
 
@@ -141,6 +143,8 @@ export function PhraseLobby({ game, refreshing, onRefresh }: Props) {
         ) : null}
       </Card>
 
+      {isHost && game.status === 'recruiting' ? <HostPanel game={game} busy={busy} run={run} /> : null}
+
       {active && phrase ? (
         <>
           <Card testID="word-card" style={revealed ? { borderWidth: 2, borderColor: colors.primary } : undefined}>
@@ -250,9 +254,12 @@ export function PhraseLobby({ game, refreshing, onRefresh }: Props) {
         {[...players]
           .sort((a, b) => (b.score ?? 0) - (a.score ?? 0))
           .map((player) => (
-            <View
+            <Pressable
               key={player.id}
               testID={`roster-${player.user.id}`}
+              disabled={!isHost || active || player.user.id === me.id}
+              accessibilityHint={isHost ? t('Make host') : undefined}
+              onPress={() => openPlayerMenu(t, player.user, (next) => run(next))}
               style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.sm }}
             >
               <OnlineDot online={online.has(player.user.id)} />
@@ -270,7 +277,7 @@ export function PhraseLobby({ game, refreshing, onRefresh }: Props) {
               <AppText variant="muted" testID={`score-${player.user.id}`}>
                 {t(':score pts', { score: player.score ?? 0 })}
               </AppText>
-            </View>
+            </Pressable>
           ))}
         {mine && !active ? (
           <Button
@@ -283,14 +290,18 @@ export function PhraseLobby({ game, refreshing, onRefresh }: Props) {
         ) : null}
       </Card>
 
-      {!isHost && !active ? (
+      {!active ? (
         <Button
           testID="btn-leave-game"
           label={t('Leave')}
           variant="destructive"
           loading={leave.isPending}
           onPress={() =>
-            confirm(t('Leave this game?'), () =>
+            confirm(
+              isHost
+                ? t('Leave? Hosting passes to the next player, or the game closes if nobody is left.')
+                : t('Leave this game?'),
+              () =>
               leave.mutate(undefined, { onSuccess: () => router.replace('/phrase'), onError }),
             )
           }

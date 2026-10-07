@@ -6,6 +6,7 @@ import type {
   Game,
   AgeTier,
   InvitableUser,
+  JoinRequested,
   Invitation,
   Locale,
   LocationGuide,
@@ -29,7 +30,8 @@ export const authApi = {
 
 export const meApi = {
   get: () => request<User>('GET', '/me'),
-  update: (input: { name: string; email: string }) => request<User>('PATCH', '/me', input),
+  update: (input: { name: string; email: string; codename?: string; email_notifications?: boolean }) =>
+    request<User>('PATCH', '/me', input),
   updateLocale: (locale: Locale) => request<User>('PUT', '/me/locale', { locale }),
   updatePassword: (input: { current_password: string; password: string; password_confirmation: string }) =>
     request<void>('PUT', '/me/password', input),
@@ -42,7 +44,15 @@ export const gamesApi = {
   spyHome: () => request<SpyHome>('GET', '/games/spy'),
   create: (input: CreateGameInput) => request<Game>('POST', '/games', input),
   show: (code: string) => request<Game>('GET', `/games/${enc(code)}`),
-  join: (code: string) => request<Game>('POST', `/games/${enc(code)}/join`),
+  join: (code: string) => request<Game | JoinRequested>('POST', `/games/${enc(code)}/join`),
+  updateSettings: (code: string, settings: { requires_approval: boolean }) =>
+    request<Game>('POST', `/games/${enc(code)}/settings`, settings),
+  removePlayer: (code: string, userId: number) => request<Game>('DELETE', `/games/${enc(code)}/players/${userId}`),
+  transferHost: (code: string, userId: number) => request<Game>('POST', `/games/${enc(code)}/host`, { user_id: userId }),
+  answerJoinRequest: (code: string, requestId: number, approve: boolean) =>
+    request<Game>('POST', `/games/${enc(code)}/join-requests/${requestId}/${approve ? 'approve' : 'decline'}`),
+  cancelInvitation: (code: string, invitationId: number) =>
+    request<Game>('DELETE', `/games/${enc(code)}/invitations/${invitationId}`),
   leave: (code: string) => request<void>('POST', `/games/${enc(code)}/leave`),
   toggleReady: (code: string) => request<Game>('POST', `/games/${enc(code)}/ready`),
   startRound: (code: string) => request<Game>('POST', `/games/${enc(code)}/start`),
@@ -59,7 +69,8 @@ export const gamesApi = {
   guessPhrase: (code: string, guess: string) =>
     request<{ correct: boolean; game: Game }>('POST', `/games/${enc(code)}/phrase/guess`, { guess }),
   locations: (tier: AgeTier) => request<LocationGuide>('GET', `/locations?tier=${tier}`),
-  invitableUsers: (code: string) => request<InvitableUser[]>('GET', `/games/${enc(code)}/invitable-users`),
+  invitableUsers: (code: string, search = '') =>
+    request<InvitableUser[]>('GET', `/games/${enc(code)}/invitable-users${search ? `?q=${enc(search)}` : ''}`),
   invite: (code: string, toUserId: number) =>
     request<Invitation>('POST', `/games/${enc(code)}/invitations`, { to_user_id: toUserId }),
   accept: (invitationId: number) => request<Game>('POST', `/invitations/${invitationId}/accept`),

@@ -2,13 +2,13 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useFocusEffect } from 'expo-router';
 import { useCallback, useRef } from 'react';
 import { gamesApi } from './endpoints';
-import type { AgeTier, CreateGameInput, CreatePhraseGameInput, Game } from './types';
+import { type AgeTier, type CreateGameInput, type CreatePhraseGameInput, type Game, isJoinRequested } from './types';
 
 export const queryKeys = {
   spyHome: ['spyHome'] as const,
   phraseHome: ['phraseHome'] as const,
   game: (code: string) => ['game', code] as const,
-  invitable: (code: string) => ['invitable', code] as const,
+  invitable: (code: string, search = '') => ['invitable', code, search] as const,
   locations: (tier: AgeTier) => ['locations', tier] as const,
 };
 
@@ -34,8 +34,14 @@ export function useLocations(tier: AgeTier | undefined) {
   });
 }
 
-export function useInvitableUsers(code: string) {
-  return useQuery({ queryKey: queryKeys.invitable(code), queryFn: () => gamesApi.invitableUsers(code) });
+/** Past teammates by default; a search of 2+ characters reaches anyone. */
+export function useInvitableUsers(code: string, search = '') {
+  const term = search.trim().length >= 2 ? search.trim() : '';
+  return useQuery({
+    queryKey: queryKeys.invitable(code, term),
+    queryFn: () => gamesApi.invitableUsers(code, term),
+    placeholderData: (previous) => previous,
+  });
 }
 
 function useCacheLobby() {
@@ -58,8 +64,15 @@ export function useCreatePhraseGame() {
   });
 }
 
+/** Resolves to the lobby, or to a pending request when the host approves new players. */
 export function useJoinGame() {
-  return useMutation({ mutationFn: (code: string) => gamesApi.join(code), onSuccess: useCacheLobby() });
+  const cacheLobby = useCacheLobby();
+  return useMutation({
+    mutationFn: (code: string) => gamesApi.join(code),
+    onSuccess: (result) => {
+      if (!isJoinRequested(result)) cacheLobby(result);
+    },
+  });
 }
 
 export function useAcceptInvitation() {
@@ -78,13 +91,18 @@ export function useInvite(code: string) {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (toUserId: number) => gamesApi.invite(code, toUserId),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: queryKeys.invitable(code) }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['invitable', code] }),
   });
 }
 
 type LobbyAction =
   | { type: 'ready' | 'start' | 'voting' | 'tally' | 'reset' | 'phrase-start' | 'phrase-turn' }
-  | { type: 'vote'; suspectId: number };
+  | { type: 'vote'; suspectId: number }
+  | { type: 'approval'; requiresApproval: boolean }
+  | { type: 'remove-player' | 'make-host'; userId: number }
+  | { type: 'answer-request'; requestId: number; approve: boolean }
+  | { type: 'cancel-invitation'; invitationId: number }
+  | { type: 'reinvite'; userId: number };
 
 /** Every lobby action answers with the caller's fresh view of the game. */
 export function useLobbyAction(code: string) {
@@ -107,6 +125,19 @@ export function useLobbyAction(code: string) {
           return gamesApi.startPhrase(code);
         case 'phrase-turn':
           return gamesApi.passTurn(code);
+        case 'approval':
+          return gamesApi.updateSettings(code, { requires_approval: action.requiresApproval });
+        case 'remove-player':
+          return gamesApi.removePlayer(code, action.userId);
+        case 'make-host':
+          return gamesApi.transferHost(code, action.userId);
+        case 'answer-request':
+          return gamesApi.answerJoinRequest(code, action.requestId, action.approve);
+        case 'cancel-invitation':
+          return gamesApi.cancelInvitation(code, action.invitationId);
+        case 'reinvite':
+          // Re-sending reuses the invitation and notifies the player again.
+          return gamesApi.invite(code, action.userId).then(() => gamesApi.show(code));
       }
     },
     onSuccess: useCacheLobby(),

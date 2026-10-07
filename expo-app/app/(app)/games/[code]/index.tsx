@@ -1,6 +1,7 @@
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
-import { Alert, Share, View } from 'react-native';
+import { Alert, Pressable, Share, View } from 'react-native';
 import { ApiError } from '@/api/errors';
+import { isJoinRequested } from '@/api/types';
 import { useGame, useJoinGame, useLeaveGame, useLobbyAction, useRefreshOnFocus } from '@/api/queries';
 import { useSignedInUser } from '@/auth/AuthProvider';
 import { useBanner } from '@/banner/BannerProvider';
@@ -12,7 +13,9 @@ import { FormError } from '@/components/FormError';
 import { OnlineDot } from '@/components/OnlineDot';
 import { Screen } from '@/components/Screen';
 import { applyServerErrors } from '@/forms/applyServerErrors';
+import { HostPanel } from '@/game/HostPanel';
 import { PhraseLobby } from '@/game/PhraseLobby';
+import { openPlayerMenu } from '@/game/playerMenu';
 import { modeLabels, spyCountFor, statusLabels, tierLabels } from '@/game/labels';
 import { ResultsCard } from '@/game/ResultsCard';
 import { RoleCard } from '@/game/RoleCard';
@@ -53,6 +56,9 @@ export default function Lobby() {
           loading={joinGame.isPending}
           onPress={() =>
             joinGame.mutate(code, {
+              onSuccess: (result) => {
+                if (isJoinRequested(result)) showBanner({ message: t('Request sent. The host will let you in.') });
+              },
               onError: (error) =>
                 showBanner({ tone: 'error', message: applyServerErrors(error, () => {}, []) ?? t('Could not join.') }),
             })
@@ -182,6 +188,8 @@ export default function Lobby() {
         />
       </Card>
 
+      {isHost && data?.status === 'recruiting' ? <HostPanel game={data} busy={busy} run={run} /> : null}
+
       {data && round && inRound ? <RoleCard key={round.number} game={data} round={round} /> : null}
 
       {data && round && data.status === 'voting' ? (
@@ -205,9 +213,12 @@ export default function Lobby() {
         {[...players]
           .sort((a, b) => (b.score ?? 0) - (a.score ?? 0))
           .map((player) => (
-            <View
+            <Pressable
               key={player.id}
               testID={`roster-${player.user.id}`}
+              disabled={!isHost || inRound || player.user.id === me.id}
+              accessibilityHint={isHost ? t('Make host') : undefined}
+              onPress={() => openPlayerMenu(t, player.user, (next) => run(next))}
               style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.sm }}
             >
               <OnlineDot online={online.has(player.user.id)} />
@@ -227,7 +238,7 @@ export default function Lobby() {
               <AppText variant="muted" testID={`score-${player.user.id}`}>
                 {t(':score pts', { score: player.score ?? 0 })}
               </AppText>
-            </View>
+            </Pressable>
           ))}
         {mine && !inRound ? (
           <Button
@@ -240,14 +251,18 @@ export default function Lobby() {
         ) : null}
       </Card>
 
-      {!isHost && data && !inRound ? (
+      {data && !inRound ? (
         <Button
           testID="btn-leave-game"
           label={t('Leave')}
           variant="destructive"
           loading={leave.isPending}
           onPress={() =>
-            confirm(t('Leave this operation?'), () =>
+            confirm(
+              isHost
+                ? t('Leave? Hosting passes to the next player, or the game closes if nobody is left.')
+                : t('Leave this operation?'),
+              () =>
               leave.mutate(undefined, { onSuccess: () => router.replace('/spy'), onError }),
             )
           }

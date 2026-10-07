@@ -3,7 +3,7 @@ import { router, useFocusEffect } from 'expo-router';
 import { createContext, type ReactNode, useCallback, useContext, useEffect, useRef, useState } from 'react';
 import { AppState } from 'react-native';
 import { queryKeys } from '@/api/queries';
-import type { InvitationSentPayload, PlayerJoinedPayload } from '@/api/types';
+import type { InvitationSentPayload, JoinAnsweredPayload, PlayerJoinedPayload } from '@/api/types';
 import { useAuth } from '@/auth/AuthProvider';
 import { useBanner } from '@/banner/BannerProvider';
 import { useI18n } from '@/i18n/I18nProvider';
@@ -57,17 +57,35 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
         }),
       );
 
-    instance.private(`user.${userId}`).listen('.invitation.sent', (payload: InvitationSentPayload) => {
-      void queryClient.invalidateQueries({ queryKey: queryKeys.spyHome });
-      showBanner({
-        message: tRef.current(':codename invited you to :title', {
-          codename: payload.from_codename,
-          title: payload.game_title,
-        }),
-        onPress: () =>
-          router.push({ pathname: homePathFor(payload.game_type), params: { highlight: String(payload.invitation_id) } }),
+    instance
+      .private(`user.${userId}`)
+      .listen('.invitation.sent', (payload: InvitationSentPayload) => {
+        void queryClient.invalidateQueries({ queryKey: queryKeys.spyHome });
+        void queryClient.invalidateQueries({ queryKey: queryKeys.phraseHome });
+        showBanner({
+          message: tRef.current(':codename invited you to :title', {
+            codename: payload.from_codename,
+            title: payload.game_title,
+          }),
+          onPress: () =>
+            router.push({ pathname: homePathFor(payload.game_type), params: { highlight: String(payload.invitation_id) } }),
+        });
+      })
+      .listen('.join.answered', (payload: JoinAnsweredPayload) => {
+        void queryClient.invalidateQueries({ queryKey: queryKeys.spyHome });
+        void queryClient.invalidateQueries({ queryKey: queryKeys.phraseHome });
+        showBanner(
+          payload.approved
+            ? {
+                message: tRef.current('The host let you into :title.', { title: payload.game_title }),
+                onPress: () => router.push(`/games/${payload.game_code}`),
+              }
+            : {
+                tone: 'error',
+                message: tRef.current('The host of :title turned down your request.', { title: payload.game_title }),
+              },
+        );
       });
-    });
 
     // iOS drops sockets in the background anyway; push notifications cover
     // that gap. pusher-js resubscribes every channel on reconnect.

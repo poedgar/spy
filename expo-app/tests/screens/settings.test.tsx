@@ -41,11 +41,18 @@ test('profile edits are saved and shown', async () => {
 
   expect(await screen.findByDisplayValue('ada@example.com')).toBeOnTheScreen();
   fireEvent.changeText(screen.getByTestId('input-profile-name'), 'Ada L.');
+  fireEvent.changeText(screen.getByTestId('input-profile-codename'), ' NIGHT_OWL ');
+  fireEvent(screen.getByTestId('toggle-email-notifications'), 'valueChange', false);
   await act(async () => {
     fireEvent.press(screen.getByTestId('btn-save-profile'));
   });
 
-  expect(meApi.update).toHaveBeenCalledWith({ name: 'Ada L.', email: 'ada@example.com' });
+  expect(meApi.update).toHaveBeenCalledWith({
+    name: 'Ada L.',
+    email: 'ada@example.com',
+    codename: 'NIGHT_OWL',
+    email_notifications: false,
+  });
   expect(await screen.findByText('Profile updated.')).toBeOnTheScreen();
 });
 
