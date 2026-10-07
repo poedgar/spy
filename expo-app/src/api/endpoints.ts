@@ -2,6 +2,7 @@ import { request } from './client';
 import type {
   AuthResult,
   CreateGameInput,
+  CreatePhraseGameInput,
   Game,
   AgeTier,
   InvitableUser,
@@ -51,6 +52,12 @@ export const gamesApi = {
   guess: (code: string, locationId: number) =>
     request<{ correct: boolean; game: Game }>('POST', `/games/${enc(code)}/guess`, { location_id: locationId }),
   reset: (code: string) => request<Game>('POST', `/games/${enc(code)}/reset`),
+  phraseHome: () => request<SpyHome>('GET', '/games/phrase'),
+  createPhrase: (input: CreatePhraseGameInput) => request<Game>('POST', '/games/phrase', input),
+  startPhrase: (code: string) => request<Game>('POST', `/games/${enc(code)}/phrase/start`),
+  passTurn: (code: string) => request<Game>('POST', `/games/${enc(code)}/phrase/turn`),
+  guessPhrase: (code: string, guess: string) =>
+    request<{ correct: boolean; game: Game }>('POST', `/games/${enc(code)}/phrase/guess`, { guess }),
   locations: (tier: AgeTier) => request<LocationGuide>('GET', `/locations?tier=${tier}`),
   invitableUsers: (code: string) => request<InvitableUser[]>('GET', `/games/${enc(code)}/invitable-users`),
   invite: (code: string, toUserId: number) =>

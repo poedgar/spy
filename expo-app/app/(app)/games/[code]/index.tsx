@@ -12,6 +12,7 @@ import { FormError } from '@/components/FormError';
 import { OnlineDot } from '@/components/OnlineDot';
 import { Screen } from '@/components/Screen';
 import { applyServerErrors } from '@/forms/applyServerErrors';
+import { PhraseLobby } from '@/game/PhraseLobby';
 import { modeLabels, spyCountFor, statusLabels, tierLabels } from '@/game/labels';
 import { ResultsCard } from '@/game/ResultsCard';
 import { RoleCard } from '@/game/RoleCard';
@@ -59,6 +60,11 @@ export default function Lobby() {
         />
       </Screen>
     );
+  }
+
+  // Both games share this route (and invite links); Phrase has its own lobby.
+  if (game.data?.game_type === 'phrase') {
+    return <PhraseLobby game={game.data} refreshing={game.isRefetching} onRefresh={() => void game.refetch()} />;
   }
 
   const data = game.data;
@@ -112,7 +118,7 @@ export default function Lobby() {
               {(data.spy_count ?? spyCountFor(data.player_count)) === 1
                 ? t('1 spy')
                 : t(':count spies', { count: data.spy_count ?? spyCountFor(data.player_count) })}{' '}
-              · {modeLabels(t)[data.game_mode]}
+              {data.game_mode ? ` · ${modeLabels(t)[data.game_mode]}` : ''}
               {data.age_tier ? ` · ${tierLabels(t)[data.age_tier].label}` : ''}
             </AppText>
             <AppText>{data.mission_briefing}</AppText>

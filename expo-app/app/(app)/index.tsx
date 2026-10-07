@@ -27,7 +27,15 @@ export default function GamePicker() {
           <AppText variant="muted">{t('A social-deduction party game. Find the mole before time runs out.')}</AppText>
         </Card>
       </Pressable>
-      {[0, 1].map((i) => (
+      <Pressable testID="tile-phrase" accessibilityRole="button" onPress={() => router.push('/phrase')}>
+        <Card>
+          <AppText variant="heading">{t('Phrase')}</AppText>
+          <AppText variant="muted">
+            {t('Everyone holds one word of a famous phrase. Ask questions and be the first to guess it.')}
+          </AppText>
+        </Card>
+      </Pressable>
+      {[0].map((i) => (
         <Card key={i} testID={`tile-coming-soon-${i}`} style={{ opacity: 0.5, borderStyle: 'dashed' }}>
           <AppText variant="heading">{t('Coming Soon')}</AppText>
         </Card>

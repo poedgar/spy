@@ -7,6 +7,7 @@ import type { InvitationSentPayload, PlayerJoinedPayload } from '@/api/types';
 import { useAuth } from '@/auth/AuthProvider';
 import { useBanner } from '@/banner/BannerProvider';
 import { useI18n } from '@/i18n/I18nProvider';
+import { homePathFor } from '@/linking';
 import { PUSHER_KEY } from '@/config';
 import { createEcho, type EchoClient } from './echo';
 
@@ -63,7 +64,8 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
           codename: payload.from_codename,
           title: payload.game_title,
         }),
-        onPress: () => router.push({ pathname: '/spy', params: { highlight: String(payload.invitation_id) } }),
+        onPress: () =>
+          router.push({ pathname: homePathFor(payload.game_type), params: { highlight: String(payload.invitation_id) } }),
       });
     });
 

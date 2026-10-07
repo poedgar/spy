@@ -56,6 +56,30 @@ export interface Round {
   result: RoundResult | null;
 }
 
+export type GameType = 'spy' | 'phrase';
+
+/** The signed-in player's view of a Phrase deal: only their own word, until it ends. */
+export interface PhraseRound {
+  number: number;
+  language: Locale;
+  word_count: number;
+  started_at: string;
+  ended_at: string | null;
+  my_word: string | null;
+  my_position: number | null;
+  question_round: number;
+  asker_user_id: number | null;
+  turn_order: number[];
+  scoring: { win: number; wrong_guess: number };
+  guesses: { user_id: number; guess: string; correct: boolean }[];
+  result: {
+    ending: 'guessed' | 'abandoned';
+    winner_user_id: number | null;
+    phrase: string;
+    words: { position: number; word: string; user_id: number | null }[];
+  } | null;
+}
+
 export interface LocationGuide {
   tier: AgeTier;
   categories: Record<string, { en: string; uk: string }>;
@@ -66,9 +90,11 @@ export interface Game {
   id: number;
   code: string;
   title: string;
-  game_type: string;
-  game_mode: GameMode;
+  game_type: GameType;
+  game_mode: GameMode | null;
   age_tier?: AgeTier;
+  phrase_language?: Locale | null;
+  max_allowed_players?: number;
   max_players: number;
   min_players?: number;
   mission_briefing: string;
@@ -80,11 +106,13 @@ export interface Game {
   host?: User;
   players?: Player[];
   round?: Round | null;
+  phrase?: PhraseRound | null;
 }
 
 export interface Invitation {
   id: number;
   status: 'pending' | 'accepted' | 'declined';
+  game_type?: GameType;
   game_title: string;
   game_code: string;
   from_codename: string;
@@ -130,8 +158,15 @@ export interface PlayerJoinedPayload {
   player_count: number;
 }
 
+export interface CreatePhraseGameInput {
+  title: string;
+  phrase_language: Locale;
+  max_players: number;
+}
+
 export interface InvitationSentPayload {
   invitation_id: number;
+  game_type?: GameType;
   game_title: string;
   game_code: string;
   from_codename: string;

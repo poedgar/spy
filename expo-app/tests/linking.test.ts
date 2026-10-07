@@ -16,6 +16,10 @@ test('maps an invitation push payload to the spy home with a highlight', () => {
     pathname: '/spy',
     params: { highlight: '7' },
   });
+  expect(invitationHrefFrom({ type: 'invitation', invitation_id: 8, game_type: 'phrase' })).toEqual({
+    pathname: '/phrase',
+    params: { highlight: '8' },
+  });
   expect(invitationHrefFrom({ type: 'other' })).toBeNull();
   expect(invitationHrefFrom(undefined)).toBeNull();
 });

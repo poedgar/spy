@@ -8,11 +8,22 @@ export function isInviteCode(value: string): boolean {
   return INVITE_CODE_PATTERN.test(value);
 }
 
-export function invitationHrefFrom(data: unknown): { pathname: '/spy'; params: { highlight: string } } | null {
+/** The game's home screen, where its pending invitations are listed. */
+export function homePathFor(gameType: unknown): '/spy' | '/phrase' {
+  return gameType === 'phrase' ? '/phrase' : '/spy';
+}
+
+export function invitationHrefFrom(
+  data: unknown,
+): { pathname: '/spy' | '/phrase'; params: { highlight: string } } | null {
   if (typeof data !== 'object' || data === null) return null;
-  const { type, invitation_id: invitationId } = data as { type?: unknown; invitation_id?: unknown };
+  const { type, invitation_id: invitationId, game_type: gameType } = data as {
+    type?: unknown;
+    invitation_id?: unknown;
+    game_type?: unknown;
+  };
   if (type !== 'invitation' || typeof invitationId !== 'number') return null;
-  return { pathname: '/spy', params: { highlight: String(invitationId) } };
+  return { pathname: homePathFor(gameType), params: { highlight: String(invitationId) } };
 }
 
 /** A round-start push opens that game's lobby, where the role is waiting. */

@@ -2,10 +2,11 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useFocusEffect } from 'expo-router';
 import { useCallback, useRef } from 'react';
 import { gamesApi } from './endpoints';
-import type { AgeTier, CreateGameInput, Game } from './types';
+import type { AgeTier, CreateGameInput, CreatePhraseGameInput, Game } from './types';
 
 export const queryKeys = {
   spyHome: ['spyHome'] as const,
+  phraseHome: ['phraseHome'] as const,
   game: (code: string) => ['game', code] as const,
   invitable: (code: string) => ['invitable', code] as const,
   locations: (tier: AgeTier) => ['locations', tier] as const,
@@ -13,6 +14,10 @@ export const queryKeys = {
 
 export function useSpyHome() {
   return useQuery({ queryKey: queryKeys.spyHome, queryFn: gamesApi.spyHome });
+}
+
+export function usePhraseHome() {
+  return useQuery({ queryKey: queryKeys.phraseHome, queryFn: gamesApi.phraseHome });
 }
 
 export function useGame(code: string) {
@@ -38,11 +43,19 @@ function useCacheLobby() {
   return (game: Game) => {
     queryClient.setQueryData(queryKeys.game(game.code), game);
     void queryClient.invalidateQueries({ queryKey: queryKeys.spyHome });
+    void queryClient.invalidateQueries({ queryKey: queryKeys.phraseHome });
   };
 }
 
 export function useCreateGame() {
   return useMutation({ mutationFn: (input: CreateGameInput) => gamesApi.create(input), onSuccess: useCacheLobby() });
+}
+
+export function useCreatePhraseGame() {
+  return useMutation({
+    mutationFn: (input: CreatePhraseGameInput) => gamesApi.createPhrase(input),
+    onSuccess: useCacheLobby(),
+  });
 }
 
 export function useJoinGame() {
@@ -70,7 +83,7 @@ export function useInvite(code: string) {
 }
 
 type LobbyAction =
-  | { type: 'ready' | 'start' | 'voting' | 'tally' | 'reset' }
+  | { type: 'ready' | 'start' | 'voting' | 'tally' | 'reset' | 'phrase-start' | 'phrase-turn' }
   | { type: 'vote'; suspectId: number };
 
 /** Every lobby action answers with the caller's fresh view of the game. */
@@ -90,6 +103,10 @@ export function useLobbyAction(code: string) {
           return gamesApi.reset(code);
         case 'vote':
           return gamesApi.vote(code, action.suspectId);
+        case 'phrase-start':
+          return gamesApi.startPhrase(code);
+        case 'phrase-turn':
+          return gamesApi.passTurn(code);
       }
     },
     onSuccess: useCacheLobby(),
@@ -104,6 +121,14 @@ export function useGuessLocation(code: string) {
   });
 }
 
+export function useGuessPhrase(code: string) {
+  const cacheLobby = useCacheLobby();
+  return useMutation({
+    mutationFn: (guess: string) => gamesApi.guessPhrase(code, guess),
+    onSuccess: ({ game }) => cacheLobby(game),
+  });
+}
+
 export function useLeaveGame(code: string) {
   const queryClient = useQueryClient();
   return useMutation({
@@ -111,6 +136,7 @@ export function useLeaveGame(code: string) {
     onSuccess: () => {
       queryClient.removeQueries({ queryKey: queryKeys.game(code) });
       void queryClient.invalidateQueries({ queryKey: queryKeys.spyHome });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.phraseHome });
     },
   });
 }
