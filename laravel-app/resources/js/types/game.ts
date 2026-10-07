@@ -49,11 +49,35 @@ export interface Round {
     result: RoundResult | null;
 }
 
+export interface PhraseRound {
+    number: number;
+    language: 'en' | 'uk';
+    word_count: number;
+    started_at: string;
+    ended_at: string | null;
+    my_word: string | null;
+    my_position: number | null;
+    question_round: number;
+    asker_user_id: number | null;
+    turn_order: number[];
+    scoring: { win: number; wrong_guess: number };
+    guesses: { user_id: number; guess: string; correct: boolean }[];
+    result: {
+        ending: 'guessed' | 'abandoned';
+        winner_user_id: number | null;
+        phrase: string;
+        words: { position: number; word: string; user_id: number | null }[];
+    } | null;
+}
+
 export interface Game {
     id: number;
     code: string;
     title: string;
+    game_type: 'spy' | 'phrase';
     game_mode: GameMode;
+    phrase_language: 'en' | 'uk' | null;
+    max_allowed_players: number;
     age_tier: AgeTier;
     max_players: number;
     min_players: number;
@@ -65,6 +89,7 @@ export interface Game {
     host: Operative;
     players: Player[];
     round: Round | null;
+    phrase?: PhraseRound | null;
 }
 
 export type Categories = Record<string, Localized>;
