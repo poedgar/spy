@@ -78,6 +78,11 @@ describe('Game invitations (non-realtime path)', () => {
                 cy.contains('button', 'Invite').click();
             },
         );
+        // Let the post-invite reload finish, or its response re-sets the
+        // host's session cookie after we clear it.
+        cy.get(`#invite-users-list li[data-user-name="${recruitName}"]`)
+            .contains('Invited')
+            .should('exist');
 
         cy.clearCookies();
         cy.loginAgent(recruitEmail);
