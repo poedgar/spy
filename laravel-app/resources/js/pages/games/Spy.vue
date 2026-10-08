@@ -3,9 +3,10 @@ import { Head, Link, usePage } from '@inertiajs/vue3';
 import { Badge } from '@/components/ui/badge';
 import CreateGameForm from '@/components/CreateGameForm.vue';
 import JoinGameForm from '@/components/JoinGameForm.vue';
+import OpenGamesList from '@/components/game/OpenGamesList.vue';
 import { useTrans } from '@/composables/useTrans';
 import { dashboard } from '@/routes';
-import type { Game } from '@/types/game';
+import type { Game, OpenGame } from '@/types/game';
 
 interface PendingInvitationRow {
     id: number;
@@ -17,6 +18,7 @@ interface PendingInvitationRow {
 defineProps<{
     games: Omit<Game, 'host' | 'players' | 'round'>[];
     pendingInvitations: PendingInvitationRow[];
+    openGames: OpenGame[];
 }>();
 
 defineOptions({
@@ -103,6 +105,8 @@ const statusLabel = (status: Game['status']) =>
             <CreateGameForm />
             <JoinGameForm />
         </div>
+
+        <OpenGamesList :games="openGames" />
 
         <div
             id="games-list"

@@ -24,6 +24,7 @@ class StorePhraseGameRequest extends FormRequest
             'phrase_language' => ['required', 'string', Rule::enum(Locale::class)],
             'max_players' => ['required', 'integer', 'min:3', 'max:'.GameType::Phrase->maxPlayers()],
             'requires_approval' => ['sometimes', 'boolean'],
+            'is_listed' => ['sometimes', 'boolean'],
         ];
     }
 }

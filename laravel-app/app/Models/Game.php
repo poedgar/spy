@@ -28,9 +28,10 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
  * @property int $host_id
  * @property int $max_players
  * @property bool $requires_approval
+ * @property bool $is_listed
  * @property int|null $players_count
  */
-#[Fillable(['title', 'game_mode', 'age_tier', 'phrase_language', 'code', 'host_id', 'max_players', 'mission_briefing', 'status', 'game_type', 'requires_approval'])]
+#[Fillable(['title', 'game_mode', 'age_tier', 'phrase_language', 'code', 'host_id', 'max_players', 'mission_briefing', 'status', 'game_type', 'requires_approval', 'is_listed'])]
 class Game extends Model
 {
     /** @use HasFactory<GameFactory> */
@@ -49,6 +50,8 @@ class Game extends Model
         'status' => 'recruiting',
         'age_tier' => 'adults',
         'game_type' => 'spy',
+        'is_listed' => true,
+        'requires_approval' => false,
     ];
 
     protected function casts(): array
@@ -58,6 +61,7 @@ class Game extends Model
             'game_mode' => GameMode::class,
             'phrase_language' => Locale::class,
             'requires_approval' => 'boolean',
+            'is_listed' => 'boolean',
             'age_tier' => AgeTier::class,
             'status' => GameStatus::class,
         ];

@@ -21,6 +21,8 @@ function send(method: 'post' | 'delete', path: string, data = {}) {
 
 const setApproval = (requiresApproval: boolean) =>
     send('post', 'settings', { requires_approval: requiresApproval });
+const setListed = (isListed: boolean) =>
+    send('post', 'settings', { is_listed: isListed });
 </script>
 
 <template>
@@ -46,6 +48,27 @@ const setApproval = (requiresApproval: boolean) =>
                 <span class="block text-sm text-muted-foreground">{{
                     t(
                         'People joining with the code ask first, and you let them in. Invited players skip the queue.',
+                    )
+                }}</span>
+            </span>
+        </label>
+
+        <label class="flex items-start gap-3">
+            <input
+                id="toggle-listed"
+                type="checkbox"
+                class="mt-1"
+                :checked="game.is_listed"
+                :disabled="busy"
+                @change="setListed(($event.target as HTMLInputElement).checked)"
+            />
+            <span>
+                <span class="block font-medium">{{
+                    t('List in open games')
+                }}</span>
+                <span class="block text-sm text-muted-foreground">{{
+                    t(
+                        'Anyone can find this game and ask to join. Off: only people with the code or an invitation.',
                     )
                 }}</span>
             </span>

@@ -5,11 +5,13 @@ namespace App\Http\Controllers;
 use App\Actions\Invitations\CancelInvitation;
 use App\Actions\Lobby\AnswerJoinRequest;
 use App\Actions\Lobby\RemovePlayer;
+use App\Actions\Lobby\RequestToJoin;
 use App\Actions\Lobby\TransferHost;
 use App\Actions\Lobby\UpdateGameSettings;
 use App\Models\Game;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Inertia\Inertia;
 
 /**
  * The host's lobby controls, shared by both games.
@@ -19,7 +21,8 @@ class LobbyController extends Controller
     public function settings(Request $request, Game $game, UpdateGameSettings $updateSettings): RedirectResponse
     {
         $updateSettings->handle($game, $request->user(), $request->validate([
-            'requires_approval' => ['required', 'boolean'],
+            'requires_approval' => ['sometimes', 'boolean'],
+            'is_listed' => ['sometimes', 'boolean'],
         ]));
 
         return back();
@@ -50,6 +53,21 @@ class LobbyController extends Controller
     public function decline(Request $request, Game $game, int $joinRequest, AnswerJoinRequest $answer): RedirectResponse
     {
         $answer->handle($game, $request->user(), $joinRequest, approve: false);
+
+        return back();
+    }
+
+    public function requestToJoin(Request $request, Game $game, RequestToJoin $requestToJoin): RedirectResponse
+    {
+        $requestToJoin->handle($game, $request->user());
+        Inertia::flash('toast', ['type' => 'success', 'message' => __('Request sent. The host will let you in.')]);
+
+        return back();
+    }
+
+    public function cancelRequest(Request $request, Game $game, RequestToJoin $requestToJoin): RedirectResponse
+    {
+        $requestToJoin->cancel($game, $request->user());
 
         return back();
     }

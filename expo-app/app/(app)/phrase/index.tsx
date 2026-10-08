@@ -10,6 +10,7 @@ import { FormError } from '@/components/FormError';
 import { Screen } from '@/components/Screen';
 import { applyServerErrors } from '@/forms/applyServerErrors';
 import { statusLabels } from '@/game/labels';
+import { OpenGames } from '@/game/OpenGames';
 import { useI18n } from '@/i18n/I18nProvider';
 import { useTheme } from '@/theme/useTheme';
 
@@ -83,6 +84,8 @@ export default function PhraseHome() {
       ) : (
         <EmptyState message={home.isLoading ? t('Loading…') : t('No pending invitations.')} />
       )}
+
+      <OpenGames games={home.data?.open_games} loading={home.isLoading} />
 
       <AppText variant="heading">{t('Your Phrase games')}</AppText>
       {home.data?.games.length ? (

@@ -35,7 +35,9 @@ describe('Lobby controls', () => {
 
                 // The invite list only offers past teammates until you search.
                 cy.visit(`/games/${code}/invite`);
-                cy.get('#invite-users-list').children().should('have.length', 0);
+                cy.get('#invite-users-list')
+                    .children()
+                    .should('have.length', 0);
                 cy.get('#input-invite-search').type('Control Guest');
                 cy.contains('Nobody matches that search.').should('be.visible'); // already on the roster
 

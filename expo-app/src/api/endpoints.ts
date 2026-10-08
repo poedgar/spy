@@ -45,7 +45,9 @@ export const gamesApi = {
   create: (input: CreateGameInput) => request<Game>('POST', '/games', input),
   show: (code: string) => request<Game>('GET', `/games/${enc(code)}`),
   join: (code: string) => request<Game | JoinRequested>('POST', `/games/${enc(code)}/join`),
-  updateSettings: (code: string, settings: { requires_approval: boolean }) =>
+  requestToJoin: (code: string) => request<JoinRequested>('POST', `/games/${enc(code)}/join-requests`),
+  cancelJoinRequest: (code: string) => request<void>('DELETE', `/games/${enc(code)}/join-requests/mine`),
+  updateSettings: (code: string, settings: { requires_approval?: boolean; is_listed?: boolean }) =>
     request<Game>('POST', `/games/${enc(code)}/settings`, settings),
   removePlayer: (code: string, userId: number) => request<Game>('DELETE', `/games/${enc(code)}/players/${userId}`),
   transferHost: (code: string, userId: number) => request<Game>('POST', `/games/${enc(code)}/host`, { user_id: userId }),

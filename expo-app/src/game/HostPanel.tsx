@@ -34,6 +34,21 @@ export function HostPanel({ game, busy, run }: { game: Game; busy: boolean; run:
         />
       </View>
 
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md }}>
+        <View style={{ flex: 1 }}>
+          <AppText>{t('List in open games')}</AppText>
+          <AppText variant="muted">
+            {t('Anyone can find this game and ask to join. Off: only people with the code or an invitation.')}
+          </AppText>
+        </View>
+        <Switch
+          testID="toggle-listed"
+          value={game.is_listed !== false}
+          disabled={busy}
+          onValueChange={(isListed) => run({ type: 'listing', isListed })}
+        />
+      </View>
+
       {game.join_requests?.length ? (
         <>
           <AppText variant="heading">{t('Asking to join')}</AppText>

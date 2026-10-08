@@ -87,6 +87,21 @@ export function useDeclineInvitation() {
   });
 }
 
+/** Asking for (or withdrawing from) a seat in an open game refreshes both homes. */
+export function useJoinRequest() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ code, cancel }: { code: string; cancel?: boolean }): Promise<void> => {
+      if (cancel) await gamesApi.cancelJoinRequest(code);
+      else await gamesApi.requestToJoin(code);
+    },
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: queryKeys.spyHome });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.phraseHome });
+    },
+  });
+}
+
 export function useInvite(code: string) {
   const queryClient = useQueryClient();
   return useMutation({
@@ -99,6 +114,7 @@ type LobbyAction =
   | { type: 'ready' | 'start' | 'voting' | 'tally' | 'reset' | 'phrase-start' | 'phrase-turn' }
   | { type: 'vote'; suspectId: number }
   | { type: 'approval'; requiresApproval: boolean }
+  | { type: 'listing'; isListed: boolean }
   | { type: 'remove-player' | 'make-host'; userId: number }
   | { type: 'answer-request'; requestId: number; approve: boolean }
   | { type: 'cancel-invitation'; invitationId: number }
@@ -127,6 +143,8 @@ export function useLobbyAction(code: string) {
           return gamesApi.passTurn(code);
         case 'approval':
           return gamesApi.updateSettings(code, { requires_approval: action.requiresApproval });
+        case 'listing':
+          return gamesApi.updateSettings(code, { is_listed: action.isListed });
         case 'remove-player':
           return gamesApi.removePlayer(code, action.userId);
         case 'make-host':

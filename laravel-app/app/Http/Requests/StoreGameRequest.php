@@ -36,6 +36,7 @@ class StoreGameRequest extends FormRequest
             'max_players' => ['required', 'integer', 'min:3', 'max:12'],
             'mission_briefing' => ['required', 'string', 'max:2000'],
             'requires_approval' => ['sometimes', 'boolean'],
+            'is_listed' => ['sometimes', 'boolean'],
         ];
     }
 }

@@ -35,6 +35,8 @@ Route::middleware(['auth'])->group(function () {
     Route::post('games/{game}/settings', [LobbyController::class, 'settings'])->name('games.settings');
     Route::delete('games/{game}/players/{user}', [LobbyController::class, 'removePlayer'])->name('games.players.remove');
     Route::post('games/{game}/host', [LobbyController::class, 'transferHost'])->name('games.host');
+    Route::post('games/{game}/join-requests', [LobbyController::class, 'requestToJoin'])->middleware('throttle:join')->name('join-requests.store');
+    Route::delete('games/{game}/join-requests/mine', [LobbyController::class, 'cancelRequest'])->name('join-requests.cancel');
     Route::post('games/{game}/join-requests/{joinRequest}/approve', [LobbyController::class, 'approve'])->name('join-requests.approve');
     Route::post('games/{game}/join-requests/{joinRequest}/decline', [LobbyController::class, 'decline'])->name('join-requests.decline');
     Route::delete('games/{game}/invitations/{invitation}', [LobbyController::class, 'cancelInvitation'])->name('invitations.cancel');

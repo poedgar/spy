@@ -50,6 +50,8 @@ Route::prefix('v1')->group(function () {
         Route::post('games/{code}/settings', [LobbyController::class, 'settings']);
         Route::delete('games/{code}/players/{user}', [LobbyController::class, 'removePlayer']);
         Route::post('games/{code}/host', [LobbyController::class, 'transferHost']);
+        Route::post('games/{code}/join-requests', [LobbyController::class, 'requestToJoin'])->middleware('throttle:join');
+        Route::delete('games/{code}/join-requests/mine', [LobbyController::class, 'cancelRequest']);
         Route::post('games/{code}/join-requests/{joinRequest}/approve', [LobbyController::class, 'approve']);
         Route::post('games/{code}/join-requests/{joinRequest}/decline', [LobbyController::class, 'decline']);
         Route::delete('games/{code}/invitations/{invitation}', [LobbyController::class, 'cancelInvitation']);

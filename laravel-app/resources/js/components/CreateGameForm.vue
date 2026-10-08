@@ -17,6 +17,7 @@ const form = useForm({
         'A rogue operative has intercepted intelligence files.',
     ),
     requires_approval: false,
+    is_listed: true,
 });
 
 /** Mirrors Game::spyCountFor on the server. */
@@ -160,6 +161,15 @@ function submit() {
                 type="checkbox"
             />
             {{ t('Approve new players before they join') }}
+        </label>
+
+        <label class="flex items-center gap-2 text-sm">
+            <input
+                id="input-is-listed"
+                v-model="form.is_listed"
+                type="checkbox"
+            />
+            {{ t('List in open games so anyone can ask to join') }}
         </label>
 
         <button

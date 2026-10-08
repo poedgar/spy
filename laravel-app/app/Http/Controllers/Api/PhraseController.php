@@ -21,6 +21,7 @@ class PhraseController extends Controller
     {
         return response()->json([
             'games' => GameResource::collection($home->games($request->user(), GameType::Phrase)),
+            'open_games' => $home->openGames($request->user(), GameType::Phrase),
             'pending_invitations' => InvitationResource::collection($home->pendingInvitations($request->user(), GameType::Phrase)),
         ]);
     }

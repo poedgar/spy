@@ -29,6 +29,7 @@ class GameController extends Controller
     {
         return response()->json([
             'games' => GameResource::collection($home->games($request->user())),
+            'open_games' => $home->openGames($request->user()),
             'pending_invitations' => InvitationResource::collection($home->pendingInvitations($request->user())),
         ]);
     }

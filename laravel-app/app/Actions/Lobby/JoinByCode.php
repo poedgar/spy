@@ -3,16 +3,11 @@
 namespace App\Actions\Lobby;
 
 use App\Actions\Games\JoinGame;
-use App\Enums\GameStatus;
 use App\Enums\InvitationStatus;
 use App\Enums\JoinOutcome;
-use App\Events\GameUpdated;
-use App\Events\JoinRequested;
 use App\Exceptions\GameRuleException;
 use App\Models\Game;
-use App\Models\JoinRequest;
 use App\Models\User;
-use App\Support\BestEffortBroadcast;
 
 /**
  * What entering an invite code does: a seat straight away, or, when the
@@ -21,7 +16,10 @@ use App\Support\BestEffortBroadcast;
  */
 class JoinByCode
 {
-    public function __construct(private JoinGame $joinGame) {}
+    public function __construct(
+        private JoinGame $joinGame,
+        private RequestToJoin $requestToJoin,
+    ) {}
 
     /**
      * @throws GameRuleException
@@ -39,23 +37,7 @@ class JoinByCode
             return JoinOutcome::Joined;
         }
 
-        if ($game->status !== GameStatus::Recruiting) {
-            throw new GameRuleException('code', __('This operation is no longer recruiting.'));
-        }
-
-        if ($game->players()->count() >= $game->max_players) {
-            throw new GameRuleException('code', __('This operation roster is already full.'));
-        }
-
-        $request = JoinRequest::updateOrCreate(
-            ['game_id' => $game->id, 'user_id' => $user->id],
-            ['status' => InvitationStatus::Pending],
-        );
-
-        if ($request->wasRecentlyCreated || $request->wasChanged('status')) {
-            JoinRequested::dispatch($request);
-            BestEffortBroadcast::dispatch(new GameUpdated($game));
-        }
+        $this->requestToJoin->handle($game, $user, 'code');
 
         return JoinOutcome::Requested;
     }

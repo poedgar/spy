@@ -102,6 +102,7 @@ export interface Game {
   status: GameStatus;
   host_id: number;
   requires_approval?: boolean;
+  is_listed?: boolean;
   player_count: number;
   spy_count?: number;
   created_at: string | null;
@@ -151,9 +152,25 @@ export interface InvitableUser {
   invite_status: 'pending' | null;
 }
 
+/** A game looking for players, as listed to someone not in it. */
+export interface OpenGame {
+  id: number;
+  code: string;
+  title: string;
+  game_type: GameType;
+  game_mode: GameMode | null;
+  age_tier: AgeTier;
+  phrase_language: Locale | null;
+  player_count: number;
+  max_players: number;
+  host_codename: string;
+  my_request: 'pending' | 'accepted' | 'declined' | null;
+}
+
 export interface SpyHome {
   games: Game[];
   pending_invitations: Invitation[];
+  open_games?: OpenGame[];
 }
 
 export interface TokenResult {

@@ -12,6 +12,7 @@ const form = useForm({
     phrase_language: locale.value as Locale,
     max_players: 6,
     requires_approval: false,
+    is_listed: true,
 });
 
 function submit() {
@@ -92,6 +93,15 @@ function submit() {
                 type="checkbox"
             />
             {{ t('Approve new players before they join') }}
+        </label>
+
+        <label class="flex items-center gap-2 text-sm">
+            <input
+                id="input-is-listed"
+                v-model="form.is_listed"
+                type="checkbox"
+            />
+            {{ t('List in open games so anyone can ask to join') }}
         </label>
 
         <button

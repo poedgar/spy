@@ -10,7 +10,7 @@ use App\Support\BestEffortBroadcast;
 class UpdateGameSettings
 {
     /**
-     * @param  array{requires_approval?: bool}  $settings
+     * @param  array{requires_approval?: bool, is_listed?: bool}  $settings
      */
     public function handle(Game $game, User $host, array $settings): void
     {

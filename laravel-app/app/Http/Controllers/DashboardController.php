@@ -33,6 +33,7 @@ class DashboardController extends Controller
     {
         return [
             'games' => GameResource::collection($home->games($request->user(), $type))->resolve($request),
+            'openGames' => $home->openGames($request->user(), $type),
             'pendingInvitations' => $home->pendingInvitations($request->user(), $type)
                 ->map(fn (Invitation $invitation) => [
                     'id' => $invitation->id,

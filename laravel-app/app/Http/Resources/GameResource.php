@@ -43,6 +43,7 @@ class GameResource extends JsonResource
             'status' => $this->status,
             'host_id' => $this->host_id,
             'requires_approval' => $this->requires_approval,
+            'is_listed' => $this->is_listed,
             'player_count' => $playerCount,
             'spy_count' => Game::spyCountFor($playerCount),
             'created_at' => $this->created_at?->toIso8601String(),

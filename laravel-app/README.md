@@ -68,6 +68,11 @@ Shared by both games (`app/Actions/Lobby`):
   can search anyone by name or codename (2+ characters, 20 results). The
   full user list is never exposed. Invitations that weren't accepted stay
   visible to the host, who can send them again or cancel them.
+- **Open games:** each game's home lists listed, recruiting games with a
+  free seat. Anyone can ask to join one; the request always goes to the
+  host, who lets them in or declines (they can cancel, or ask again after a
+  decline). Games are listed by default; the host can unlist one so only
+  people with the code or an invitation can get in.
 - **Approving players:** with "approve new players" on, joining by code
   creates a request the host lets in or declines (invited players skip
   it). The host is pushed about requests; the player is told live (and
