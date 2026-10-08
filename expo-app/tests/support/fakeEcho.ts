@@ -1,5 +1,8 @@
 type Handler = (payload: unknown) => void;
 
+/** The event laravel-echo's channel.notification() listens for. */
+export const NOTIFICATION_EVENT = '.Illuminate\\Notifications\\Events\\BroadcastNotificationCreated';
+
 /** In-memory stand-in for a laravel-echo instance, with helpers to emit events. */
 export function createFakeEcho() {
   const listeners = new Map<string, Handler>();
@@ -9,6 +12,9 @@ export function createFakeEcho() {
     listen(event: string, handler: Handler) {
       listeners.set(`${name}:${event}`, handler);
       return this;
+    },
+    notification(handler: Handler) {
+      return this.listen(NOTIFICATION_EVENT, handler);
     },
   });
 

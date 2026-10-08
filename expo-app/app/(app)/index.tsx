@@ -1,7 +1,8 @@
 import { Link, Stack, useRouter } from 'expo-router';
-import { Pressable } from 'react-native';
+import { Pressable, View } from 'react-native';
 import { AppText } from '@/components/AppText';
 import { Card } from '@/components/Card';
+import { NotificationBell } from '@/components/NotificationBell';
 import { Screen } from '@/components/Screen';
 import { useI18n } from '@/i18n/I18nProvider';
 
@@ -15,9 +16,12 @@ export default function GamePicker() {
         options={{
           title: t('Games'),
           headerRight: () => (
-            <Link href="/settings" testID="btn-settings">
-              <AppText>{t('Settings')}</AppText>
-            </Link>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 16 }}>
+              <NotificationBell />
+              <Link href="/settings" testID="btn-settings">
+                <AppText>{t('Settings')}</AppText>
+              </Link>
+            </View>
           ),
         }}
       />

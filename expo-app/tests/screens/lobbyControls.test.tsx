@@ -7,7 +7,7 @@ import Lobby from '../../app/(app)/games/[code]/index';
 import InvitePlayers from '../../app/(app)/games/[code]/invite';
 import JoinGame from '../../app/(app)/spy/join';
 import { fakeGame, fakeUser, otherUser } from '../support/fakes';
-import type { FakeEcho } from '../support/fakeEcho';
+import { type FakeEcho, NOTIFICATION_EVENT } from '../support/fakeEcho';
 import { renderApp } from '../support/renderApp';
 
 jest.mock('@/api/endpoints');
@@ -138,13 +138,18 @@ test('an approved request is announced live', async () => {
   await screen.findByTestId('lobby-code');
   await waitFor(() => expect(echo.private).toHaveBeenCalledWith('user.1'));
   act(() =>
-    echo.emit('private-user.1', '.join.answered', {
-      approved: true,
+    echo.emit('private-user.1', NOTIFICATION_EVENT, {
+      id: 'n-2',
+      kind: 'join_answered',
+      title: 'You are in!',
+      body: 'The host let you into Gatekeeper.',
+      link: '/games/SPY-CD4E',
       game_code: 'SPY-CD4E',
-      game_title: 'Gatekeeper',
       game_type: 'spy',
+      read_at: null,
+      created_at: null,
     }),
   );
 
-  expect(await screen.findByText('The host let you into Gatekeeper.')).toBeOnTheScreen();
+  expect(await screen.findByText('You are in!: The host let you into Gatekeeper.')).toBeOnTheScreen();
 });

@@ -1,4 +1,4 @@
-import { invitationHrefFrom, isInviteCode, normalizeInviteCode, roundHrefFrom } from '@/linking';
+import { invitationHrefFrom, isInviteCode, normalizeInviteCode, notificationHref, pushHrefFrom, roundHrefFrom } from '@/linking';
 
 test('normalizes typed codes', () => {
   expect(normalizeInviteCode('  spy-ab3d ')).toBe('SPY-AB3D');
@@ -32,4 +32,17 @@ test('maps a round-start push payload to that game\'s lobby', () => {
 
 test('a join-request push opens the lobby for the host', () => {
   expect(roundHrefFrom({ type: 'join_request', code: 'SPY-AB3D' })).toBe('/games/SPY-AB3D');
+});
+
+test('every push kind opens the right screen', () => {
+  expect(pushHrefFrom({ type: 'game', code: 'SPY-AB3D' })).toBe('/games/SPY-AB3D');
+  expect(pushHrefFrom({ type: 'home', game_type: 'phrase' })).toBe('/phrase');
+  expect(pushHrefFrom({ type: 'home' })).toBe('/spy');
+  expect(pushHrefFrom({ type: 'mystery' })).toBeNull();
+});
+
+test('notification links map to app screens', () => {
+  expect(notificationHref('/games/SPY-AB3D')).toBe('/games/SPY-AB3D');
+  expect(notificationHref('/games/phrase')).toBe('/phrase');
+  expect(notificationHref('/games/spy')).toBe('/spy');
 });

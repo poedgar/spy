@@ -10,6 +10,7 @@ import type {
   Invitation,
   Locale,
   LocationGuide,
+  NotificationFeed,
   RegisterInput,
   SpyHome,
   TokenResult,
@@ -77,4 +78,10 @@ export const gamesApi = {
     request<Invitation>('POST', `/games/${enc(code)}/invitations`, { to_user_id: toUserId }),
   accept: (invitationId: number) => request<Game>('POST', `/invitations/${invitationId}/accept`),
   decline: (invitationId: number) => request<void>('POST', `/invitations/${invitationId}/decline`),
+};
+
+export const notificationsApi = {
+  list: () => request<NotificationFeed>('GET', '/notifications'),
+  read: (id: string) => request<void>('POST', `/notifications/${enc(id)}/read`),
+  readAll: () => request<void>('POST', '/notifications/read-all'),
 };

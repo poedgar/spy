@@ -5,6 +5,7 @@ import { useBanner } from '@/banner/BannerProvider';
 import { AppText } from '@/components/AppText';
 import { Button } from '@/components/Button';
 import { Card } from '@/components/Card';
+import { NotificationBell } from '@/components/NotificationBell';
 import { EmptyState } from '@/components/EmptyState';
 import { FormError } from '@/components/FormError';
 import { Screen } from '@/components/Screen';
@@ -30,7 +31,7 @@ export default function SpyHome() {
 
   return (
     <Screen refreshing={home.isRefetching} onRefresh={() => void home.refetch()}>
-      <Stack.Screen options={{ title: t('Spy') }} />
+      <Stack.Screen options={{ title: t('Spy') , headerRight: () => <NotificationBell /> }} />
       <View style={{ flexDirection: 'row', gap: spacing.md }}>
         <View style={{ flex: 1 }}>
           <Button testID="btn-open-create" label={t('Create Operation')} onPress={() => router.push('/spy/create')} />

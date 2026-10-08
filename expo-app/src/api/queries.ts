@@ -1,12 +1,13 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useFocusEffect } from 'expo-router';
 import { useCallback, useRef } from 'react';
-import { gamesApi } from './endpoints';
+import { gamesApi, notificationsApi } from './endpoints';
 import { type AgeTier, type CreateGameInput, type CreatePhraseGameInput, type Game, isJoinRequested } from './types';
 
 export const queryKeys = {
   spyHome: ['spyHome'] as const,
   phraseHome: ['phraseHome'] as const,
+  notifications: ['notifications'] as const,
   game: (code: string) => ['game', code] as const,
   invitable: (code: string, search = '') => ['invitable', code, search] as const,
   locations: (tier: AgeTier) => ['locations', tier] as const,
@@ -209,4 +210,23 @@ export function useRefreshOnFocus(refetch: () => unknown) {
       refetch();
     }, [refetch]),
   );
+}
+
+/** How often the bell refreshes while realtime is unavailable. */
+export const NOTIFICATIONS_POLL_MS = 30000;
+
+export function useNotifications(options: { poll?: boolean } = {}) {
+  return useQuery({
+    queryKey: queryKeys.notifications,
+    queryFn: notificationsApi.list,
+    refetchInterval: options.poll ? NOTIFICATIONS_POLL_MS : false,
+  });
+}
+
+export function useMarkNotificationsRead() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (id?: string) => (id ? notificationsApi.read(id) : notificationsApi.readAll()),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: queryKeys.notifications }),
+  });
 }

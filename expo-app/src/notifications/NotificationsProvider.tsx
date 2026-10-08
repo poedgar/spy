@@ -2,7 +2,7 @@ import * as Notifications from 'expo-notifications';
 import { router } from 'expo-router';
 import { type ReactNode, useEffect } from 'react';
 import { useAuth } from '@/auth/AuthProvider';
-import { invitationHrefFrom, roundHrefFrom } from '@/linking';
+import { pushHrefFrom } from '@/linking';
 import { registerForPushNotifications } from './registerForPush';
 
 // While the app is open, the realtime banner already announces invitations,
@@ -31,8 +31,7 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
   // Covers both a tap while running and a tap that cold-started the app.
   useEffect(() => {
     if (!lastResponse || userId === null) return;
-    const data = lastResponse.notification.request.content.data;
-    const href = invitationHrefFrom(data) ?? roundHrefFrom(data);
+    const href = pushHrefFrom(lastResponse.notification.request.content.data);
     if (href) router.push(href);
     void Notifications.clearLastNotificationResponseAsync();
   }, [lastResponse, userId]);

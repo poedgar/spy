@@ -3,11 +3,11 @@ import { router, useFocusEffect } from 'expo-router';
 import { createContext, type ReactNode, useCallback, useContext, useEffect, useRef, useState } from 'react';
 import { AppState } from 'react-native';
 import { queryKeys } from '@/api/queries';
-import type { InvitationSentPayload, JoinAnsweredPayload, PlayerJoinedPayload } from '@/api/types';
+import { notificationsApi } from '@/api/endpoints';
+import type { AppNotification, PlayerJoinedPayload } from '@/api/types';
 import { useAuth } from '@/auth/AuthProvider';
 import { useBanner } from '@/banner/BannerProvider';
-import { useI18n } from '@/i18n/I18nProvider';
-import { homePathFor } from '@/linking';
+import { notificationHref } from '@/linking';
 import { PUSHER_KEY } from '@/config';
 import { createEcho, type EchoClient } from './echo';
 
@@ -28,12 +28,6 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
   const userId = state.status === 'signedIn' ? state.user.id : null;
   const queryClient = useQueryClient();
   const { showBanner } = useBanner();
-  // Read through a ref so a language change doesn't reconnect the socket.
-  const { t } = useI18n();
-  const tRef = useRef(t);
-  useEffect(() => {
-    tRef.current = t;
-  });
   const [echo, setEcho] = useState<EchoClient | null>(null);
   const [onlineUserIds, setOnlineUserIds] = useState<Set<number>>(new Set());
   const [connected, setConnected] = useState(false);
@@ -65,35 +59,24 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
         }),
       );
 
-    instance
-      .private(`user.${userId}`)
-      .listen('.invitation.sent', (payload: InvitationSentPayload) => {
-        void queryClient.invalidateQueries({ queryKey: queryKeys.spyHome });
-        void queryClient.invalidateQueries({ queryKey: queryKeys.phraseHome });
-        showBanner({
-          message: tRef.current(':codename invited you to :title', {
-            codename: payload.from_codename,
-            title: payload.game_title,
-          }),
-          onPress: () =>
-            router.push({ pathname: homePathFor(payload.game_type), params: { highlight: String(payload.invitation_id) } }),
-        });
-      })
-      .listen('.join.answered', (payload: JoinAnsweredPayload) => {
-        void queryClient.invalidateQueries({ queryKey: queryKeys.spyHome });
-        void queryClient.invalidateQueries({ queryKey: queryKeys.phraseHome });
-        showBanner(
-          payload.approved
-            ? {
-                message: tRef.current('The host let you into :title.', { title: payload.game_title }),
-                onPress: () => router.push(`/games/${payload.game_code}`),
-              }
-            : {
-                tone: 'error',
-                message: tRef.current('The host of :title turned down your request.', { title: payload.game_title }),
-              },
-        );
+    // Notifications arrive on the user's private channel: refresh what they
+    // may have changed and show a banner that opens where they point.
+    instance.private(`user.${userId}`).notification((notification: AppNotification) => {
+      for (const key of [queryKeys.notifications, queryKeys.spyHome, queryKeys.phraseHome]) {
+        void queryClient.invalidateQueries({ queryKey: key });
+      }
+      if (notification.game_code) {
+        void queryClient.invalidateQueries({ queryKey: queryKeys.game(notification.game_code) });
+      }
+      showBanner({
+        tone: notification.kind === 'removed' ? 'error' : 'info',
+        message: `${notification.title}: ${notification.body}`,
+        onPress: () => {
+          void notificationsApi.read(notification.id).catch(() => {});
+          router.push(notificationHref(notification.link));
+        },
       });
+    });
 
     // iOS drops sockets in the background anyway; push notifications cover
     // that gap. pusher-js resubscribes every channel on reconnect.

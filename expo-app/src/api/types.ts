@@ -213,3 +213,24 @@ export interface InvitationSentPayload {
   game_code: string;
   from_codename: string;
 }
+
+export type NotificationKind = 'invitation' | 'join_request' | 'join_answered' | 'round_started' | 'removed' | 'became_host';
+
+/** A notification as the server presents it, in the reader's language. */
+export interface AppNotification {
+  id: string;
+  kind: NotificationKind;
+  title: string;
+  body: string;
+  /** The web path it points at: /games/spy, /games/phrase or /games/SPY-XXXX. */
+  link: string;
+  game_code: string | null;
+  game_type: GameType | null;
+  read_at: string | null;
+  created_at: string | null;
+}
+
+export interface NotificationFeed {
+  unread_count: number;
+  notifications: AppNotification[];
+}
