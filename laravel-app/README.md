@@ -94,7 +94,10 @@ English and Ukrainian. The language is saved on the account
 notifications; guests choose per session (web) or per device (app), with
 `Accept-Language` as the fallback. Translations are keyed by their English
 text in `lang/uk.json` (shared with the Vue app as a once-loaded Inertia
-prop) and `lang/uk/*.php` for validation and auth messages.
+prop) and `lang/uk/*.php` for validation and auth messages. That covers
+Laravel's own text too: password-reset and verification emails, the email
+layout and the error pages (which use a `locale` cookie, since a 404 for an
+unknown URL never reaches the session).
 
 ## Real-time presence and invitations
 

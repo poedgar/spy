@@ -1,14 +1,22 @@
 import { API_URL } from '@/config';
+import type { Locale } from '@/api/types';
+import { translate } from '@/i18n/translate';
 import { ApiError, NetworkError, ValidationError } from './errors';
 
 type Method = 'GET' | 'POST' | 'PATCH' | 'PUT' | 'DELETE';
 
 let getToken: () => string | null = () => null;
 let onUnauthorized: () => void = () => {};
-let locale: string | null = null;
+let locale: Locale | null = null;
+
+/**
+ * Messages the app writes itself (the server's are already localized).
+ * Read at call time, so they follow the current language.
+ */
+export const localMessage = (key: string) => translate(locale ?? 'en', key);
 
 /** Sent as Accept-Language, so server messages match the app's language. */
-export function setRequestLocale(next: string | null): void {
+export function setRequestLocale(next: Locale | null): void {
   locale = next;
 }
 
@@ -34,7 +42,7 @@ export async function request<T>(method: Method, path: string, body?: unknown): 
       body: body === undefined ? undefined : JSON.stringify(body),
     });
   } catch {
-    throw new NetworkError();
+    throw new NetworkError(localMessage("Can't reach SpyNet. Check your connection."));
   }
 
   if (response.status === 204) return undefined as T;
@@ -46,14 +54,16 @@ export async function request<T>(method: Method, path: string, body?: unknown): 
   if (response.status === 401) {
     // Only a request that carried a token means "your session ended".
     if (token) onUnauthorized();
-    throw new ApiError(401, data?.message ?? 'Unauthenticated.');
+    throw new ApiError(401, data?.message ?? localMessage('Unauthenticated.'));
   }
 
   if (response.status === 422) {
-    throw new ValidationError(data?.message ?? 'Please check the form.', data?.errors ?? {});
+    throw new ValidationError(data?.message ?? localMessage('Please check the form.'), data?.errors ?? {});
   }
 
   const message =
-    response.status >= 500 ? 'Something went wrong. Please try again.' : (data?.message ?? 'Request failed.');
+    response.status >= 500
+      ? localMessage('Something went wrong. Please try again.')
+      : (data?.message ?? localMessage('Request failed.'));
   throw new ApiError(response.status, message);
 }

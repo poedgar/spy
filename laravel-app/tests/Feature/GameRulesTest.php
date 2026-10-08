@@ -8,6 +8,9 @@ use App\Exceptions\GameRuleException;
 use App\Models\Game;
 use App\Models\GamePlayer;
 use App\Models\User;
+use Illuminate\Auth\Notifications\ResetPassword;
+use Illuminate\Support\Facades\App;
+use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\RateLimiter;
 use Laravel\Sanctum\Sanctum;
 
@@ -110,3 +113,35 @@ test('every game type needs three players, and lobbies report it', function (Gam
 
     $this->getJson("/api/v1/games/{$game->code}")->assertJsonPath('min_players', 3);
 })->with([GameType::Spy, GameType::Phrase]);
+
+test('error pages for unknown URLs use the visitors language cookie', function () {
+    $this->withUnencryptedCookie('locale', 'uk')
+        ->get('/no-such-page')
+        ->assertNotFound()
+        ->assertSee('Сторінку не знайдено');
+
+    $this->get('/no-such-page', ['Accept-Language' => 'uk'])->assertSee('Сторінку не знайдено');
+});
+
+test('choosing a language on the web remembers it in the locale cookie', function () {
+    $this->post(route('locale.update'), ['locale' => 'uk'])->assertRedirect();
+
+    $this->withSession(['locale' => 'uk'])->get('/')->assertCookie('locale', 'uk', encrypted: false);
+});
+
+test('password reset emails are written in the users language', function () {
+    Notification::fake();
+    $user = User::factory()->create(['locale' => 'uk']);
+
+    $this->post(route('password.email'), ['email' => $user->email]);
+
+    Notification::assertSentTo(
+        $user,
+        ResetPassword::class,
+        function ($notification) use ($user) {
+            App::setLocale($user->preferredLocale());
+
+            return $notification->toMail($user)->subject === 'Скиньте пароль';
+        },
+    );
+});

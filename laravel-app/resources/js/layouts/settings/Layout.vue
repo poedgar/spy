@@ -42,7 +42,7 @@ const { t } = useTrans();
             <aside class="w-full max-w-xl lg:w-48">
                 <nav
                     class="flex flex-col space-y-1 space-x-0"
-                    aria-label="Settings"
+                    :aria-label="t('Settings')"
                 >
                     <Button
                         v-for="item in sidebarNavItems"

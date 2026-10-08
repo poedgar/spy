@@ -1,4 +1,4 @@
-import { configureClient, request } from '@/api/client';
+import { configureClient, request, setRequestLocale } from '@/api/client';
 import { ApiError, NetworkError, ValidationError } from '@/api/errors';
 
 const fetchMock = jest.fn();
@@ -86,4 +86,17 @@ test('network failure becomes a NetworkError', async () => {
   fetchMock.mockRejectedValueOnce(new TypeError('Network request failed'));
 
   await expect(request('GET', '/me')).rejects.toBeInstanceOf(NetworkError);
+});
+
+test('messages the app writes itself follow the chosen language', async () => {
+  setRequestLocale('uk');
+  try {
+    respond(500, {});
+    await expect(request('GET', '/me')).rejects.toThrow('Щось пішло не так. Спробуйте ще раз.');
+
+    fetchMock.mockRejectedValueOnce(new TypeError('offline'));
+    await expect(request('GET', '/me')).rejects.toThrow('Немає звʼязку зі SpyNet. Перевірте підключення.');
+  } finally {
+    setRequestLocale(null);
+  }
 });

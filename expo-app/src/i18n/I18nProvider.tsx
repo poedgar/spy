@@ -4,11 +4,10 @@ import { setRequestLocale } from '@/api/client';
 import { meApi } from '@/api/endpoints';
 import type { Locale, Place } from '@/api/types';
 import { useAuth } from '@/auth/AuthProvider';
-import { uk } from './uk';
+import { type Replacements, translate } from './translate';
 
 export const LOCALE_KEY = 'spynet.locale';
 
-type Replacements = Record<string, string | number>;
 
 interface I18nValue {
   locale: Locale;
@@ -19,11 +18,6 @@ interface I18nValue {
   setLocale(next: Locale): Promise<void>;
 }
 
-function translate(locale: Locale, key: string, replace: Replacements = {}): string {
-  let line = locale === 'uk' ? (uk[key] ?? key) : key;
-  for (const [name, value] of Object.entries(replace)) line = line.split(`:${name}`).join(String(value));
-  return line;
-}
 
 function deviceLocale(): Locale {
   try {

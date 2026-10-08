@@ -23,7 +23,10 @@ return Application::configure(basePath: dirname(__DIR__))
         ['middleware' => ['web', 'auth']],
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        $middleware->encryptCookies(except: ['appearance', 'sidebar_state']);
+        // The locale cookie is read before cookies are decrypted (see SetLocale).
+        $middleware->encryptCookies(except: ['appearance', 'sidebar_state', 'locale']);
+
+        $middleware->prepend(SetLocale::class);
 
         $middleware->web(append: [
             SetLocale::class,
