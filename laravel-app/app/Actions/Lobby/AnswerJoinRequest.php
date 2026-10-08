@@ -5,7 +5,6 @@ namespace App\Actions\Lobby;
 use App\Actions\Games\JoinGame;
 use App\Enums\InvitationStatus;
 use App\Events\GameUpdated;
-use App\Events\JoinRequestAnswered;
 use App\Events\JoinRequestDecided;
 use App\Exceptions\GameRuleException;
 use App\Models\Game;
@@ -38,7 +37,6 @@ class AnswerJoinRequest
         $request->update(['status' => $approve ? InvitationStatus::Accepted : InvitationStatus::Declined]);
 
         JoinRequestDecided::dispatch($request, $approve);
-        BestEffortBroadcast::dispatch(new JoinRequestAnswered($request, $approve));
         BestEffortBroadcast::dispatch(new GameUpdated($game->refresh()));
     }
 }

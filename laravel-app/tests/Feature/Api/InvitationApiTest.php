@@ -1,7 +1,7 @@
 <?php
 
 use App\Enums\InvitationStatus;
-use App\Events\InvitationSent;
+use App\Events\InvitationIssued;
 use App\Models\Game;
 use App\Models\GamePlayer;
 use App\Models\Invitation;
@@ -40,7 +40,7 @@ test('a non-host cannot list invitable users', function () {
 });
 
 test('the host sends an invitation', function () {
-    Event::fake([InvitationSent::class]);
+    Event::fake([InvitationIssued::class]);
     $invitee = User::factory()->create();
     Sanctum::actingAs($this->host);
 
@@ -48,7 +48,7 @@ test('the host sends an invitation', function () {
         ->assertCreated()
         ->assertJson(['status' => 'pending', 'game_code' => $this->game->code, 'from_codename' => $this->host->codename]);
 
-    Event::assertDispatched(InvitationSent::class);
+    Event::assertDispatched(InvitationIssued::class);
 });
 
 test('sending validates and enforces rules as 422', function () {

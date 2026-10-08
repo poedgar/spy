@@ -6,6 +6,7 @@ use App\Events\GameUpdated;
 use App\Exceptions\GameRuleException;
 use App\Models\Game;
 use App\Models\User;
+use App\Notifications\BecameHost;
 use App\Support\BestEffortBroadcast;
 use Illuminate\Support\Facades\DB;
 
@@ -30,6 +31,7 @@ class TransferHost
             $this->handOver->to($game, $userId);
         });
 
+        User::find($userId)?->notify(new BecameHost($game));
         BestEffortBroadcast::dispatch(new GameUpdated($game->refresh()));
     }
 }

@@ -5,7 +5,7 @@ use App\Actions\Invitations\DeclineInvitation;
 use App\Actions\Invitations\SendInvitation;
 use App\Enums\GameType;
 use App\Enums\InvitationStatus;
-use App\Events\InvitationSent;
+use App\Events\InvitationIssued;
 use App\Exceptions\GameRuleException;
 use App\Models\Game;
 use App\Models\GamePlayer;
@@ -39,19 +39,19 @@ function expectRuleViolation(callable $callback, string $field, string $message)
     }
 }
 
-test('SendInvitation creates a pending invitation and dispatches InvitationSent', function () {
-    Event::fake([InvitationSent::class]);
+test('SendInvitation creates a pending invitation and dispatches InvitationIssued', function () {
+    Event::fake([InvitationIssued::class]);
     [$host, $game] = hostedGame();
     $invitee = User::factory()->create();
 
     $invitation = app(SendInvitation::class)->handle($game, $host, $invitee->id);
 
     expect($invitation->status)->toBe(InvitationStatus::Pending);
-    Event::assertDispatched(InvitationSent::class);
+    Event::assertDispatched(InvitationIssued::class);
 });
 
 test('SendInvitation enforces every existing rule', function () {
-    Event::fake([InvitationSent::class]);
+    Event::fake([InvitationIssued::class]);
     [$host, $game] = hostedGame(['max_players' => 2]);
     $member = User::factory()->create();
     GamePlayer::factory()->create(['game_id' => $game->id, 'user_id' => $member->id]);

@@ -1,7 +1,7 @@
 <?php
 
 use App\Enums\InvitationStatus;
-use App\Events\InvitationSent;
+use App\Events\InvitationIssued;
 use App\Models\Game;
 use App\Models\GamePlayer;
 use App\Models\Invitation;
@@ -9,7 +9,7 @@ use App\Models\User;
 use Illuminate\Support\Facades\Event;
 
 test('a host can send an invitation to a game', function () {
-    Event::fake([InvitationSent::class]);
+    Event::fake([InvitationIssued::class]);
 
     $host = User::factory()->create();
     $game = Game::factory()->create(['host_id' => $host->id, 'max_players' => 6]);
@@ -25,11 +25,11 @@ test('a host can send an invitation to a game', function () {
     expect($invitation->status)->toBe(InvitationStatus::Pending)
         ->and($invitation->from_user_id)->toBe($host->id);
 
-    Event::assertDispatched(InvitationSent::class, fn (InvitationSent $event) => $event->invitation->is($invitation));
+    Event::assertDispatched(InvitationIssued::class, fn (InvitationIssued $event) => $event->invitation->is($invitation));
 });
 
 test('re-inviting a previously declined user reactivates the same row instead of duplicating', function () {
-    Event::fake([InvitationSent::class]);
+    Event::fake([InvitationIssued::class]);
 
     $host = User::factory()->create();
     $game = Game::factory()->create(['host_id' => $host->id, 'max_players' => 6]);

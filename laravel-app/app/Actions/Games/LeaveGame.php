@@ -8,6 +8,7 @@ use App\Exceptions\GameRuleException;
 use App\Models\Game;
 use App\Models\GamePlayer;
 use App\Models\User;
+use App\Notifications\BecameHost;
 use App\Support\BestEffortBroadcast;
 use Illuminate\Support\Facades\DB;
 
@@ -26,7 +27,9 @@ class LeaveGame
     {
         abort_unless($game->hasPlayer($user), 403);
 
-        $closed = DB::transaction(function () use ($game, $user): bool {
+        $newHostId = null;
+
+        $closed = DB::transaction(function () use ($game, $user, &$newHostId): bool {
             $game = $game->freshLocked();
 
             // Roles and words are dealt per roster, so nobody may slip out mid-round.
@@ -34,10 +37,14 @@ class LeaveGame
                 throw new GameRuleException('game', __('You cannot leave while a round is in progress.'));
             }
 
-            if ($game->isHost($user) && $this->handOver->toNextPlayer($game, $user->id) === null) {
-                $game->delete();
+            if ($game->isHost($user)) {
+                $newHostId = $this->handOver->toNextPlayer($game, $user->id);
 
-                return true;
+                if ($newHostId === null) {
+                    $game->delete();
+
+                    return true;
+                }
             }
 
             GamePlayer::where('game_id', $game->id)->where('user_id', $user->id)->delete();
@@ -45,8 +52,14 @@ class LeaveGame
             return false;
         });
 
-        if (! $closed) {
-            BestEffortBroadcast::dispatch(new GameUpdated($game->refresh()));
+        if ($closed) {
+            return;
         }
+
+        if ($newHostId !== null) {
+            User::find($newHostId)?->notify(new BecameHost($game->refresh()));
+        }
+
+        BestEffortBroadcast::dispatch(new GameUpdated($game->refresh()));
     }
 }

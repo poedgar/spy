@@ -4,12 +4,11 @@ use App\Actions\DeleteUser;
 use App\Enums\GameStatus;
 use App\Enums\InvitationStatus;
 use App\Events\InvitationIssued;
-use App\Events\JoinRequestAnswered;
 use App\Events\JoinRequestDecided;
 use App\Events\JoinRequested;
-use App\Listeners\SendInvitationEmail;
-use App\Listeners\SendJoinAnsweredPushNotification;
-use App\Listeners\SendJoinRequestPushNotification;
+use App\Listeners\NotifyHostOfJoinRequest;
+use App\Listeners\NotifyInvitee;
+use App\Listeners\NotifyJoinRequester;
 use App\Models\Game;
 use App\Models\GamePlayer;
 use App\Models\Invitation;
@@ -111,7 +110,7 @@ test('deleting an account hands its games over instead of deleting them', functi
 // --- Asking to join (item 5) --------------------------------------------------
 
 test('with approval on, a code join becomes a request the host answers', function () {
-    Event::fake([JoinRequested::class, JoinRequestDecided::class, JoinRequestAnswered::class]);
+    Event::fake([JoinRequested::class, JoinRequestDecided::class]);
     [$game, $host] = lobby(2, ['requires_approval' => true]);
     $guest = User::factory()->create();
 
@@ -195,11 +194,11 @@ test('join attempts are rate limited', function () {
     $this->postJson('/api/v1/games/SPY-ZZZZ/join')->assertTooManyRequests();
 });
 
-test('the host is pushed about requests, the player about approvals', function () {
+test('the host is notified about requests, the player about the answer', function () {
     Event::fake();
 
-    Event::assertListening(JoinRequested::class, SendJoinRequestPushNotification::class);
-    Event::assertListening(JoinRequestDecided::class, SendJoinAnsweredPushNotification::class);
+    Event::assertListening(JoinRequested::class, NotifyHostOfJoinRequest::class);
+    Event::assertListening(JoinRequestDecided::class, NotifyJoinRequester::class);
 });
 
 // --- Outstanding invitations (item 6) -----------------------------------------
@@ -232,13 +231,13 @@ test('invitees are emailed unless they turned emails off', function () {
     Notification::fake();
     $invitation = Invitation::factory()->create();
 
-    app(SendInvitationEmail::class)->handle(new InvitationIssued($invitation));
-    Notification::assertSentTo($invitation->toUser, InvitationReceived::class);
+    app(NotifyInvitee::class)->handle(new InvitationIssued($invitation));
+    Notification::assertSentTo($invitation->toUser, InvitationReceived::class, fn ($notification, $channels) => in_array('mail', $channels, true));
 
     $muted = Invitation::factory()->create();
     $muted->toUser->update(['email_notifications' => false]);
-    app(SendInvitationEmail::class)->handle(new InvitationIssued($muted));
-    Notification::assertNotSentTo($muted->toUser, InvitationReceived::class);
+    app(NotifyInvitee::class)->handle(new InvitationIssued($muted));
+    Notification::assertSentTo($muted->toUser, InvitationReceived::class, fn ($notification, $channels) => ! in_array('mail', $channels, true));
 });
 
 test('the invitation email is written in the invitees language', function () {
@@ -251,7 +250,7 @@ test('the invitation email is written in the invitees language', function () {
     $mail = (new InvitationReceived($invitation))->toMail($invitation->toUser);
 
     expect($mail->subject)->toContain('запрошує вас')
-        ->and($mail->actionUrl)->toBe(route('games.spy'));
+        ->and($mail->actionUrl)->toBe(url('/games/spy'));
 });
 
 // --- Codenames (item 8) ---------------------------------------------------------

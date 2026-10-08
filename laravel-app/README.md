@@ -185,9 +185,14 @@ both clients share the Action classes in `app/Actions`.
   `/api/broadcasting/auth`. `PlayerJoined` (`player.joined`) and
   `GameUpdated` (`game.updated`) broadcast on `private-game.{id}` to roster
   members. Neither carries round secrets, so clients refetch the lobby.
-- **Push:** devices register Expo push tokens; `InvitationIssued` and
-  `RoundStarted` queue push notifications (in each recipient's language)
-  through `App\Support\ExpoPush`. Production
+- **Notifications** (`app/Notifications`): invitations, join requests and
+  answers, round starts, removals and host handovers. Each is stored in the
+  `notifications` table straight away (the bell on web and mobile), and
+  delivered live on `private-user.{id}`, by Expo push and, for invitations,
+  by email unless the player turned emails off. Only the kind and its
+  parameters are stored; `NotificationPresenter` renders the text and link
+  in the reader's language. Live, push and mail delivery are queued, so
+  production needs a queue worker; the bell works without one. Production
   needs a queue worker. Set `EXPO_ACCESS_TOKEN` if Expo enhanced push
   security is enabled.
 - **Production (Laravel Cloud):** use a managed database rather than the

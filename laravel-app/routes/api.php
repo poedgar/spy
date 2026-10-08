@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\InvitationController;
 use App\Http\Controllers\Api\LobbyController;
 use App\Http\Controllers\Api\LocationController;
 use App\Http\Controllers\Api\MeController;
+use App\Http\Controllers\Api\NotificationController;
 use App\Http\Controllers\Api\PhraseController;
 use App\Http\Controllers\Api\PushTokenController;
 use Illuminate\Support\Facades\Broadcast;
@@ -24,6 +25,9 @@ Route::prefix('v1')->group(function () {
         Route::put('me/locale', [MeController::class, 'updateLocale']);
         Route::put('me/password', [MeController::class, 'updatePassword'])->middleware('throttle:6,1');
         Route::delete('me', [MeController::class, 'destroy']);
+        Route::get('notifications', [NotificationController::class, 'index']);
+        Route::post('notifications/read-all', [NotificationController::class, 'readAll']);
+        Route::post('notifications/{notification}/read', [NotificationController::class, 'read']);
         Route::post('me/push-tokens', [PushTokenController::class, 'store']);
         Route::delete('me/push-tokens/{token}', [PushTokenController::class, 'destroy']);
 

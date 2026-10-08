@@ -65,6 +65,15 @@ class User extends Authenticatable implements HasLocalePreference, PasskeyUser
     }
 
     /**
+     * Live notifications share the user's private channel with their other
+     * realtime events.
+     */
+    public function receivesBroadcastNotificationsOn(): string
+    {
+        return 'user.'.$this->id;
+    }
+
+    /**
      * Used by notifications and mail, and by the push listener.
      */
     public function preferredLocale(): string

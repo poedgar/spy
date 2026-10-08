@@ -7,9 +7,7 @@ use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
 
 /**
- * The host answered a join request. Deliberately not broadcast, like
- * InvitationIssued: broadcast() skips listeners, so the push listener hangs
- * off this event while JoinRequestAnswered carries the live update.
+ * The host answered a join request; NotifyJoinRequester tells the player.
  */
 class JoinRequestDecided
 {

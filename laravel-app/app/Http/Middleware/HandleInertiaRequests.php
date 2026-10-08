@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Support\NotificationFeed;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\File;
@@ -45,6 +46,8 @@ class HandleInertiaRequests extends Middleware
                 'user' => $request->user(),
             ],
             'locale' => App::getLocale(),
+            // The bell: unread count and the latest few, on every page.
+            'notifications' => fn () => $request->user() ? NotificationFeed::for($request->user(), 8) : null,
             // English strings are their own keys, so English ships nothing.
             // Keyed per language so switching languages refetches it.
             'translations' => Inertia::once(fn () => $this->translations(App::getLocale()))

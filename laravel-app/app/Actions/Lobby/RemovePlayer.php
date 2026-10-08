@@ -7,6 +7,7 @@ use App\Exceptions\GameRuleException;
 use App\Models\Game;
 use App\Models\GamePlayer;
 use App\Models\User;
+use App\Notifications\RemovedFromGame;
 use App\Support\BestEffortBroadcast;
 use Illuminate\Support\Facades\DB;
 
@@ -35,6 +36,7 @@ class RemovePlayer
             GamePlayer::where('game_id', $game->id)->where('user_id', $userId)->delete();
         });
 
+        User::find($userId)?->notify(new RemovedFromGame($game));
         BestEffortBroadcast::dispatch(new GameUpdated($game->refresh()));
     }
 }

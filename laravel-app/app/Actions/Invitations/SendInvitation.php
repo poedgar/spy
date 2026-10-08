@@ -5,12 +5,10 @@ namespace App\Actions\Invitations;
 use App\Enums\GameStatus;
 use App\Enums\InvitationStatus;
 use App\Events\InvitationIssued;
-use App\Events\InvitationSent;
 use App\Exceptions\GameRuleException;
 use App\Models\Game;
 use App\Models\Invitation;
 use App\Models\User;
-use App\Support\BestEffortBroadcast;
 
 class SendInvitation
 {
@@ -40,7 +38,6 @@ class SendInvitation
         );
 
         InvitationIssued::dispatch($invitation);
-        BestEffortBroadcast::dispatch(new InvitationSent($invitation));
 
         return $invitation;
     }

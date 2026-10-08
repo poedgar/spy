@@ -10,6 +10,7 @@ use App\Enums\RoundEnding;
 use App\Events\GameUpdated;
 use App\Models\Game;
 use App\Models\User;
+use App\Notifications\BecameHost;
 use App\Support\BestEffortBroadcast;
 use Illuminate\Support\Facades\DB;
 
@@ -19,7 +20,7 @@ class DeleteUser
 
     public function handle(User $user): void
     {
-        /** @var list<Game> $handedOver */
+        /** @var list<array{0: Game, 1: int}> $handedOver */
         $handedOver = [];
 
         DB::transaction(function () use ($user, &$handedOver) {
@@ -29,8 +30,10 @@ class DeleteUser
                 $game = $game->freshLocked();
                 $this->abandonRound($game);
 
-                if ($this->handOver->toNextPlayer($game, $user->id) !== null) {
-                    $handedOver[] = $game;
+                $newHostId = $this->handOver->toNextPlayer($game, $user->id);
+
+                if ($newHostId !== null) {
+                    $handedOver[] = [$game, $newHostId];
                 }
             }
 
@@ -41,8 +44,10 @@ class DeleteUser
             $user->delete();
         });
 
-        foreach ($handedOver as $game) {
-            BestEffortBroadcast::dispatch(new GameUpdated($game->refresh()));
+        foreach ($handedOver as [$game, $newHostId]) {
+            $game->refresh();
+            User::find($newHostId)?->notify(new BecameHost($game));
+            BestEffortBroadcast::dispatch(new GameUpdated($game));
         }
     }
 
