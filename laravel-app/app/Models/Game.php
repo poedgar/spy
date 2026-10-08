@@ -37,8 +37,6 @@ class Game extends Model
     /** @use HasFactory<GameFactory> */
     use HasFactory;
 
-    public const MIN_PLAYERS = 3;
-
     private const CODE_CHARS = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
 
     /**

@@ -6,11 +6,14 @@ const { t, locale } = useTrans();
 
 const MAX_PLAYERS = 10;
 
+const MIN_PLAYERS = 3;
+
 const form = useForm({
     title: '',
     // Phrases come from a pool in this language, independent of the UI's.
     phrase_language: locale.value as Locale,
-    max_players: 6,
+    // Tables start at the minimum; the host raises it for bigger groups.
+    max_players: MIN_PLAYERS,
     requires_approval: false,
     is_listed: true,
 });
@@ -77,7 +80,7 @@ function submit() {
                 id="input-phrase-max-players"
                 v-model.number="form.max_players"
                 type="number"
-                min="3"
+                :min="MIN_PLAYERS"
                 :max="MAX_PLAYERS"
                 class="w-full rounded border px-2 py-1"
             />

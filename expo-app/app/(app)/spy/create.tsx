@@ -16,6 +16,7 @@ import { useTheme } from '@/theme/useTheme';
 
 const MODES: GameMode[] = ['mole', 'codebreaker', 'counterintel'];
 const TIERS: AgeTier[] = ['children', 'teens', 'adults'];
+// Tables start at the minimum; the host raises it for bigger groups.
 const MIN_PLAYERS = 3;
 const MAX_PLAYERS = 12;
 
@@ -26,7 +27,7 @@ export default function CreateGame() {
   const createGame = useCreateGame();
   const [formError, setFormError] = useState<string | null>(null);
   const { control, handleSubmit, setError } = useForm<CreateGameInput>({
-    defaultValues: { title: '', game_mode: 'mole', age_tier: 'adults', max_players: 6, mission_briefing: '' },
+    defaultValues: { title: '', game_mode: 'mole', age_tier: 'adults', max_players: MIN_PLAYERS, mission_briefing: '' },
   });
 
   const onSubmit = handleSubmit(async (input) => {

@@ -8,11 +8,14 @@ import type { AgeTier, GameMode } from '@/types/game';
 const { t } = useTrans();
 const { modes, tiers } = useGameLabels();
 
+const MIN_PLAYERS = 3;
+
 const form = useForm({
     title: '',
     game_mode: 'mole' as GameMode,
     age_tier: 'adults' as AgeTier,
-    max_players: 6,
+    // Tables start at the minimum; the host raises it for bigger groups.
+    max_players: MIN_PLAYERS,
     mission_briefing: t(
         'A rogue operative has intercepted intelligence files.',
     ),
@@ -126,7 +129,7 @@ function submit() {
                 id="input-max-players"
                 v-model.number="form.max_players"
                 type="number"
-                min="3"
+                :min="MIN_PLAYERS"
                 max="12"
                 class="w-full rounded border px-2 py-1"
             />

@@ -38,7 +38,7 @@ class GameResource extends JsonResource
             'phrase_language' => $this->phrase_language,
             'max_players' => $this->max_players,
             'max_allowed_players' => $this->game_type->maxPlayers(),
-            'min_players' => Game::MIN_PLAYERS,
+            'min_players' => $this->game_type->minPlayers(),
             'mission_briefing' => $this->mission_briefing,
             'status' => $this->status,
             'host_id' => $this->host_id,

@@ -17,6 +17,7 @@ const LANGUAGES: { value: Locale; label: string }[] = [
   { value: 'en', label: 'English' },
   { value: 'uk', label: 'Українська' },
 ];
+// Tables start at the minimum; the host raises it for bigger groups.
 const MIN_PLAYERS = 3;
 // Every player needs a word of their own, and the pools' longest phrases cap this.
 const MAX_PLAYERS = 10;
@@ -28,7 +29,7 @@ export default function CreatePhraseGame() {
   const createGame = useCreatePhraseGame();
   const [formError, setFormError] = useState<string | null>(null);
   const { control, handleSubmit, setError } = useForm<CreatePhraseGameInput>({
-    defaultValues: { title: '', phrase_language: locale, max_players: 6 },
+    defaultValues: { title: '', phrase_language: locale, max_players: MIN_PLAYERS },
   });
 
   const onSubmit = handleSubmit(async (input) => {

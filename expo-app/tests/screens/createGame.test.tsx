@@ -32,7 +32,7 @@ test('creates an operation with the chosen settings and opens the lobby', async 
     title: 'Operation Nightfall',
     game_mode: 'codebreaker',
     age_tier: 'children',
-    max_players: 7,
+    max_players: 4,
     mission_briefing: 'Find the mole.',
   });
   await waitFor(() => expect(screen).toHavePathname('/games/SPY-AB3D'));

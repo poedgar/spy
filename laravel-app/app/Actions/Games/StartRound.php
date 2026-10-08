@@ -38,8 +38,8 @@ class StartRound
 
             $playerIds = $game->players()->pluck('user_id')->map(fn ($id) => (int) $id);
 
-            if ($playerIds->count() < Game::MIN_PLAYERS) {
-                throw new GameRuleException('game', __('At least :count operatives are required to start.', ['count' => Game::MIN_PLAYERS]));
+            if ($playerIds->count() < $game->game_type->minPlayers()) {
+                throw new GameRuleException('game', __('At least :count operatives are required to start.', ['count' => $game->game_type->minPlayers()]));
             }
 
             $previous = $game->currentRound()->first();

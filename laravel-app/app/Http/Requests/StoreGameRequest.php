@@ -4,6 +4,7 @@ namespace App\Http\Requests;
 
 use App\Enums\AgeTier;
 use App\Enums\GameMode;
+use App\Enums\GameType;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -33,7 +34,7 @@ class StoreGameRequest extends FormRequest
             'title' => ['required', 'string', 'max:255'],
             'game_mode' => ['required', 'string', Rule::enum(GameMode::class)],
             'age_tier' => ['required', 'string', Rule::enum(AgeTier::class)],
-            'max_players' => ['required', 'integer', 'min:3', 'max:12'],
+            'max_players' => ['required', 'integer', 'min:'.GameType::Spy->minPlayers(), 'max:'.GameType::Spy->maxPlayers()],
             'mission_briefing' => ['required', 'string', 'max:2000'],
             'requires_approval' => ['sometimes', 'boolean'],
             'is_listed' => ['sometimes', 'boolean'],

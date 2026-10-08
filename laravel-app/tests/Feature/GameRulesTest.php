@@ -2,6 +2,7 @@
 
 use App\Actions\Games\JoinGame;
 use App\Enums\GameStatus;
+use App\Enums\GameType;
 use App\Enums\Locale;
 use App\Exceptions\GameRuleException;
 use App\Models\Game;
@@ -99,3 +100,13 @@ test('a signed-in user can change their language on the web and the api', functi
 test('a guest language choice is kept in the session', function () {
     $this->post(route('locale.update'), ['locale' => 'uk'])->assertSessionHas('locale', 'uk');
 });
+
+test('every game type needs three players, and lobbies report it', function (GameType $type) {
+    expect($type->minPlayers())->toBe(3);
+
+    $game = Game::factory()->create(['game_type' => $type, 'phrase_language' => 'en']);
+    GamePlayer::factory()->create(['game_id' => $game->id, 'user_id' => $game->host_id, 'is_host' => true]);
+    Sanctum::actingAs($game->host);
+
+    $this->getJson("/api/v1/games/{$game->code}")->assertJsonPath('min_players', 3);
+})->with([GameType::Spy, GameType::Phrase]);
