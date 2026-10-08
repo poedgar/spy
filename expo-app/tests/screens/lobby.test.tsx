@@ -65,3 +65,42 @@ test('a non-member sees an explicit join prompt and can join', async () => {
   expect(gamesApi.join).toHaveBeenCalledWith('SPY-AB3D');
   expect(await screen.findByTestId('roster-1')).toBeOnTheScreen();
 });
+
+test('the lobby catches up when the realtime connection comes back', async () => {
+  const joined = fakeGame({
+    player_count: 2,
+    players: [...fakeGame().players!, { id: 101, user: otherUser, is_host: false, status: 'ready', joined_at: null }],
+  });
+  jest.mocked(gamesApi.show).mockResolvedValueOnce(fakeGame()).mockResolvedValue(joined);
+  await renderApp(routes, { initialUrl: '/games/SPY-AB3D', user: fakeUser });
+  await screen.findByTestId('roster-1');
+
+  // The accept happened while the socket was down, so no event arrived.
+  act(() => echo.setConnectionState('unavailable'));
+  act(() => echo.setConnectionState('connected'));
+
+  expect(await screen.findByTestId('roster-2')).toBeOnTheScreen();
+});
+
+test('without a live connection the lobby polls for changes', async () => {
+  jest.useFakeTimers();
+  echo.setConnectionState('unavailable');
+  const joined = fakeGame({
+    player_count: 2,
+    players: [...fakeGame().players!, { id: 101, user: otherUser, is_host: false, status: 'ready', joined_at: null }],
+  });
+  jest.mocked(gamesApi.show).mockResolvedValueOnce(fakeGame()).mockResolvedValue(joined);
+  try {
+    await renderApp(routes, { initialUrl: '/games/SPY-AB3D', user: fakeUser });
+    await screen.findByTestId('roster-1');
+    expect(screen.queryByTestId('roster-2')).toBeNull();
+
+    await act(async () => {
+      jest.advanceTimersByTime(5000);
+    });
+
+    expect(await screen.findByTestId('roster-2')).toBeOnTheScreen();
+  } finally {
+    jest.useRealTimers();
+  }
+});

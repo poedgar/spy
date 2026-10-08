@@ -27,6 +27,17 @@ export function createFakeEcho() {
     },
   };
 
+  const stateHandlers = new Set<(change: { previous: string; current: string }) => void>();
+  const connection = {
+    state: 'connected',
+    bind: jest.fn((_event: string, handler: (change: { previous: string; current: string }) => void) => {
+      stateHandlers.add(handler);
+    }),
+    unbind: jest.fn((_event: string, handler: (change: { previous: string; current: string }) => void) => {
+      stateHandlers.delete(handler);
+    }),
+  };
+
   return {
     private: jest.fn((name: string) => channel(`private-${name}`)),
     join: jest.fn(() => presenceChannel),
@@ -34,7 +45,13 @@ export function createFakeEcho() {
       for (const key of [...listeners.keys()]) if (key.startsWith(`private-${name}:`)) listeners.delete(key);
     }),
     disconnect: jest.fn(),
-    connector: { pusher: { connect: jest.fn(), disconnect: jest.fn() } },
+    connector: { pusher: { connect: jest.fn(), disconnect: jest.fn(), connection } },
+    /** Simulates the socket going down or coming back. */
+    setConnectionState(current: string) {
+      const previous = connection.state;
+      connection.state = current;
+      for (const handler of [...stateHandlers]) handler({ previous, current });
+    },
     emit(channelName: string, event: string, payload: unknown) {
       listeners.get(`${channelName}:${event}`)?.(payload);
     },
@@ -46,6 +63,8 @@ export function createFakeEcho() {
     reset() {
       listeners.clear();
       presence = {};
+      stateHandlers.clear();
+      connection.state = 'connected';
     },
   };
 }

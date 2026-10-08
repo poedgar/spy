@@ -20,8 +20,15 @@ export function usePhraseHome() {
   return useQuery({ queryKey: queryKeys.phraseHome, queryFn: gamesApi.phraseHome });
 }
 
-export function useGame(code: string) {
-  return useQuery({ queryKey: queryKeys.game(code), queryFn: () => gamesApi.show(code) });
+/** How often a lobby refetches while realtime is unavailable. */
+export const FALLBACK_POLL_MS = 5000;
+
+export function useGame(code: string, options: { poll?: boolean } = {}) {
+  return useQuery({
+    queryKey: queryKeys.game(code),
+    queryFn: () => gamesApi.show(code),
+    refetchInterval: options.poll ? FALLBACK_POLL_MS : false,
+  });
 }
 
 /** The pool never changes during a session, so it is fetched once per tier. */

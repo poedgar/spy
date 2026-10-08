@@ -175,6 +175,12 @@ both clients share the Action classes in `app/Actions`.
   attempts per minute per IP, except when `APP_ENV=local`.
 - **Errors:** 422 responses use Laravel's validation shape
   (`{ message, errors: { field: [..] } }`), including game-rule violations.
+- **Real-time setup:** without Pusher credentials nothing is pushed live.
+  Set `PUSHER_APP_ID/KEY/SECRET/CLUSTER` (or `PUSHER_HOST/PORT/SCHEME` for a
+  self-hosted Pusher-compatible server such as Reverb) **before building the
+  front end** — the `VITE_PUSHER_*` values are baked in at build time. Lobbies
+  fall back to refreshing every 5 seconds while the socket is down, and catch
+  up once it reconnects, so they stay correct (just slower) without it.
 - **Real-time:** mobile clients authorize channels at
   `/api/broadcasting/auth`. `PlayerJoined` (`player.joined`) and
   `GameUpdated` (`game.updated`) broadcast on `private-game.{id}` to roster

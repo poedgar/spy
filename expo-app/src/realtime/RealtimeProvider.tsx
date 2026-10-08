@@ -16,9 +16,10 @@ interface PresenceMember {
   codename: string;
 }
 
-const RealtimeContext = createContext<{ echo: EchoClient | null; onlineUserIds: Set<number> }>({
+const RealtimeContext = createContext<{ echo: EchoClient | null; onlineUserIds: Set<number>; connected: boolean }>({
   echo: null,
   onlineUserIds: new Set(),
+  connected: false,
 });
 
 export function RealtimeProvider({ children }: { children: ReactNode }) {
@@ -35,6 +36,7 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
   });
   const [echo, setEcho] = useState<EchoClient | null>(null);
   const [onlineUserIds, setOnlineUserIds] = useState<Set<number>>(new Set());
+  const [connected, setConnected] = useState(false);
 
   useEffect(() => {
     if (!token || !userId || !PUSHER_KEY) return;
@@ -44,6 +46,12 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
     // through state costs one extra render on sign-in, which is intended.
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setEcho(instance);
+
+    // Screens fall back to polling while the socket is down.
+    const connection = instance.connector.pusher.connection;
+    const onStateChange = ({ current }: { current: string }) => setConnected(current === 'connected');
+    connection.bind('state_change', onStateChange);
+    setConnected(connection.state === 'connected');
 
     instance
       .join('online-users')
@@ -96,15 +104,22 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
 
     return () => {
       subscription.remove();
+      connection.unbind('state_change', onStateChange);
       instance.disconnect();
       setEcho(null);
       setOnlineUserIds(new Set());
+      setConnected(false);
     };
     // showBanner and queryClient are stable; reconnect only when the session changes.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token, userId]);
 
-  return <RealtimeContext.Provider value={{ echo, onlineUserIds }}>{children}</RealtimeContext.Provider>;
+  return <RealtimeContext.Provider value={{ echo, onlineUserIds, connected }}>{children}</RealtimeContext.Provider>;
+}
+
+/** False when realtime is unconfigured or the socket is down: poll instead. */
+export function useRealtimeConnected(): boolean {
+  return useContext(RealtimeContext).connected;
 }
 
 export function useOnlineUserIds(): Set<number> {
@@ -116,11 +131,18 @@ export function useOnlineUserIds(): Set<number> {
  * events carry no secrets, so the handler refetches the player's own view.
  */
 export function useGameChannel(gameId: number | undefined, onChange: (payload?: PlayerJoinedPayload) => void) {
-  const { echo } = useContext(RealtimeContext);
+  const { echo, connected } = useContext(RealtimeContext);
+  const wasConnected = useRef(connected);
   const handler = useRef(onChange);
   useEffect(() => {
     handler.current = onChange;
   });
+
+  // Coming back online may have missed events: catch up once.
+  useEffect(() => {
+    if (connected && !wasConnected.current && gameId !== undefined) handler.current();
+    wasConnected.current = connected;
+  }, [connected, gameId]);
 
   useFocusEffect(
     useCallback(() => {

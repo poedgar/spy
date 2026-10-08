@@ -21,7 +21,7 @@ import { ResultsCard } from '@/game/ResultsCard';
 import { RoleCard } from '@/game/RoleCard';
 import { VotingCard } from '@/game/VotingCard';
 import { useI18n } from '@/i18n/I18nProvider';
-import { useGameChannel, useOnlineUserIds } from '@/realtime/RealtimeProvider';
+import { useGameChannel, useOnlineUserIds, useRealtimeConnected } from '@/realtime/RealtimeProvider';
 import { useTheme } from '@/theme/useTheme';
 
 const DEFAULT_MIN_PLAYERS = 3;
@@ -34,7 +34,10 @@ export default function Lobby() {
   const { spacing } = useTheme();
   const { showBanner } = useBanner();
   const online = useOnlineUserIds();
-  const game = useGame(code);
+  // Without a live socket (Pusher unconfigured, network trouble) the lobby
+  // would otherwise only update on pull-to-refresh.
+  const connected = useRealtimeConnected();
+  const game = useGame(code, { poll: !connected });
   const joinGame = useJoinGame();
   const action = useLobbyAction(code);
   const leave = useLeaveGame(code);
