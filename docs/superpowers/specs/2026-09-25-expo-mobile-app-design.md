@@ -201,7 +201,7 @@ module (no UI kit).
 `app.config.ts` reads `EXPO_PUBLIC_API_URL`, `EXPO_PUBLIC_PUSHER_KEY`,
 `EXPO_PUBLIC_PUSHER_CLUSTER`. App name `SpyNet`, scheme `spynet`, iOS
 `bundleIdentifier` and Android `package` both set to the placeholder
-`com.example.spynet` (the user replaces them before first submit), the
+`com.poedgar.marvelousgames` (the user replaces them before first submit), the
 `expo-notifications` plugin, an Android notification channel `invitations`,
 and placeholder icon/splash assets in the web's neutral palette (to be
 replaced with real artwork). `eas.json` defines `development` (dev client,

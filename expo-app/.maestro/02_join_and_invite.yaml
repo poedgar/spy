@@ -1,7 +1,7 @@
 # Second account joins the operation created by flow 01 by its code.
 # Run with the code shown in flow 01's lobby:
 #   maestro test -e CODE=SPY-XXXX .maestro/02_join_and_invite.yaml
-appId: com.example.spynet
+appId: com.poedgar.marvelousgames
 ---
 - runFlow: _start.yaml
 - tapOn:
@@ -21,7 +21,7 @@ appId: com.example.spynet
 - inputText: password
 - tapOn:
     id: btn-register
-- openLink: spynet://join/${CODE}
+- openLink: marvelousgames://join/${CODE}
 - assertVisible: Join operation ${CODE}?
 - tapOn:
     id: btn-join-game

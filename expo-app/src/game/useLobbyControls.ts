@@ -29,7 +29,7 @@ export function useLobbyControls(game: Game) {
     ]);
 
   const share = () => {
-    const params = { title: game.title, code: game.code, link: `spynet://join/${game.code}` };
+    const params = { title: game.title, code: game.code, link: `marvelousgames://join/${game.code}` };
     return Share.share({
       message:
         game.game_type === 'phrase'

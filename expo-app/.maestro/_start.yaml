@@ -3,7 +3,7 @@
 # With a development build, pass the Metro URL so the app loads its
 # JavaScript instead of stopping at the dev launcher:
 #   maestro test -e DEV_SERVER_URL=http://localhost:8081 .maestro/01_register_and_create.yaml
-appId: com.example.spynet
+appId: com.poedgar.marvelousgames
 ---
 - clearKeychain
 - launchApp:
@@ -12,7 +12,7 @@ appId: com.example.spynet
     when:
       true: ${typeof DEV_SERVER_URL !== 'undefined'}
     commands:
-      - openLink: exp+spynet://expo-development-client/?url=${encodeURIComponent(DEV_SERVER_URL)}
+      - openLink: exp+marvelousgames://expo-development-client/?url=${encodeURIComponent(DEV_SERVER_URL)}
       # The dev menu introduces itself over the app on first load.
       - extendedWaitUntil:
           visible: Continue

@@ -1,7 +1,7 @@
 # One account through the newer features: a timed Phrase game, closing it,
 # the notifications screen and switching to Ukrainian.
 # Run: maestro test .maestro/03_phrase_notifications_language.yaml
-appId: com.example.spynet
+appId: com.poedgar.marvelousgames
 ---
 - runFlow: _start.yaml
 - tapOn:

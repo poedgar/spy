@@ -1,6 +1,6 @@
 # Requires a dev build installed on a simulator/emulator and laravel-app
 # reachable at EXPO_PUBLIC_API_URL. Run: maestro test .maestro/01_register_and_create.yaml
-appId: com.example.spynet
+appId: com.poedgar.marvelousgames
 ---
 - runFlow: _start.yaml
 - tapOn:

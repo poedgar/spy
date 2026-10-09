@@ -49,7 +49,7 @@ test('share sends the code and the deep link', async () => {
   });
 
   expect(share.mock.calls[0][0].message).toContain('SPY-AB3D');
-  expect(share.mock.calls[0][0].message).toContain('spynet://join/SPY-AB3D');
+  expect(share.mock.calls[0][0].message).toContain('marvelousgames://join/SPY-AB3D');
 });
 
 test('a non-member sees an explicit join prompt and can join', async () => {

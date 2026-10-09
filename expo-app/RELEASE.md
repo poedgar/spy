@@ -3,12 +3,12 @@
 ## One-time setup
 
 1. Install the CLI and log in: `npm install -g eas-cli && eas login`.
-2. Link the project: `eas init` (writes the project id; set it as `EAS_PROJECT_ID`
-   in `.env` for local builds).
-3. Choose your store identifier (e.g. `com.yourname.spynet`) and set it as
+2. Link the project: `eas init`. The project id lives in `app.config.ts`
+   (`extra.eas.projectId`); push tokens need it.
+3. Choose your store identifier (e.g. `com.yourname.marvelousgames`) and set it as
    `APP_BUNDLE_ID` for every EAS environment
-   (`eas env:create --environment production --name APP_BUNDLE_ID --value com.yourname.spynet`).
-   Without it, `app.config.ts` falls back to the `com.example.spynet`
+   (`eas env:create --environment production --name APP_BUNDLE_ID --value com.yourname.marvelousgames`).
+   Without it, `app.config.ts` falls back to the `com.poedgar.marvelousgames`
    placeholder, which only works for local development. Update `appId` in
    `.maestro/*.yaml` to match. (The icons, adaptive icon and splash in
    `assets/` are the mask mark; swap them if you have final artwork.)
@@ -52,7 +52,7 @@
 - [ ] Two devices: online dots on Invite Players update as the other device
       opens/backgrounds the app; the lobby roster updates live when the second
       device joins.
-- [ ] Sharing an invite from the lobby and opening `spynet://join/<code>` on
+- [ ] Sharing an invite from the lobby and opening `marvelousgames://join/<code>` on
       another device pre-fills Join Operation.
 - [ ] Log in with a 2FA-enabled account (code and recovery code).
 - [ ] Delete account works and the account can no longer log in (web or app).

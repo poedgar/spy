@@ -1,14 +1,14 @@
 import type { ExpoConfig } from 'expo/config';
 
 // Store identifiers belong to your Apple/Google developer accounts: set
-// APP_BUNDLE_ID (e.g. com.yourname.spynet) for release builds. The default
+// APP_BUNDLE_ID (e.g. com.yourname.marvelousgames) for release builds. The default
 // is a placeholder that only works for local development.
-const bundleId = process.env.APP_BUNDLE_ID ?? 'com.example.spynet';
+const bundleId = process.env.APP_BUNDLE_ID ?? 'com.poedgar.marvelousgames';
 
 const config: ExpoConfig = {
   name: 'Marvelous Games',
-  slug: 'spynet',
-  scheme: 'spynet',
+  slug: 'marvelousgames',
+  scheme: 'marvelousgames',
   version: '1.0.0',
   orientation: 'portrait',
   userInterfaceStyle: 'automatic',
@@ -43,7 +43,7 @@ const config: ExpoConfig = {
     ],
   ],
   extra: {
-    eas: { projectId: process.env.EAS_PROJECT_ID },
+    eas: { projectId: 'a3026ce8-16cf-44e5-9f26-5e95e56a8bbf' },
   },
 };
 

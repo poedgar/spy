@@ -22,7 +22,7 @@
 - Invite codes match `^SPY-[ABCDEFGHJKLMNPQRSTUVWXYZ23456789]{4}$`.
 - Wording mirrors the web: "Choose a Game", "Spy", "Coming Soon", "Your Operations", "Pending Invitations", "Create Operation", "Join Operation", "Roster", "Invite Players", "operatives".
 - Colors: the web's shadcn tokens from `laravel-app/resources/css/app.css`, light and dark, chosen by the system color scheme. No UI kit.
-- Bundle id / package placeholder: `com.example.spynet`.
+- Bundle id / package placeholder: `com.poedgar.marvelousgames`.
 - Never show raw 5xx text; the client replaces it with "Something went wrong. Please try again."
 - `npm test` runs `tsc --noEmit`, `expo lint` and Jest; it must pass at the end of every task.
 - Commit messages follow the repo's plain-sentence style and end with `Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>`.
@@ -136,11 +136,11 @@ const config: ExpoConfig = {
   // Template artwork — replace icon/splash with real artwork before submitting.
   icon: './assets/icon.png',
   ios: {
-    bundleIdentifier: 'com.example.spynet',
+    bundleIdentifier: 'com.poedgar.marvelousgames',
     supportsTablet: false,
   },
   android: {
-    package: 'com.example.spynet',
+    package: 'com.poedgar.marvelousgames',
     adaptiveIcon: {
       foregroundImage: './assets/adaptive-icon.png',
       backgroundColor: '#171717',
@@ -4119,7 +4119,7 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
 ```yaml
 # Requires a dev build installed on a simulator/emulator and laravel-app
 # reachable at EXPO_PUBLIC_API_URL. Run: maestro test .maestro/01_register_and_create.yaml
-appId: com.example.spynet
+appId: com.poedgar.marvelousgames
 ---
 - launchApp:
     clearState: true
@@ -4163,7 +4163,7 @@ appId: com.example.spynet
 # Second account joins the operation created by flow 01 by its code.
 # Run with the code shown in flow 01's lobby:
 #   maestro test -e CODE=SPY-XXXX .maestro/02_join_and_invite.yaml
-appId: com.example.spynet
+appId: com.poedgar.marvelousgames
 ---
 - launchApp:
     clearState: true
@@ -4205,7 +4205,7 @@ appId: com.example.spynet
 2. Link the project: `eas init` (writes the project id; set it as `EAS_PROJECT_ID`
    in `.env` for local builds).
 3. Replace the placeholders in `app.config.ts`:
-   - `ios.bundleIdentifier` and `android.package` (currently `com.example.spynet`)
+   - `ios.bundleIdentifier` and `android.package` (currently `com.poedgar.marvelousgames`)
    - `icon`, adaptive icon and splash images in `assets/`
    - Update `appId` in `.maestro/*.yaml` to match.
 4. Environment variables per EAS environment (`development`, `preview`,

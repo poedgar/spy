@@ -1,7 +1,7 @@
 import { Redirect, useLocalSearchParams } from 'expo-router';
 import { isInviteCode, normalizeInviteCode } from '@/linking';
 
-/** Target of spynet://join/{code}: never joins directly, only pre-fills the join screen. */
+/** Target of marvelousgames://join/{code}: never joins directly, only pre-fills the join screen. */
 export default function JoinLink() {
   const { code } = useLocalSearchParams<{ code: string }>();
   const normalized = normalizeInviteCode(code ?? '');
