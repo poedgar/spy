@@ -64,3 +64,23 @@ GitHub Actions run per app on changes to it: Laravel tests, PHPStan and Pint
 All done: Ukrainian, notifications, invited players showing up without a
 reload, a minimum (3) as the default table size, asking to join, and
 joining without an invitation (open games and join requests).
+
+_
+
+Your side (needs your accounts or servers):
+
+Production deploy: run the migration, start the scheduler and queue worker, configure mail and set APP_NAME, as listed before.
+Change the Neon database password. The old host was public in the README, and git history still has it.
+Pick a real bundle id (for example com.yourname.spynet), set APP_BUNDLE_ID, and do a first EAS build. Push notifications only work in a real build, not the simulator, so test them on a phone.
+Worth doing next (I can do these):
+4. Android check. Only iOS has been run with Maestro. Running the flows on an Android emulator would test the push channel fix and the keyboard behaviour there.
+5. Flow 02 (join and invite) needs two accounts. I can make it create its own second user through the API so it runs on its own, then add the Maestro flows to CI.
+6. Delete the merged branches (lobby-improvements, open-games, notifications, phrase-game, spy-rounds-and-ukrainian, ukrainian-gaps, polish) locally and on GitHub. They're all merged into main.
+7. Error monitoring (Sentry or similar) for both apps, so production crashes reach you.
+
+Bigger product ideas, if you want them:
+8. A third game for the "Coming Soon" tile.
+9. Play stats per player (games played, wins as spy, phrases guessed).
+10. Rematch with the same players in one tap after a game ends.
+
+I'd start with 4–6. Tell me which ones to do.

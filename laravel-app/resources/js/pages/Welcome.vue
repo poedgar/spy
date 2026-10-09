@@ -1,33 +1,44 @@
 <script setup lang="ts">
 import { Head, Link } from '@inertiajs/vue3';
-import { MapPin, Vote, VenetianMask } from '@lucide/vue';
+import { MessageSquareQuote, VenetianMask } from '@lucide/vue';
 import LanguageSwitcher from '@/components/LanguageSwitcher.vue';
 import { useTrans } from '@/composables/useTrans';
 import { dashboard, login, register } from '@/routes';
 
 const { t } = useTrans();
 
-const steps = [
+const games = [
     {
-        icon: MapPin,
-        title: 'Everyone gets the location',
-        body: 'Every operative is told the same secret place, drawn from hundreds of locations.',
-    },
-    {
+        id: 'spy',
         icon: VenetianMask,
-        title: 'Except the spies',
-        body: 'One to four spies know only that they are spies. They must bluff their way through.',
+        name: 'Spy',
+        intro: 'A social deduction party game. Everyone knows where you are, except the spy.',
+        steps: [
+            'Every operative is told the same secret place, drawn from hundreds of locations.',
+            'One to four spies know only that they are spies. They must bluff their way through.',
+            'Ask each other questions, then vote out a suspect, unless a spy names the location first.',
+        ],
+        play: 'Play Spy',
+        path: '/games/spy',
     },
     {
-        icon: Vote,
-        title: 'Question, then vote',
-        body: 'Ask each other questions, then vote out a suspect, unless a spy names the location first.',
+        id: 'phrase',
+        icon: MessageSquareQuote,
+        name: 'Phrase',
+        intro: 'Everyone holds one word of a famous phrase. Ask questions and be the first to guess it.',
+        steps: [
+            'Each player secretly gets one word of a famous phrase.',
+            'Take turns asking each other about your words, out loud.',
+            'Be the first to guess the whole phrase. A wrong guess costs a point.',
+        ],
+        play: 'Play Phrase',
+        path: '/games/phrase',
     },
 ];
 </script>
 
 <template>
-    <Head :title="t('Spy')" />
+    <Head :title="t('Marvelous Games')" />
     <div
         class="flex min-h-screen flex-col items-center bg-background p-6 text-foreground lg:p-8"
     >
@@ -65,41 +76,47 @@ const steps = [
         >
             <div class="space-y-3 text-center">
                 <h1 class="text-4xl font-bold tracking-tight">
-                    {{ t('Spy') }}
+                    {{ t('Marvelous Games') }}
                 </h1>
                 <p class="mx-auto max-w-xl text-lg text-muted-foreground">
                     {{
                         t(
-                            'A social deduction party game. Everyone knows where you are, except the spy.',
+                            'Party games for friends: gather around, open it on your phones and play.',
                         )
                     }}
                 </p>
             </div>
 
-            <ol class="grid gap-4 sm:grid-cols-3">
-                <li
-                    v-for="step in steps"
-                    :key="step.title"
-                    class="rounded-xl border p-5"
+            <div class="grid gap-4 md:grid-cols-2">
+                <section
+                    v-for="game in games"
+                    :id="`welcome-${game.id}`"
+                    :key="game.id"
+                    class="flex flex-col rounded-xl border p-6"
                 >
-                    <component
-                        :is="step.icon"
-                        class="mb-2 size-6 text-primary"
-                    />
-                    <h2 class="font-semibold">{{ t(step.title) }}</h2>
-                    <p class="mt-1 text-sm text-muted-foreground">
-                        {{ t(step.body) }}
+                    <h2 class="flex items-center gap-2 text-xl font-semibold">
+                        <component
+                            :is="game.icon"
+                            class="size-6 text-primary"
+                        />
+                        {{ t(game.name) }}
+                    </h2>
+                    <p class="mt-2 text-muted-foreground">
+                        {{ t(game.intro) }}
                     </p>
-                </li>
-            </ol>
-
-            <div class="text-center">
-                <Link
-                    :href="$page.props.auth.user ? '/games/spy' : register()"
-                    class="inline-block rounded-md bg-primary px-6 py-2.5 font-medium text-primary-foreground hover:bg-primary/90"
-                >
-                    {{ t('Start an operation') }}
-                </Link>
+                    <ol class="mt-4 flex-1 list-decimal space-y-2 pl-5 text-sm">
+                        <li v-for="step in game.steps" :key="step">
+                            {{ t(step) }}
+                        </li>
+                    </ol>
+                    <!-- Guests sign up first; players go straight to the game. -->
+                    <Link
+                        :href="$page.props.auth.user ? game.path : register()"
+                        class="mt-6 inline-block self-start rounded-md bg-primary px-5 py-2 font-medium text-primary-foreground hover:bg-primary/90"
+                    >
+                        {{ t(game.play) }}
+                    </Link>
+                </section>
             </div>
         </main>
     </div>
