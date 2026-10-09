@@ -16,7 +16,7 @@ test('field errors go to their fields, unknown keys become the form message', ()
 test('non-validation errors become the form message', () => {
   const setError = jest.fn();
 
-  expect(applyServerErrors<Form>(new NetworkError(), setError, ['email'])).toBe("Can't reach SpyNet. Check your connection.");
+  expect(applyServerErrors<Form>(new NetworkError(), setError, ['email'])).toBe("Can't reach Marvelous Games. Check your connection.");
   expect(applyServerErrors<Form>(new ApiError(403, 'Forbidden.'), setError, ['email'])).toBe('Forbidden.');
   expect(applyServerErrors<Form>(new Error('boom'), setError, ['email'])).toBe('Something went wrong. Please try again.');
   expect(setError).not.toHaveBeenCalled();

@@ -1,6 +1,6 @@
-# SpyNet Mobile (Expo)
+# Marvelous Games Mobile (Expo)
 
-iOS/Android client for the SpyNet platform. Talks to `../laravel-app`'s
+iOS/Android client for Marvelous Games. Talks to `../laravel-app`'s
 `/api/v1` JSON API (see that README's "Mobile API" section).
 
 ## Develop

@@ -3,7 +3,7 @@ defineOptions({ inheritAttrs: false });
 </script>
 
 <template>
-    <!-- SpyNet mark: a masquerade mask (Lucide "venetian-mask", ISC licence).
+    <!-- The app mark: a masquerade mask (Lucide "venetian-mask", ISC licence).
          Inline styles beat callers' `fill-current`, which would fill the outline. -->
     <svg
         xmlns="http://www.w3.org/2000/svg"

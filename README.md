@@ -1,4 +1,4 @@
-# SpyNet
+# Marvelous Games
 
 Party games for friends, on the web and on phones: **Spy** (everyone knows
 the location except the spies) and **Phrase** (everyone holds one word of a
@@ -49,7 +49,7 @@ Once, on the server:
   still work, refreshing every few seconds instead of instantly.
 - **Mail** (`MAIL_*`): invitation emails, password resets, email
   verification.
-- `APP_NAME=SpyNet`, and `SANCTUM_TOKEN_EXPIRATION` if mobile sign-ins
+- `APP_NAME="Marvelous Games"`, and `SANCTUM_TOKEN_EXPIRATION` if mobile sign-ins
   should last other than 90 days.
 
 ## CI

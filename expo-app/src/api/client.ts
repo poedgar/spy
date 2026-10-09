@@ -42,7 +42,7 @@ export async function request<T>(method: Method, path: string, body?: unknown): 
       body: body === undefined ? undefined : JSON.stringify(body),
     });
   } catch {
-    throw new NetworkError(localMessage("Can't reach SpyNet. Check your connection."));
+    throw new NetworkError(localMessage("Can't reach Marvelous Games. Check your connection."));
   }
 
   if (response.status === 204) return undefined as T;

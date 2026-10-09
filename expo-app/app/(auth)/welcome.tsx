@@ -12,7 +12,7 @@ export default function Welcome() {
   return (
     <Screen scroll={false}>
       <View style={{ gap: 8, marginTop: 96 }}>
-        <AppText variant="title">{t('SpyNet')}</AppText>
+        <AppText variant="title">{t('Marvelous Games')}</AppText>
         <AppText variant="muted">{t('Social-deduction party games. Find the mole before time runs out.')}</AppText>
       </View>
       <Button testID="btn-welcome-login" label={t('Log in')} onPress={() => router.push('/login')} />

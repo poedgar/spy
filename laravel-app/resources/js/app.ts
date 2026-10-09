@@ -6,7 +6,7 @@ import SettingsLayout from '@/layouts/settings/Layout.vue';
 import { initializeFlashToast } from '@/lib/flashToast';
 import './echo';
 
-const appName = import.meta.env.VITE_APP_NAME || 'SpyNet';
+const appName = import.meta.env.VITE_APP_NAME || 'Marvelous Games';
 
 void createInertiaApp({
     title: (title) => (title ? `${title} - ${appName}` : appName),

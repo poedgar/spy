@@ -6,13 +6,13 @@ import type { ExpoConfig } from 'expo/config';
 const bundleId = process.env.APP_BUNDLE_ID ?? 'com.example.spynet';
 
 const config: ExpoConfig = {
-  name: 'SpyNet',
+  name: 'Marvelous Games',
   slug: 'spynet',
   scheme: 'spynet',
   version: '1.0.0',
   orientation: 'portrait',
   userInterfaceStyle: 'automatic',
-  // The SpyNet mask mark (Lucide "venetian-mask", ISC), as on the web app.
+  // The app's mask mark (Lucide "venetian-mask", ISC), as on the web app.
   icon: './assets/icon.png',
   ios: {
     bundleIdentifier: bundleId,

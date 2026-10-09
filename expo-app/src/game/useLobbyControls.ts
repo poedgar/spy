@@ -28,15 +28,15 @@ export function useLobbyControls(game: Game) {
       { text: t('Confirm'), style: 'destructive', onPress: onConfirm },
     ]);
 
-  const share = () =>
-    Share.share({
-      message: t(
+  const share = () => {
+    const params = { title: game.title, code: game.code, link: `spynet://join/${game.code}` };
+    return Share.share({
+      message:
         game.game_type === 'phrase'
-          ? 'Join my Phrase game ":title" with invite code :code: :link'
-          : 'Join my SpyNet operation ":title" with invite code :code: :link',
-        { title: game.title, code: game.code, link: `spynet://join/${game.code}` },
-      ),
+          ? t('Join my Phrase game ":title" with invite code :code: :link', params)
+          : t('Join my Spy game ":title" with invite code :code: :link', params),
     });
+  };
 
   return {
     me,

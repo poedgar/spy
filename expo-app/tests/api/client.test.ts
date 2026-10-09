@@ -95,7 +95,7 @@ test('messages the app writes itself follow the chosen language', async () => {
     await expect(request('GET', '/me')).rejects.toThrow('Щось пішло не так. Спробуйте ще раз.');
 
     fetchMock.mockRejectedValueOnce(new TypeError('offline'));
-    await expect(request('GET', '/me')).rejects.toThrow('Немає звʼязку зі SpyNet. Перевірте підключення.');
+    await expect(request('GET', '/me')).rejects.toThrow('Немає звʼязку з Marvelous Games. Перевірте підключення.');
   } finally {
     setRequestLocale(null);
   }

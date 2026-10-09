@@ -1,4 +1,4 @@
-# Releasing SpyNet Mobile
+# Releasing Marvelous Games Mobile
 
 ## One-time setup
 
@@ -11,7 +11,7 @@
    Without it, `app.config.ts` falls back to the `com.example.spynet`
    placeholder, which only works for local development. Update `appId` in
    `.maestro/*.yaml` to match. (The icons, adaptive icon and splash in
-   `assets/` are the SpyNet mask mark; swap them if you have final artwork.)
+   `assets/` are the mask mark; swap them if you have final artwork.)
 4. Environment variables per EAS environment (`development`, `preview`,
    `production`):
 

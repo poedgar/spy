@@ -1,4 +1,4 @@
-# SpyNet Terminal — Laravel/Vue rebuild
+# Marvelous Games — Laravel/Vue app
 
 Phase 1 of a phased rebuild of the React/Firebase app at the repo root, in
 Laravel 13 + Inertia + Vue 3 + SQLite. See

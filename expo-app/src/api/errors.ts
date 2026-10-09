@@ -19,7 +19,7 @@ export class ValidationError extends ApiError {
 }
 
 export class NetworkError extends Error {
-  constructor(message = "Can't reach SpyNet. Check your connection.") {
+  constructor(message = "Can't reach Marvelous Games. Check your connection.") {
     super(message);
     this.name = 'NetworkError';
   }
