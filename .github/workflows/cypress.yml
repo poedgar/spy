@@ -1,9 +1,30 @@
-name: E2E (production)
+name: SPA E2E
 
+# The original React/Firebase SPA at the repo root. Only its own files
+# trigger it; the Laravel and Expo apps have their own workflows.
 on:
   push:
-  schedule:
-    - cron: '0 */24 * * *'
+    paths:
+      - 'src/**'
+      - 'cypress/**'
+      - 'index.html'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'vite.config.ts'
+      - 'tsconfig.json'
+      - 'cypress.config.ts'
+      - '.github/workflows/cypress.yml'
+  pull_request:
+    paths:
+      - 'src/**'
+      - 'cypress/**'
+      - 'index.html'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'vite.config.ts'
+      - 'tsconfig.json'
+      - 'cypress.config.ts'
+      - '.github/workflows/cypress.yml'
   workflow_dispatch: {}
 
 permissions:

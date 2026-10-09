@@ -5,6 +5,7 @@ namespace App\Http\Requests;
 use App\Enums\AgeTier;
 use App\Enums\GameMode;
 use App\Enums\GameType;
+use App\Models\Game;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -26,6 +27,22 @@ class StoreGameRequest extends FormRequest
     }
 
     /**
+     * Stores "no timer" as null.
+     *
+     * @return array<string, mixed>
+     */
+    public function validated($key = null, $default = null): mixed
+    {
+        $validated = parent::validated($key, $default);
+
+        if ($key === null && is_array($validated) && empty($validated['round_seconds'])) {
+            $validated['round_seconds'] = null;
+        }
+
+        return $validated;
+    }
+
+    /**
      * @return array<string, mixed>
      */
     public function rules(): array
@@ -38,6 +55,8 @@ class StoreGameRequest extends FormRequest
             'mission_briefing' => ['required', 'string', 'max:2000'],
             'requires_approval' => ['sometimes', 'boolean'],
             'is_listed' => ['sometimes', 'boolean'],
+            // Seconds per round; empty or 0 means no timer.
+            'round_seconds' => ['nullable', 'integer', Rule::in(Game::ROUND_TIMER_CHOICES)],
         ];
     }
 }

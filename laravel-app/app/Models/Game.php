@@ -29,13 +29,23 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
  * @property int $max_players
  * @property bool $requires_approval
  * @property bool $is_listed
+ * @property int|null $round_seconds
  * @property int|null $players_count
  */
-#[Fillable(['title', 'game_mode', 'age_tier', 'phrase_language', 'code', 'host_id', 'max_players', 'mission_briefing', 'status', 'game_type', 'requires_approval', 'is_listed'])]
+#[Fillable(['title', 'game_mode', 'age_tier', 'phrase_language', 'code', 'host_id', 'max_players', 'mission_briefing', 'status', 'game_type', 'requires_approval', 'is_listed', 'round_seconds'])]
 class Game extends Model
 {
     /** @use HasFactory<GameFactory> */
     use HasFactory;
+
+    /** Everything a lobby shows, for eager loading. */
+    public const LOBBY_RELATIONS = [
+        'host', 'players.user', 'currentRound.votes', 'currentPhraseRound.guesses',
+        'joinRequests.user', 'invitations.toUser', 'pastRounds', 'pastPhraseRounds',
+    ];
+
+    /** Round lengths a host can pick, in seconds (0 = no timer). */
+    public const ROUND_TIMER_CHOICES = [0, 180, 300, 480, 600];
 
     private const CODE_CHARS = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
 
@@ -179,6 +189,26 @@ class Game extends Model
     public function currentRound(): HasOne
     {
         return $this->hasOne(GameRound::class)->latestOfMany('number');
+    }
+
+    /**
+     * Finished Spy rounds, newest first, for the lobby's history.
+     *
+     * @return HasMany<GameRound, $this>
+     */
+    public function pastRounds(): HasMany
+    {
+        return $this->hasMany(GameRound::class)->whereNotNull('ended_at')->latest('number')->limit(10);
+    }
+
+    /**
+     * Finished Phrase deals, newest first, for the lobby's history.
+     *
+     * @return HasMany<PhraseRound, $this>
+     */
+    public function pastPhraseRounds(): HasMany
+    {
+        return $this->hasMany(PhraseRound::class)->whereNotNull('ended_at')->latest('number')->limit(10);
     }
 
     /**

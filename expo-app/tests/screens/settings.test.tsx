@@ -95,3 +95,16 @@ test('a wrong password does not delete the account', async () => {
   expect(await screen.findByText('The password is incorrect.')).toBeOnTheScreen();
   expect(screen).toHavePathname('/settings/delete-account');
 });
+
+test('an unverified email is pointed out, with a way to resend the link', async () => {
+  jest.mocked(meApi.resendVerification).mockResolvedValue(undefined);
+  await renderApp(routes, { initialUrl: '/settings', user: { ...fakeUser, email_verified: false } });
+
+  const resend = await screen.findByTestId('btn-resend-verification');
+  await act(async () => {
+    fireEvent.press(resend);
+  });
+
+  expect(meApi.resendVerification).toHaveBeenCalled();
+  expect(await screen.findByText('Verification link sent.')).toBeOnTheScreen();
+});

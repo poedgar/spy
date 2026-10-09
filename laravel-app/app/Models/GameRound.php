@@ -21,6 +21,7 @@ use Illuminate\Support\Carbon;
  * @property int $location_id
  * @property list<int> $spy_user_ids
  * @property Carbon $started_at
+ * @property Carbon|null $ends_at
  * @property Carbon|null $voting_started_at
  * @property Carbon|null $ended_at
  * @property RoundEnding|null $ending
@@ -29,7 +30,7 @@ use Illuminate\Support\Carbon;
  * @property int|null $guessed_by_user_id
  * @property int|null $guessed_location_id
  */
-#[Fillable(['game_id', 'number', 'location_id', 'spy_user_ids', 'started_at', 'voting_started_at', 'ended_at', 'ending', 'winning_team', 'accused_user_id', 'guessed_by_user_id', 'guessed_location_id'])]
+#[Fillable(['game_id', 'number', 'location_id', 'spy_user_ids', 'started_at', 'ends_at', 'voting_started_at', 'ended_at', 'ending', 'winning_team', 'accused_user_id', 'guessed_by_user_id', 'guessed_location_id'])]
 class GameRound extends Model
 {
     /** @use HasFactory<GameRoundFactory> */
@@ -40,6 +41,7 @@ class GameRound extends Model
         return [
             'spy_user_ids' => 'array',
             'started_at' => 'datetime',
+            'ends_at' => 'datetime',
             'voting_started_at' => 'datetime',
             'ended_at' => 'datetime',
             'ending' => RoundEnding::class,

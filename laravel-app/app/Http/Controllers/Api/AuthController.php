@@ -6,6 +6,7 @@ use App\Actions\Fortify\CreateNewUser;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\UserResource;
 use App\Models\User;
+use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -25,6 +26,7 @@ class AuthController extends Controller
         $request->validate(['device_name' => ['required', 'string', 'max:255']]);
 
         $user = $creator->create($request->only(['name', 'email', 'password', 'password_confirmation']));
+        event(new Registered($user)); // sends the verification email, as the web sign-up does
 
         return $this->issueToken($user, (string) $request->input('device_name'))->setStatusCode(201);
     }

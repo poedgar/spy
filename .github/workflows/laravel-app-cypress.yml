@@ -4,6 +4,14 @@ on:
   push:
     paths:
       - 'laravel-app/**'
+      - '.github/workflows/laravel-app-cypress.yml'
+  pull_request:
+    paths:
+      - 'laravel-app/**'
+      - '.github/workflows/laravel-app-cypress.yml'
+
+permissions:
+  contents: read
 
 jobs:
   cypress:
@@ -19,7 +27,7 @@ jobs:
       - name: Set up PHP
         uses: shivammathur/setup-php@v2
         with:
-          php-version: '8.4'
+          php-version: '8.5'
 
       - name: Set up Node
         uses: actions/setup-node@v4

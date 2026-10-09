@@ -1,179 +1,66 @@
-## TODO
+# SpyNet
 
-1 ukrainian lang
+Party games for friends, on the web and on phones: **Spy** (everyone knows
+the location except the spies) and **Phrase** (everyone holds one word of a
+famous phrase). English and Ukrainian.
 
-2 notifications
+| Folder         | What it is                                                                 |
+| -------------- | -------------------------------------------------------------------------- |
+| `laravel-app/` | The main app: Laravel + Inertia/Vue web client, and the JSON API for mobile. |
+| `expo-app/`    | The iOS/Android app (Expo, React Native), built on the Laravel API.          |
+| repo root      | The original React/Firebase prototype, kept as it was.                     |
 
-3 those invited did not show up
+Details live in each app's README: [`laravel-app/README.md`](laravel-app/README.md)
+(game rules, API, realtime, notifications) and
+[`expo-app/README.md`](expo-app/README.md) / [`expo-app/RELEASE.md`](expo-app/RELEASE.md).
 
-4 min - default
+## Running locally
 
-3 ask to be joined
+```bash
+# Web app + API
+cd laravel-app
+composer setup        # install, .env, key, migrate, build
+composer dev          # server, queue worker, Vite
 
-3 when try to join without invitation
-{
-  "exception": {
-    "class": "Illuminate\\Database\\QueryException",
-    "message": "SQLSTATE[42P01]: Undefined table: 7 ERROR:  relation \"users\" does not exist\nLINE 1: select count(*) as \"aggregate\" from \"users\" where \"email\" = ...\n                                            ^ (Connection: pgsql, Host: ep-summer-river-b1ei8r07.c-5.eu-central-1.aws.neon.tech, Port: 5432, Database: neondb, SQL: select count(*) as \"aggregate\" from \"users\" where \"email\" = poedgar@ukr.net)",
-    "code": 42,
-    "file": "/var/www/workspace/laravel-app/vendor/laravel/framework/src/Illuminate/Database/Connection.php:857",
-    "trace": [
-      "/var/www/workspace/laravel-app/vendor/laravel/framework/src/Illuminate/Database/Connection.php:813",
-      "/var/www/workspace/laravel-app/vendor/laravel/framework/src/Illuminate/Database/Connection.php:426",
-      "/var/www/workspace/laravel-app/vendor/laravel/framework/src/Illuminate/Database/Query/Builder.php:3629",
-      "/var/www/workspace/laravel-app/vendor/laravel/framework/src/Illuminate/Database/Query/Builder.php:3613",
-      "/var/www/workspace/laravel-app/vendor/laravel/framework/src/Illuminate/Database/Query/Builder.php:4129",
-      "/var/www/workspace/laravel-app/vendor/laravel/framework/src/Illuminate/Database/Query/Builder.php:4057",
-      "/var/www/workspace/laravel-app/vendor/laravel/framework/src/Illuminate/Validation/DatabasePresenceVerifier.php:53",
-      "/var/www/workspace/laravel-app/vendor/laravel/framework/src/Illuminate/Validation/Concerns/ValidatesAttributes.php:1126",
-      "/var/www/workspace/laravel-app/vendor/laravel/framework/src/Illuminate/Validation/Validator.php:733",
-      "/var/www/workspace/laravel-app/vendor/laravel/framework/src/Illuminate/Validation/Validator.php:488",
-      "/var/www/workspace/laravel-app/vendor/laravel/framework/src/Illuminate/Validation/Validator.php:523",
-      "/var/www/workspace/laravel-app/vendor/laravel/framework/src/Illuminate/Validation/Validator.php:599",
-      "/var/www/workspace/laravel-app/app/Actions/Fortify/CreateNewUser.php:26",
-      "/var/www/workspace/laravel-app/vendor/laravel/fortify/src/Http/Controllers/RegisteredUserController.php:62",
-      "/var/www/workspace/laravel-app/vendor/laravel/framework/src/Illuminate/Routing/Controller.php:54",
-      "/var/www/workspace/laravel-app/vendor/laravel/framework/src/Illuminate/Routing/ControllerDispatcher.php:43",
-      "/var/www/workspace/laravel-app/vendor/laravel/framework/src/Illuminate/Routing/Route.php:276",
-      "/var/www/workspace/laravel-app/vendor/laravel/framework/src/Illuminate/Routing/Route.php:216",
-      "/var/www/workspace/laravel-app/vendor/laravel/framework/src/Illuminate/Routing/Router.php:822",
-      "/var/www/workspace/laravel-app/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php:180",
-      "/var/www/workspace/laravel-app/vendor/laravel/framework/src/Illuminate/Auth/Middleware/RedirectIfAuthenticated.php:47",
-      "/var/www/workspace/laravel-app/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php:219",
-      "/var/www/workspace/laravel-app/vendor/laravel/framework/src/Illuminate/Http/Middleware/AddLinkHeadersForPreloadedAssets.php:32",
-      "/var/www/workspace/laravel-app/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php:219",
-      "/var/www/workspace/laravel-app/vendor/inertiajs/inertia-laravel/src/Middleware.php:147",
-      "/var/www/workspace/laravel-app/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php:219",
-      "/var/www/workspace/laravel-app/app/Http/Middleware/HandleAppearance.php:21",
-      "/var/www/workspace/laravel-app/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php:219",
-      "/var/www/workspace/laravel-app/vendor/laravel/framework/src/Illuminate/Routing/Middleware/SubstituteBindings.php:52",
-      "/var/www/workspace/laravel-app/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php:219",
-      "/var/www/workspace/laravel-app/vendor/laravel/framework/src/Illuminate/Foundation/Http/Middleware/PreventRequestForgery.php:104",
-      "/var/www/workspace/laravel-app/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php:219",
-      "/var/www/workspace/laravel-app/vendor/laravel/framework/src/Illuminate/View/Middleware/ShareErrorsFromSession.php:48",
-      "/var/www/workspace/laravel-app/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php:219",
-      "/var/www/workspace/laravel-app/vendor/laravel/framework/src/Illuminate/Session/Middleware/StartSession.php:120",
-      "/var/www/workspace/laravel-app/vendor/laravel/framework/src/Illuminate/Session/Middleware/StartSession.php:63",
-      "/var/www/workspace/laravel-app/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php:219",
-      "/var/www/workspace/laravel-app/vendor/laravel/framework/src/Illuminate/Cookie/Middleware/AddQueuedCookiesToResponse.php:36",
-      "/var/www/workspace/laravel-app/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php:219",
-      "/var/www/workspace/laravel-app/vendor/laravel/framework/src/Illuminate/Cookie/Middleware/EncryptCookies.php:74",
-      "/var/www/workspace/laravel-app/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php:219",
-      "/var/www/workspace/laravel-app/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php:137",
-      "/var/www/workspace/laravel-app/vendor/laravel/framework/src/Illuminate/Routing/Router.php:821",
-      "/var/www/workspace/laravel-app/vendor/laravel/framework/src/Illuminate/Routing/Router.php:800",
-      "/var/www/workspace/laravel-app/vendor/laravel/framework/src/Illuminate/Routing/Router.php:764",
-      "/var/www/workspace/laravel-app/vendor/laravel/framework/src/Illuminate/Routing/Router.php:753",
-      "/var/www/workspace/laravel-app/vendor/laravel/framework/src/Illuminate/Foundation/Http/Kernel.php:200",
-      "/var/www/workspace/laravel-app/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php:180",
-      "/var/www/workspace/laravel-app/vendor/inertiajs/inertia-laravel/src/Middleware/EnsureGetOnRedirect.php:19",
-      "/var/www/workspace/laravel-app/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php:219",
-      "/var/www/workspace/laravel-app/vendor/laravel/framework/src/Illuminate/Foundation/Http/Middleware/TransformsRequest.php:21",
-      "/var/www/workspace/laravel-app/vendor/laravel/framework/src/Illuminate/Foundation/Http/Middleware/ConvertEmptyStringsToNull.php:31",
-      "/var/www/workspace/laravel-app/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php:219",
-      "/var/www/workspace/laravel-app/vendor/laravel/framework/src/Illuminate/Foundation/Http/Middleware/TransformsRequest.php:21",
-      "/var/www/workspace/laravel-app/vendor/laravel/framework/src/Illuminate/Foundation/Http/Middleware/TrimStrings.php:51",
-      "/var/www/workspace/laravel-app/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php:219",
-      "/var/www/workspace/laravel-app/vendor/laravel/framework/src/Illuminate/Http/Middleware/ValidatePostSize.php:27",
-      "/var/www/workspace/laravel-app/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php:219",
-      "/var/www/workspace/laravel-app/vendor/laravel/framework/src/Illuminate/Foundation/Http/Middleware/PreventRequestsDuringMaintenance.php:110",
-      "/var/www/workspace/laravel-app/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php:219",
-      "/var/www/workspace/laravel-app/vendor/laravel/framework/src/Illuminate/Http/Middleware/HandleCors.php:61",
-      "/var/www/workspace/laravel-app/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php:219",
-      "/var/www/workspace/laravel-app/vendor/laravel/framework/src/Illuminate/Http/Middleware/TrustProxies.php:58",
-      "/var/www/workspace/laravel-app/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php:219",
-      "/var/www/workspace/laravel-app/vendor/laravel/framework/src/Illuminate/Foundation/Http/Middleware/InvokeDeferredCallbacks.php:22",
-      "/var/www/workspace/laravel-app/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php:219",
-      "/var/www/workspace/laravel-app/vendor/laravel/framework/src/Illuminate/Http/Middleware/ValidatePathEncoding.php:28",
-      "/var/www/workspace/laravel-app/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php:219",
-      "/var/www/workspace/laravel-app/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php:137",
-      "/var/www/workspace/laravel-app/vendor/laravel/framework/src/Illuminate/Foundation/Http/Kernel.php:175",
-      "/var/www/workspace/laravel-app/vendor/laravel/framework/src/Illuminate/Foundation/Http/Kernel.php:144",
-      "/var/www/workspace/laravel-app/vendor/laravel/framework/src/Illuminate/Foundation/Application.php:1227",
-      "/var/www/workspace/laravel-app/public/index.php:20"
-    ],
-    "previous": {
-      "class": "PDOException",
-      "message": "SQLSTATE[42P01]: Undefined table: 7 ERROR:  relation \"users\" does not exist\nLINE 1: select count(*) as \"aggregate\" from \"users\" where \"email\" = ...\n                                            ^",
-      "code": 42,
-      "file": "/var/www/workspace/laravel-app/vendor/laravel/framework/src/Illuminate/Database/Connection.php:440",
-      "trace": [
-        "/var/www/workspace/laravel-app/vendor/laravel/framework/src/Illuminate/Database/Connection.php:440",
-        "/var/www/workspace/laravel-app/vendor/laravel/framework/src/Illuminate/Database/Connection.php:846",
-        "/var/www/workspace/laravel-app/vendor/laravel/framework/src/Illuminate/Database/Connection.php:813",
-        "/var/www/workspace/laravel-app/vendor/laravel/framework/src/Illuminate/Database/Connection.php:426",
-        "/var/www/workspace/laravel-app/vendor/laravel/framework/src/Illuminate/Database/Query/Builder.php:3629",
-        "/var/www/workspace/laravel-app/vendor/laravel/framework/src/Illuminate/Database/Query/Builder.php:3613",
-        "/var/www/workspace/laravel-app/vendor/laravel/framework/src/Illuminate/Database/Query/Builder.php:4129",
-        "/var/www/workspace/laravel-app/vendor/laravel/framework/src/Illuminate/Database/Query/Builder.php:4057",
-        "/var/www/workspace/laravel-app/vendor/laravel/framework/src/Illuminate/Validation/DatabasePresenceVerifier.php:53",
-        "/var/www/workspace/laravel-app/vendor/laravel/framework/src/Illuminate/Validation/Concerns/ValidatesAttributes.php:1126",
-        "/var/www/workspace/laravel-app/vendor/laravel/framework/src/Illuminate/Validation/Validator.php:733",
-        "/var/www/workspace/laravel-app/vendor/laravel/framework/src/Illuminate/Validation/Validator.php:488",
-        "/var/www/workspace/laravel-app/vendor/laravel/framework/src/Illuminate/Validation/Validator.php:523",
-        "/var/www/workspace/laravel-app/vendor/laravel/framework/src/Illuminate/Validation/Validator.php:599",
-        "/var/www/workspace/laravel-app/app/Actions/Fortify/CreateNewUser.php:26",
-        "/var/www/workspace/laravel-app/vendor/laravel/fortify/src/Http/Controllers/RegisteredUserController.php:62",
-        "/var/www/workspace/laravel-app/vendor/laravel/framework/src/Illuminate/Routing/Controller.php:54",
-        "/var/www/workspace/laravel-app/vendor/laravel/framework/src/Illuminate/Routing/ControllerDispatcher.php:43",
-        "/var/www/workspace/laravel-app/vendor/laravel/framework/src/Illuminate/Routing/Route.php:276",
-        "/var/www/workspace/laravel-app/vendor/laravel/framework/src/Illuminate/Routing/Route.php:216",
-        "/var/www/workspace/laravel-app/vendor/laravel/framework/src/Illuminate/Routing/Router.php:822",
-        "/var/www/workspace/laravel-app/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php:180",
-        "/var/www/workspace/laravel-app/vendor/laravel/framework/src/Illuminate/Auth/Middleware/RedirectIfAuthenticated.php:47",
-        "/var/www/workspace/laravel-app/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php:219",
-        "/var/www/workspace/laravel-app/vendor/laravel/framework/src/Illuminate/Http/Middleware/AddLinkHeadersForPreloadedAssets.php:32",
-        "/var/www/workspace/laravel-app/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php:219",
-        "/var/www/workspace/laravel-app/vendor/inertiajs/inertia-laravel/src/Middleware.php:147",
-        "/var/www/workspace/laravel-app/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php:219",
-        "/var/www/workspace/laravel-app/app/Http/Middleware/HandleAppearance.php:21",
-        "/var/www/workspace/laravel-app/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php:219",
-        "/var/www/workspace/laravel-app/vendor/laravel/framework/src/Illuminate/Routing/Middleware/SubstituteBindings.php:52",
-        "/var/www/workspace/laravel-app/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php:219",
-        "/var/www/workspace/laravel-app/vendor/laravel/framework/src/Illuminate/Foundation/Http/Middleware/PreventRequestForgery.php:104",
-        "/var/www/workspace/laravel-app/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php:219",
-        "/var/www/workspace/laravel-app/vendor/laravel/framework/src/Illuminate/View/Middleware/ShareErrorsFromSession.php:48",
-        "/var/www/workspace/laravel-app/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php:219",
-        "/var/www/workspace/laravel-app/vendor/laravel/framework/src/Illuminate/Session/Middleware/StartSession.php:120",
-        "/var/www/workspace/laravel-app/vendor/laravel/framework/src/Illuminate/Session/Middleware/StartSession.php:63",
-        "/var/www/workspace/laravel-app/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php:219",
-        "/var/www/workspace/laravel-app/vendor/laravel/framework/src/Illuminate/Cookie/Middleware/AddQueuedCookiesToResponse.php:36",
-        "/var/www/workspace/laravel-app/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php:219",
-        "/var/www/workspace/laravel-app/vendor/laravel/framework/src/Illuminate/Cookie/Middleware/EncryptCookies.php:74",
-        "/var/www/workspace/laravel-app/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php:219",
-        "/var/www/workspace/laravel-app/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php:137",
-        "/var/www/workspace/laravel-app/vendor/laravel/framework/src/Illuminate/Routing/Router.php:821",
-        "/var/www/workspace/laravel-app/vendor/laravel/framework/src/Illuminate/Routing/Router.php:800",
-        "/var/www/workspace/laravel-app/vendor/laravel/framework/src/Illuminate/Routing/Router.php:764",
-        "/var/www/workspace/laravel-app/vendor/laravel/framework/src/Illuminate/Routing/Router.php:753",
-        "/var/www/workspace/laravel-app/vendor/laravel/framework/src/Illuminate/Foundation/Http/Kernel.php:200",
-        "/var/www/workspace/laravel-app/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php:180",
-        "/var/www/workspace/laravel-app/vendor/inertiajs/inertia-laravel/src/Middleware/EnsureGetOnRedirect.php:19",
-        "/var/www/workspace/laravel-app/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php:219",
-        "/var/www/workspace/laravel-app/vendor/laravel/framework/src/Illuminate/Foundation/Http/Middleware/TransformsRequest.php:21",
-        "/var/www/workspace/laravel-app/vendor/laravel/framework/src/Illuminate/Foundation/Http/Middleware/ConvertEmptyStringsToNull.php:31",
-        "/var/www/workspace/laravel-app/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php:219",
-        "/var/www/workspace/laravel-app/vendor/laravel/framework/src/Illuminate/Foundation/Http/Middleware/TransformsRequest.php:21",
-        "/var/www/workspace/laravel-app/vendor/laravel/framework/src/Illuminate/Foundation/Http/Middleware/TrimStrings.php:51",
-        "/var/www/workspace/laravel-app/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php:219",
-        "/var/www/workspace/laravel-app/vendor/laravel/framework/src/Illuminate/Http/Middleware/ValidatePostSize.php:27",
-        "/var/www/workspace/laravel-app/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php:219",
-        "/var/www/workspace/laravel-app/vendor/laravel/framework/src/Illuminate/Foundation/Http/Middleware/PreventRequestsDuringMaintenance.php:110",
-        "/var/www/workspace/laravel-app/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php:219",
-        "/var/www/workspace/laravel-app/vendor/laravel/framework/src/Illuminate/Http/Middleware/HandleCors.php:61",
-        "/var/www/workspace/laravel-app/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php:219",
-        "/var/www/workspace/laravel-app/vendor/laravel/framework/src/Illuminate/Http/Middleware/TrustProxies.php:58",
-        "/var/www/workspace/laravel-app/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php:219",
-        "/var/www/workspace/laravel-app/vendor/laravel/framework/src/Illuminate/Foundation/Http/Middleware/InvokeDeferredCallbacks.php:22",
-        "/var/www/workspace/laravel-app/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php:219",
-        "/var/www/workspace/laravel-app/vendor/laravel/framework/src/Illuminate/Http/Middleware/ValidatePathEncoding.php:28",
-        "/var/www/workspace/laravel-app/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php:219",
-        "/var/www/workspace/laravel-app/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php:137",
-        "/var/www/workspace/laravel-app/vendor/laravel/framework/src/Illuminate/Foundation/Http/Kernel.php:175",
-        "/var/www/workspace/laravel-app/vendor/laravel/framework/src/Illuminate/Foundation/Http/Kernel.php:144",
-        "/var/www/workspace/laravel-app/vendor/laravel/framework/src/Illuminate/Foundation/Application.php:1227",
-        "/var/www/workspace/laravel-app/public/index.php:20"
-      ]
-    }
-  }
-}
+# Mobile app (needs the API running)
+cd expo-app
+npm install
+npx expo start
+```
+
+## Deploying the Laravel app
+
+Every deploy:
+
+1. `php artisan migrate --force` — the app fails with "relation does not
+   exist" errors if this is skipped.
+2. Build the front end **after** setting the `VITE_PUSHER_*` variables (they
+   are baked in at build time).
+
+Once, on the server:
+
+- **Queue worker** (`php artisan queue:work`): live notifications, pushes and
+  emails are queued. The in-app bell works without it.
+- **Scheduler** (`php artisan schedule:work`, or cron running
+  `php artisan schedule:run` every minute): prunes old notifications, stale
+  games and expired mobile sign-ins daily.
+- **Realtime:** Pusher credentials (`PUSHER_APP_*`), or a self-hosted
+  Pusher-compatible server via `PUSHER_HOST/PORT/SCHEME`. Without it the apps
+  still work, refreshing every few seconds instead of instantly.
+- **Mail** (`MAIL_*`): invitation emails, password resets, email
+  verification.
+- `APP_NAME=SpyNet`, and `SANCTUM_TOKEN_EXPIRATION` if mobile sign-ins
+  should last other than 90 days.
+
+## CI
+
+GitHub Actions run per app on changes to it: Laravel tests, PHPStan and Pint
+(`laravel-app-tests.yml`), the Laravel Cypress suite
+(`laravel-app-cypress.yml`), the mobile typecheck, lint, Jest and Expo doctor
+(`expo-app.yml`), and the prototype's Cypress suite (`cypress.yml`).
+
+## Former TODO list
+
+All done: Ukrainian, notifications, invited players showing up without a
+reload, a minimum (3) as the default table size, asking to join, and
+joining without an invitation (open games and join requests).

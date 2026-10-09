@@ -13,6 +13,12 @@ use App\Models\User;
 class SendInvitation
 {
     /**
+     * Every invitation pushes and emails the player, so the same person
+     * can only be re-invited to a game once this many minutes have passed.
+     */
+    public const RESEND_COOLDOWN_MINUTES = 10;
+
+    /**
      * @throws GameRuleException
      */
     public function handle(Game $game, User $host, int $toUserId): Invitation
@@ -32,10 +38,19 @@ class SendInvitation
             throw new GameRuleException('to_user_id', __('This operation roster is already full.'));
         }
 
+        $existing = $game->invitations()->where('to_user_id', $toUserId)->first();
+
+        if ($existing?->status === InvitationStatus::Pending
+            && $existing->updated_at?->gt(now()->subMinutes(self::RESEND_COOLDOWN_MINUTES))) {
+            throw new GameRuleException('to_user_id', __('You invited them a few minutes ago. Try again later.'));
+        }
+
         $invitation = Invitation::updateOrCreate(
             ['game_id' => $game->id, 'to_user_id' => $toUserId],
             ['from_user_id' => $host->id, 'status' => InvitationStatus::Pending],
         );
+        // A resend changes nothing but must restart the cooldown.
+        $invitation->touch();
 
         InvitationIssued::dispatch($invitation);
 

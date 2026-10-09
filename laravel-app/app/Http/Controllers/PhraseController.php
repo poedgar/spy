@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Actions\Phrase\CreatePhraseGame;
 use App\Actions\Phrase\GuessPhrase;
 use App\Actions\Phrase\PassTurn;
+use App\Actions\Phrase\RevealPhrase;
 use App\Actions\Phrase\StartPhraseRound;
 use App\Http\Requests\StorePhraseGameRequest;
 use App\Models\Game;
@@ -30,6 +31,13 @@ class PhraseController extends Controller
     public function turn(Request $request, Game $game, PassTurn $passTurn): RedirectResponse
     {
         $passTurn->handle($game, $request->user());
+
+        return back();
+    }
+
+    public function reveal(Request $request, Game $game, RevealPhrase $revealPhrase): RedirectResponse
+    {
+        $revealPhrase->handle($game, $request->user());
 
         return back();
     }

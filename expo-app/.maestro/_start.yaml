@@ -1,0 +1,44 @@
+# Shared start for every flow: a clean install state, signed out.
+# The session lives in the iOS keychain, which clearState doesn't touch.
+# With a development build, pass the Metro URL so the app loads its
+# JavaScript instead of stopping at the dev launcher:
+#   maestro test -e DEV_SERVER_URL=http://localhost:8081 .maestro/01_register_and_create.yaml
+appId: com.example.spynet
+---
+- clearKeychain
+- launchApp:
+    clearState: true
+- runFlow:
+    when:
+      true: ${typeof DEV_SERVER_URL !== 'undefined'}
+    commands:
+      - openLink: exp+spynet://expo-development-client/?url=${encodeURIComponent(DEV_SERVER_URL)}
+      # The dev menu introduces itself over the app on first load.
+      - extendedWaitUntil:
+          visible: Continue
+          timeout: 30000
+          optional: true
+      # "Continue" opens the full dev menu. Turn off its floating tools
+      # button there (it sits over the header's bell), then close it.
+      - runFlow:
+          when:
+            visible: Continue
+          commands:
+            - tapOn: Continue
+            - scrollUntilVisible:
+                element: Tools button
+            - tapOn:
+                text: "1"
+                rightOf: Tools button
+                below: Fast refresh
+      - runFlow:
+          when:
+            visible:
+              id: xmark
+          commands:
+            - tapOn:
+                id: xmark
+- extendedWaitUntil:
+    visible:
+      id: btn-welcome-register
+    timeout: 30000

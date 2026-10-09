@@ -51,3 +51,17 @@ test('does nothing on a simulator', async () => {
 
   expect(Notifications.getPermissionsAsync).not.toHaveBeenCalled();
 });
+
+test('creates every Android channel the server sends pushes to', async () => {
+  const original = Platform.OS;
+  Object.defineProperty(Platform, 'OS', { configurable: true, get: () => 'android' });
+  jest.mocked(Notifications.getPermissionsAsync).mockResolvedValue({ status: 'granted' } as never);
+  try {
+    await registerForPushNotifications();
+  } finally {
+    Object.defineProperty(Platform, 'OS', { configurable: true, get: () => original });
+  }
+
+  const created = jest.mocked(Notifications.setNotificationChannelAsync).mock.calls.map(([id]) => id);
+  expect(created).toEqual(['invitations', 'game']);
+});

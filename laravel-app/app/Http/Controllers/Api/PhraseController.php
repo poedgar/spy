@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Actions\Phrase\CreatePhraseGame;
 use App\Actions\Phrase\GuessPhrase;
 use App\Actions\Phrase\PassTurn;
+use App\Actions\Phrase\RevealPhrase;
 use App\Actions\Phrase\StartPhraseRound;
 use App\Enums\GameType;
 use App\Http\Controllers\Controller;
@@ -45,6 +46,14 @@ class PhraseController extends Controller
     {
         $game = GameController::member($request, $code);
         $passTurn->handle($game, $request->user());
+
+        return GameController::lobby($game);
+    }
+
+    public function reveal(Request $request, string $code, RevealPhrase $revealPhrase): GameResource
+    {
+        $game = GameController::member($request, $code);
+        $revealPhrase->handle($game, $request->user());
 
         return GameController::lobby($game);
     }

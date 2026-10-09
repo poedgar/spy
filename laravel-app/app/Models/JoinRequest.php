@@ -21,6 +21,11 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class JoinRequest extends Model
 {
     /**
+     * @var list<string>
+     */
+    protected $touches = ['game'];
+
+    /**
      * @var array<string, mixed>
      */
     protected $attributes = [

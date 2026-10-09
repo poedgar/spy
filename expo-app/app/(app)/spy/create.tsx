@@ -11,6 +11,7 @@ import { FormTextField } from '@/components/FormTextField';
 import { Screen } from '@/components/Screen';
 import { applyServerErrors } from '@/forms/applyServerErrors';
 import { modeLabels, spyCountFor, tierLabels } from '@/game/labels';
+import { RoundTimerPicker } from '@/game/RoundTimerPicker';
 import { useI18n } from '@/i18n/I18nProvider';
 import { useTheme } from '@/theme/useTheme';
 
@@ -26,8 +27,15 @@ export default function CreateGame() {
   const { colors, spacing, radius } = useTheme();
   const createGame = useCreateGame();
   const [formError, setFormError] = useState<string | null>(null);
-  const { control, handleSubmit, setError } = useForm<CreateGameInput>({
-    defaultValues: { title: '', game_mode: 'mole', age_tier: 'adults', max_players: MIN_PLAYERS, mission_briefing: '' },
+  const { control, handleSubmit, setError, getValues, setValue } = useForm<CreateGameInput>({
+    defaultValues: {
+      title: '',
+      game_mode: 'mole',
+      age_tier: 'adults',
+      max_players: MIN_PLAYERS,
+      mission_briefing: '',
+      round_seconds: 0,
+    },
   });
 
   const onSubmit = handleSubmit(async (input) => {
@@ -36,7 +44,7 @@ export default function CreateGame() {
       const game = await createGame.mutateAsync({ ...input, title: input.title.trim(), mission_briefing: input.mission_briefing.trim() });
       router.replace(`/games/${game.code}`);
     } catch (error) {
-      setFormError(applyServerErrors(error, setError, ['title', 'game_mode', 'age_tier', 'max_players', 'mission_briefing']));
+      setFormError(applyServerErrors(error, setError, ['title', 'game_mode', 'age_tier', 'max_players', 'mission_briefing', 'round_seconds']));
     }
   });
 
@@ -64,7 +72,11 @@ export default function CreateGame() {
                   testID={`mode-${mode}`}
                   accessibilityRole="radio"
                   accessibilityState={{ selected: value === mode }}
-                  onPress={() => onChange(mode)}
+                  onPress={() => {
+                    onChange(mode);
+                    // Codebreaker is the race-the-clock mode: suggest a timer.
+                    if (mode === 'codebreaker' && !getValues('round_seconds')) setValue('round_seconds', 480);
+                  }}
                   style={{
                     flex: 1,
                     padding: spacing.sm,
@@ -135,6 +147,12 @@ export default function CreateGame() {
             {error ? <AppText style={{ color: colors.destructive }}>{error.message}</AppText> : null}
           </View>
         )}
+      />
+
+      <Controller
+        control={control}
+        name="round_seconds"
+        render={({ field: { value, onChange } }) => <RoundTimerPicker value={value ?? 0} onChange={onChange} />}
       />
 
       <FormTextField

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { useForm } from '@inertiajs/vue3';
+import RoundTimerSelect from '@/components/game/RoundTimerSelect.vue';
 import { useTrans, type Locale } from '@/composables/useTrans';
 
 const { t, locale } = useTrans();
@@ -16,6 +17,7 @@ const form = useForm({
     max_players: MIN_PLAYERS,
     requires_approval: false,
     is_listed: true,
+    round_seconds: 0,
 });
 
 function submit() {
@@ -97,6 +99,8 @@ function submit() {
             />
             {{ t('Approve new players before they join') }}
         </label>
+
+        <RoundTimerSelect v-model="form.round_seconds" />
 
         <label class="flex items-center gap-2 text-sm">
             <input

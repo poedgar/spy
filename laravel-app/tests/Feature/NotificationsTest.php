@@ -229,3 +229,14 @@ test('the bell does not depend on a queue worker', function () {
     expect($invitation->toUser->notifications()->count())->toBe(1)
         ->and(DB::table('jobs')->count())->toBeGreaterThan(0);
 });
+
+test('every push channel the server uses is created by the mobile app', function () {
+    $channels = file_get_contents(base_path('../expo-app/src/notifications/channels.ts'));
+    preg_match_all("/id: '([a-z_]+)'/", $channels, $matches);
+    $game = Game::factory()->create();
+    $user = User::factory()->create();
+
+    foreach ([new InvitationReceived(Invitation::factory()->create()), new RoundStartedNotification($game, 1), new BecameHost($game)] as $notification) {
+        expect($matches[1])->toContain($notification->toExpoPush($user)['channelId']);
+    }
+});

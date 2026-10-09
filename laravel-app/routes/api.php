@@ -22,6 +22,7 @@ Route::prefix('v1')->group(function () {
         Route::post('auth/logout', [AuthController::class, 'logout']);
         Route::get('me', [MeController::class, 'show']);
         Route::patch('me', [MeController::class, 'update']);
+        Route::post('me/email/verification-notification', [MeController::class, 'resendVerification'])->middleware('throttle:6,1');
         Route::put('me/locale', [MeController::class, 'updateLocale']);
         Route::put('me/password', [MeController::class, 'updatePassword'])->middleware('throttle:6,1');
         Route::delete('me', [MeController::class, 'destroy']);
@@ -47,10 +48,12 @@ Route::prefix('v1')->group(function () {
         Route::post('games/{code}/reset', [GameController::class, 'reset']);
         Route::post('games/{code}/phrase/start', [PhraseController::class, 'start']);
         Route::post('games/{code}/phrase/turn', [PhraseController::class, 'turn']);
+        Route::post('games/{code}/phrase/reveal', [PhraseController::class, 'reveal']);
         Route::post('games/{code}/phrase/guess', [PhraseController::class, 'guess']);
 
         Route::get('locations', [LocationController::class, 'index']);
 
+        Route::delete('games/{code}', [LobbyController::class, 'close']);
         Route::post('games/{code}/settings', [LobbyController::class, 'settings']);
         Route::delete('games/{code}/players/{user}', [LobbyController::class, 'removePlayer']);
         Route::post('games/{code}/host', [LobbyController::class, 'transferHost']);
@@ -60,7 +63,7 @@ Route::prefix('v1')->group(function () {
         Route::post('games/{code}/join-requests/{joinRequest}/decline', [LobbyController::class, 'decline']);
         Route::delete('games/{code}/invitations/{invitation}', [LobbyController::class, 'cancelInvitation']);
         Route::get('games/{code}/invitable-users', [InvitationController::class, 'invitable']);
-        Route::post('games/{code}/invitations', [InvitationController::class, 'store']);
+        Route::post('games/{code}/invitations', [InvitationController::class, 'store'])->middleware('throttle:invite');
         Route::post('invitations/{invitation}/accept', [InvitationController::class, 'accept']);
         Route::post('invitations/{invitation}/decline', [InvitationController::class, 'decline']);
     });

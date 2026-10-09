@@ -33,6 +33,7 @@ export const meApi = {
   get: () => request<User>('GET', '/me'),
   update: (input: { name: string; email: string; codename?: string; email_notifications?: boolean }) =>
     request<User>('PATCH', '/me', input),
+  resendVerification: () => request<void>('POST', '/me/email/verification-notification'),
   updateLocale: (locale: Locale) => request<User>('PUT', '/me/locale', { locale }),
   updatePassword: (input: { current_password: string; password: string; password_confirmation: string }) =>
     request<void>('PUT', '/me/password', input),
@@ -69,6 +70,8 @@ export const gamesApi = {
   createPhrase: (input: CreatePhraseGameInput) => request<Game>('POST', '/games/phrase', input),
   startPhrase: (code: string) => request<Game>('POST', `/games/${enc(code)}/phrase/start`),
   passTurn: (code: string) => request<Game>('POST', `/games/${enc(code)}/phrase/turn`),
+  revealPhrase: (code: string) => request<Game>('POST', `/games/${enc(code)}/phrase/reveal`),
+  close: (code: string) => request<void>('DELETE', `/games/${enc(code)}`),
   guessPhrase: (code: string, guess: string) =>
     request<{ correct: boolean; game: Game }>('POST', `/games/${enc(code)}/phrase/guess`, { guess }),
   locations: (tier: AgeTier) => request<LocationGuide>('GET', `/locations?tier=${tier}`),

@@ -163,6 +163,8 @@ return [
     'features' => [
         Features::registration(),
         Features::resetPasswords(),
+        // Verification is not required to play; it gates invitation emails.
+        Features::emailVerification(),
         Features::twoFactorAuthentication([
             'confirm' => true,
             'confirmPassword' => true,

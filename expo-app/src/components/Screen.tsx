@@ -27,6 +27,8 @@ export function Screen({ children, title, scroll = true, refreshing = false, onR
       {scroll ? (
         <ScrollView
           keyboardShouldPersistTaps="handled"
+          // iOS: keep the focused field above the keyboard on long forms.
+          automaticallyAdjustKeyboardInsets
           refreshControl={onRefresh ? <RefreshControl refreshing={refreshing} onRefresh={onRefresh} /> : undefined}
         >
           {content}

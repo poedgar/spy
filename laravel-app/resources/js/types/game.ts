@@ -40,6 +40,7 @@ export interface Round {
     number: number;
     spy_count: number;
     started_at: string;
+    ends_at: string | null;
     voting_started_at: string | null;
     ended_at: string | null;
     my_role: 'spy' | 'loyalist' | null;
@@ -54,6 +55,7 @@ export interface PhraseRound {
     language: 'en' | 'uk';
     word_count: number;
     started_at: string;
+    ends_at: string | null;
     ended_at: string | null;
     my_word: string | null;
     my_position: number | null;
@@ -63,7 +65,7 @@ export interface PhraseRound {
     scoring: { win: number; wrong_guess: number };
     guesses: { user_id: number; guess: string; correct: boolean }[];
     result: {
-        ending: 'guessed' | 'abandoned';
+        ending: 'guessed' | 'revealed' | 'time_up' | 'abandoned';
         winner_user_id: number | null;
         phrase: string;
         words: { position: number; word: string; user_id: number | null }[];
@@ -101,6 +103,21 @@ export interface Game {
     }[];
     round: Round | null;
     phrase?: PhraseRound | null;
+    /** Seconds per round, or null for no timer. */
+    round_seconds: number | null;
+    /** Earlier rounds, newest first (the one on show is left out). */
+    history?: {
+        number: number;
+        ending: string;
+        ended_at: string | null;
+        // Spy
+        winning_team?: Team | null;
+        location?: Place | null;
+        spy_user_ids?: number[];
+        // Phrase
+        phrase?: string;
+        winner_user_id?: number | null;
+    }[];
 }
 
 export type Categories = Record<string, Localized>;

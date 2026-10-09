@@ -1,6 +1,7 @@
 <?php
 
 use App\Actions\DeleteUser;
+use App\Actions\Invitations\SendInvitation;
 use App\Enums\GameStatus;
 use App\Enums\InvitationStatus;
 use App\Events\InvitationIssued;
@@ -14,7 +15,11 @@ use App\Models\GamePlayer;
 use App\Models\Invitation;
 use App\Models\JoinRequest;
 use App\Models\User;
+use App\Notifications\BecameHost;
+use App\Notifications\GameClosed;
 use App\Notifications\InvitationReceived;
+use App\Queries\GameHomeQuery;
+use Illuminate\Auth\Notifications\VerifyEmail;
 use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Notification;
@@ -294,4 +299,107 @@ test('new accounts get a codename nobody else has', function () {
 
     $codename = User::where('email', 'new@example.com')->value('codename');
     expect(User::where('codename', $codename)->count())->toBe(1);
+});
+
+test('a pending invitation cannot be resent within the cooldown, and invites are rate limited', function () {
+    [$game, $host] = lobby(1);
+    $invitee = User::factory()->create();
+    Sanctum::actingAs($host);
+
+    $this->postJson("/api/v1/games/{$game->code}/invitations", ['to_user_id' => $invitee->id])->assertCreated();
+    $this->postJson("/api/v1/games/{$game->code}/invitations", ['to_user_id' => $invitee->id])
+        ->assertUnprocessable()
+        ->assertJsonValidationErrors('to_user_id');
+
+    $this->travel(SendInvitation::RESEND_COOLDOWN_MINUTES + 1)->minutes();
+    $this->postJson("/api/v1/games/{$game->code}/invitations", ['to_user_id' => $invitee->id])->assertCreated();
+
+    // That was the first of 10 allowed this minute.
+    foreach (range(1, 9) as $attempt) {
+        $this->postJson("/api/v1/games/{$game->code}/invitations", ['to_user_id' => User::factory()->create()->id]);
+    }
+    $this->postJson("/api/v1/games/{$game->code}/invitations", ['to_user_id' => User::factory()->create()->id])
+        ->assertTooManyRequests();
+});
+
+test('invitation emails only go to verified addresses', function () {
+    Notification::fake();
+    $invitation = Invitation::factory()->create();
+    $invitation->toUser->forceFill(['email_verified_at' => null])->save();
+
+    app(NotifyInvitee::class)->handle(new InvitationIssued($invitation));
+
+    Notification::assertSentTo($invitation->toUser, InvitationReceived::class, fn ($notification, $channels) => ! in_array('mail', $channels, true));
+});
+
+test('signing up or changing your email sends a verification link', function () {
+    Notification::fake();
+
+    $this->postJson('/api/v1/auth/register', [
+        'name' => 'Verify Me',
+        'email' => 'verify@example.com',
+        'password' => 'password123',
+        'password_confirmation' => 'password123',
+        'device_name' => 'phone',
+    ])->assertCreated()->assertJsonPath('user.email_verified', false);
+    $user = User::where('email', 'verify@example.com')->sole();
+    Notification::assertSentTo($user, VerifyEmail::class);
+
+    $verified = User::factory()->create();
+    Sanctum::actingAs($verified);
+    $this->patchJson('/api/v1/me', ['name' => $verified->name, 'email' => 'new-address@example.com'])->assertOk();
+    expect($verified->fresh()->hasVerifiedEmail())->toBeFalse();
+    Notification::assertSentTo($verified, VerifyEmail::class);
+
+    Sanctum::actingAs($user);
+    $this->postJson('/api/v1/me/email/verification-notification')->assertNoContent();
+    Notification::assertSentToTimes($user, VerifyEmail::class, 2);
+});
+
+test('the host closes a game; players are told and a stale lobby goes home', function () {
+    Notification::fake();
+    [$game, $host, $players] = lobby(3);
+
+    Sanctum::actingAs($players[1]);
+    $this->deleteJson("/api/v1/games/{$game->code}")->assertForbidden();
+
+    Sanctum::actingAs($host);
+    $this->deleteJson("/api/v1/games/{$game->code}")->assertNoContent();
+
+    expect(Game::find($game->id))->toBeNull();
+    Notification::assertSentTo([$players[1], $players[2]], GameClosed::class);
+    Notification::assertNotSentTo($host, GameClosed::class);
+
+    $this->actingAs($players[1])->get(route('games.show', ['code' => $game->code]))->assertRedirect(route('dashboard'));
+});
+
+test('stale recruiting games drop out of open games, activity brings them back', function () {
+    $game = Game::factory()->create();
+    GamePlayer::factory()->create(['game_id' => $game->id, 'user_id' => $game->host_id, 'is_host' => true]);
+    Sanctum::actingAs(User::factory()->create());
+
+    $this->travel(GameHomeQuery::OPEN_GAMES_STALE_HOURS + 1)->hours();
+    $this->getJson('/api/v1/games/spy')->assertJsonCount(0, 'open_games');
+
+    GamePlayer::factory()->create(['game_id' => $game->id]); // someone joins: activity
+    $this->getJson('/api/v1/games/spy')->assertJsonCount(1, 'open_games');
+});
+
+test('old data is pruned daily', function () {
+    $stale = Game::factory()->create();
+    $fresh = Game::factory()->create();
+    $user = User::factory()->create();
+    $user->notify(new BecameHost($fresh));
+    $user->notifications()->update(['read_at' => now(), 'created_at' => now()->subDays(61)]);
+    Game::whereKey($stale->id)->update(['updated_at' => now()->subDays(91)]);
+
+    $this->artisan('app:prune-old-data')->assertSuccessful();
+
+    expect(Game::find($stale->id))->toBeNull()
+        ->and(Game::find($fresh->id))->not->toBeNull()
+        ->and($user->notifications()->count())->toBe(0);
+});
+
+test('mobile sign-ins expire', function () {
+    expect(config('sanctum.expiration'))->toBe(60 * 24 * 90);
 });

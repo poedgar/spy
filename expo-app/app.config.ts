@@ -1,5 +1,10 @@
 import type { ExpoConfig } from 'expo/config';
 
+// Store identifiers belong to your Apple/Google developer accounts: set
+// APP_BUNDLE_ID (e.g. com.yourname.spynet) for release builds. The default
+// is a placeholder that only works for local development.
+const bundleId = process.env.APP_BUNDLE_ID ?? 'com.example.spynet';
+
 const config: ExpoConfig = {
   name: 'SpyNet',
   slug: 'spynet',
@@ -7,16 +12,18 @@ const config: ExpoConfig = {
   version: '1.0.0',
   orientation: 'portrait',
   userInterfaceStyle: 'automatic',
-  // Template artwork — replace icon/splash with real artwork before submitting.
+  // The SpyNet mask mark (Lucide "venetian-mask", ISC), as on the web app.
   icon: './assets/icon.png',
   ios: {
-    bundleIdentifier: 'com.example.spynet',
+    bundleIdentifier: bundleId,
     supportsTablet: false,
   },
   android: {
-    package: 'com.example.spynet',
+    package: bundleId,
     adaptiveIcon: {
       foregroundImage: './assets/android-icon-foreground.png',
+      backgroundImage: './assets/android-icon-background.png',
+      monochromeImage: './assets/android-icon-monochrome.png',
       backgroundColor: '#171717',
     },
     googleServicesFile: process.env.GOOGLE_SERVICES_JSON,

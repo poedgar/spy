@@ -96,6 +96,28 @@ const { t } = useTrans();
                 <InputError class="mt-2" :message="errors.codename" />
             </div>
 
+            <div
+                v-if="!user.email_verified_at"
+                id="email-unverified"
+                class="rounded-md border border-amber-500/60 bg-amber-500/5 p-3 text-sm"
+            >
+                <p>
+                    {{
+                        t(
+                            'Your email address is not verified yet, so we cannot send you invitation emails. Check your inbox for the link.',
+                        )
+                    }}
+                </p>
+                <Link
+                    href="/email/verification-notification"
+                    method="post"
+                    as="button"
+                    class="mt-1 text-primary underline underline-offset-4"
+                >
+                    {{ t('Send the link again') }}
+                </Link>
+            </div>
+
             <label class="flex items-center gap-2 text-sm">
                 <input
                     v-model="emailNotifications"

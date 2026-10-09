@@ -25,13 +25,28 @@ class MeController extends Controller
         $user = $request->user();
         $user->fill($request->validated());
 
-        if ($user->isDirty('email')) {
+        $emailChanged = $user->isDirty('email');
+
+        if ($emailChanged) {
             $user->email_verified_at = null;
         }
 
         $user->save();
 
+        if ($emailChanged) {
+            $user->sendEmailVerificationNotification();
+        }
+
         return UserResource::make($user);
+    }
+
+    public function resendVerification(Request $request): Response
+    {
+        if (! $request->user()->hasVerifiedEmail()) {
+            $request->user()->sendEmailVerificationNotification();
+        }
+
+        return response()->noContent();
     }
 
     public function updateLocale(Request $request): UserResource

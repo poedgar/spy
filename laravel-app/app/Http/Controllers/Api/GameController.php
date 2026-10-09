@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Actions\Games\CastVote;
 use App\Actions\Games\CreateGame;
+use App\Actions\Games\EnforceRoundTimer;
 use App\Actions\Games\GuessLocation;
 use App\Actions\Games\LeaveGame;
 use App\Actions\Games\ResetGame;
@@ -153,6 +154,8 @@ class GameController extends Controller
      */
     public static function lobby(Game $game): GameResource
     {
-        return GameResource::make($game->refresh()->load(['host', 'players.user', 'currentRound.votes', 'currentPhraseRound.guesses', 'joinRequests.user', 'invitations.toUser']));
+        app(EnforceRoundTimer::class)->handle($game->refresh());
+
+        return GameResource::make($game->refresh()->load(Game::LOBBY_RELATIONS));
     }
 }

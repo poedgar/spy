@@ -1,0 +1,74 @@
+# One account through the newer features: a timed Phrase game, closing it,
+# the notifications screen and switching to Ukrainian.
+# Run: maestro test .maestro/03_phrase_notifications_language.yaml
+appId: com.example.spynet
+---
+- runFlow: _start.yaml
+- tapOn:
+    id: btn-welcome-register
+- tapOn:
+    id: input-name
+- inputText: Maestro Phrase
+- tapOn:
+    id: input-email
+- inputRandomEmail
+- tapOn:
+    id: input-password
+- runFlow: _latin_keyboard.yaml
+- inputText: password
+- tapOn:
+    id: input-password-confirmation
+- inputText: password
+- tapOn:
+    id: btn-register
+- assertVisible: Choose a Game
+
+# A timed Phrase game, then close it.
+- tapOn:
+    id: tile-phrase
+- assertVisible: Open games
+- tapOn:
+    id: btn-open-create-phrase
+- tapOn:
+    id: input-phrase-title
+- inputText: Maestro Words
+- hideKeyboard
+- tapOn:
+    id: timer-300
+- tapOn:
+    id: btn-create-phrase
+- assertVisible:
+    id: lobby-code
+- assertVisible: .*5 min rounds.*
+- scrollUntilVisible:
+    element:
+      id: btn-close-game
+- tapOn:
+    id: btn-close-game
+- tapOn: Confirm
+- assertVisible: Your Phrase games
+
+# The bell and its screen.
+- tapOn:
+    id: btn-notifications
+- assertVisible: Nothing yet. Invitations and game news will show up here.
+# Back to the home screen (`back` is Android-only; this is the header's
+# back button, whose label changes per screen).
+- repeat:
+    times: 4
+    while:
+      notVisible: Choose a Game
+    commands:
+      - tapOn:
+          point: 10%,9%
+      - waitForAnimationToEnd
+
+# Ukrainian, saved on the account.
+# Header items lose their testID on iOS; tap the label.
+- tapOn: Settings
+- tapOn:
+    id: locale-uk
+- assertVisible: Вийти
+- tapOn:
+    id: locale-en
+- assertVisible: Log out

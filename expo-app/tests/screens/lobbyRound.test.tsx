@@ -34,6 +34,7 @@ function round(overrides: Partial<Round> = {}): Round {
     number: 1,
     spy_count: 1,
     started_at: '2026-10-07T10:00:00Z',
+    ends_at: null,
     voting_started_at: null,
     ended_at: null,
     my_role: 'loyalist',
@@ -69,7 +70,7 @@ test('start is disabled below the minimum roster', async () => {
   await renderApp(routes, { initialUrl: '/games/SPY-AB3D', user: fakeUser });
 
   expect(await screen.findByTestId('btn-start-round')).toBeDisabled();
-  expect(screen.getByText('At least 3 operatives are required to start.')).toBeOnTheScreen();
+  expect(screen.getByText('At least 3 players are required to start.')).toBeOnTheScreen();
 });
 
 test('a loyalist reveals the location only on request', async () => {

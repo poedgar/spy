@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Actions\Invitations\CancelInvitation;
 use App\Actions\Lobby\AnswerJoinRequest;
+use App\Actions\Lobby\CloseGame;
 use App\Actions\Lobby\RemovePlayer;
 use App\Actions\Lobby\RequestToJoin;
 use App\Actions\Lobby\TransferHost;
@@ -70,6 +71,13 @@ class LobbyController extends Controller
         $requestToJoin->cancel($game, $request->user());
 
         return back();
+    }
+
+    public function close(Request $request, Game $game, CloseGame $closeGame): RedirectResponse
+    {
+        $closeGame->handle($game, $request->user());
+
+        return to_route(GameController::homeRoute($game));
     }
 
     public function cancelInvitation(Request $request, Game $game, int $invitation, CancelInvitation $cancel): RedirectResponse

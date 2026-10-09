@@ -39,6 +39,9 @@ class GameHomeQuery
 
     public const OPEN_GAMES_LIMIT = 30;
 
+    /** Games nobody has touched for this long drop out of open games. */
+    public const OPEN_GAMES_STALE_HOURS = 12;
+
     /**
      * Listed games of this type that are recruiting with a free seat and
      * that the user is not already in, newest first. Each row carries the
@@ -52,6 +55,7 @@ class GameHomeQuery
             ->where('game_type', $type)
             ->where('status', GameStatus::Recruiting)
             ->where('is_listed', true)
+            ->where('updated_at', '>=', now()->subHours(self::OPEN_GAMES_STALE_HOURS))
             ->whereDoesntHave('players', fn ($query) => $query->where('user_id', $user->id))
             ->withCount('players')
             ->with(['host:id,codename', 'joinRequests' => fn ($query) => $query->where('user_id', $user->id)])

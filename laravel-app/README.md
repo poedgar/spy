@@ -87,6 +87,32 @@ Shared by both games (`app/Actions/Lobby`):
   the player switches them off in their profile. Configure `MAIL_*` in
   production; locally mail goes to the log.
 
+## Rounds, timers and history
+
+- **Round timer:** hosts can pick 3/5/8/10-minute rounds when creating a game
+  (Codebreaker suggests 8). When time is up a Spy round moves to the vote and
+  a Phrase deal is revealed with no winner. The server applies the timer
+  whenever a lobby is loaded (`EnforceRoundTimer`), so it needs no worker;
+  clients reload when their countdown hits zero.
+- **Reveal and end:** a Phrase host can show the phrase and end a deal
+  nobody is getting, without points.
+- **History:** lobbies list the last ten finished rounds.
+- **Closing a game:** the host can delete a game; players are notified and
+  open lobbies send them home.
+
+## Accounts and limits
+
+- New accounts get a verification email. Playing doesn't require it, but
+  invitation emails only go to verified addresses (anyone can sign up with
+  someone else's email). Changing your email sends a new link.
+- Re-inviting the same player waits 10 minutes, and invitations are capped
+  at 10 a minute / 60 an hour per host — each one pushes and emails someone.
+- Mobile sign-ins expire after 90 days (`SANCTUM_TOKEN_EXPIRATION`).
+- `app:prune-old-data` runs daily (see `routes/console.php`): read
+  notifications after 60 days, all after 180, answered join requests after
+  30, and games untouched for 90 days. Recruiting games with no activity for
+  12 hours drop out of open games.
+
 ## Languages
 
 English and Ukrainian. The language is saved on the account

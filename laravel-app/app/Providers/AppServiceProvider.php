@@ -43,6 +43,12 @@ class AppServiceProvider extends ServiceProvider
 
         // Invite codes are short; this stops anyone walking the code space
         // with join attempts (now that a join can also create a request).
+        // Invitations push and email someone else, so they are capped per host.
+        RateLimiter::for('invite', fn (Request $request) => [
+            Limit::perMinute(10)->by('minute:'.$request->user()?->id),
+            Limit::perHour(60)->by('hour:'.$request->user()?->id),
+        ]);
+
         RateLimiter::for('join', fn (Request $request) => Limit::perMinute(20)->by($request->user()?->id ?: $request->ip()));
     }
 

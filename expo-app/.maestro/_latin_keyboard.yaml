@@ -1,0 +1,10 @@
+# The simulator keyboard follows the Mac's input language. Password fields
+# only accept what the on-screen keyboard can type, so switch from a
+# Cyrillic (Ukrainian) keyboard to English before typing one.
+appId: com.example.spynet
+---
+- runFlow:
+    when:
+      visible: й
+    commands:
+      - tapOn: English.*

@@ -85,6 +85,8 @@ abstract class GameNotification extends Notification implements ShouldQueue
             'title' => $presented['title'],
             'body' => $presented['body'],
             'sound' => 'default',
+            // Must match a channel the app creates (expo-app/src/notifications/channels.ts),
+            // or Android drops the push.
             'channelId' => $this->kind() === 'invitation' ? 'invitations' : 'game',
             'data' => $presented['push_data'],
         ];

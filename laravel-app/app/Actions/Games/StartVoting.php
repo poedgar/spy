@@ -14,17 +14,27 @@ use Illuminate\Support\Facades\DB;
 class StartVoting
 {
     /**
+     * @param  User|null  $host  null when the round timer calls the vote
+     *
      * @throws GameRuleException
      */
-    public function handle(Game $game, User $host): void
+    public function handle(Game $game, ?User $host = null): void
     {
-        abort_unless($game->isHost($host), 403);
+        if ($host) {
+            abort_unless($game->isHost($host), 403);
+        }
+
         $game->ensureType(GameType::Spy);
 
-        DB::transaction(function () use ($game) {
+        DB::transaction(function () use ($game, $host) {
             $game = $game->freshLocked();
 
             if ($game->status !== GameStatus::Active) {
+                // The timer can lose a race with the host: nothing to do.
+                if ($host === null) {
+                    return;
+                }
+
                 throw new GameRuleException('game', __('Voting can only start during an active round.'));
             }
 

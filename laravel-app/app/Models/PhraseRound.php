@@ -24,11 +24,12 @@ use Illuminate\Support\Carbon;
  * @property list<int> $turn_order
  * @property int $turn_index
  * @property Carbon $started_at
+ * @property Carbon|null $ends_at
  * @property Carbon|null $ended_at
  * @property PhraseEnding|null $ending
  * @property int|null $winner_user_id
  */
-#[Fillable(['game_id', 'number', 'language', 'phrase_id', 'assignments', 'turn_order', 'turn_index', 'started_at', 'ended_at', 'ending', 'winner_user_id'])]
+#[Fillable(['game_id', 'number', 'language', 'phrase_id', 'assignments', 'turn_order', 'turn_index', 'started_at', 'ends_at', 'ended_at', 'ending', 'winner_user_id'])]
 class PhraseRound extends Model
 {
     protected function casts(): array
@@ -38,6 +39,7 @@ class PhraseRound extends Model
             'assignments' => 'array',
             'turn_order' => 'array',
             'started_at' => 'datetime',
+            'ends_at' => 'datetime',
             'ended_at' => 'datetime',
             'ending' => PhraseEnding::class,
         ];

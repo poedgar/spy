@@ -10,6 +10,7 @@ import { FormError } from '@/components/FormError';
 import { FormTextField } from '@/components/FormTextField';
 import { Screen } from '@/components/Screen';
 import { applyServerErrors } from '@/forms/applyServerErrors';
+import { RoundTimerPicker } from '@/game/RoundTimerPicker';
 import { useI18n } from '@/i18n/I18nProvider';
 import { useTheme } from '@/theme/useTheme';
 
@@ -29,7 +30,7 @@ export default function CreatePhraseGame() {
   const createGame = useCreatePhraseGame();
   const [formError, setFormError] = useState<string | null>(null);
   const { control, handleSubmit, setError } = useForm<CreatePhraseGameInput>({
-    defaultValues: { title: '', phrase_language: locale, max_players: MIN_PLAYERS },
+    defaultValues: { title: '', phrase_language: locale, max_players: MIN_PLAYERS, round_seconds: 0 },
   });
 
   const onSubmit = handleSubmit(async (input) => {
@@ -38,7 +39,7 @@ export default function CreatePhraseGame() {
       const game = await createGame.mutateAsync({ ...input, title: input.title.trim() });
       router.replace(`/games/${game.code}`);
     } catch (error) {
-      setFormError(applyServerErrors(error, setError, ['title', 'phrase_language', 'max_players']));
+      setFormError(applyServerErrors(error, setError, ['title', 'phrase_language', 'max_players', 'round_seconds']));
     }
   });
 
@@ -104,6 +105,12 @@ export default function CreatePhraseGame() {
             {error ? <AppText style={{ color: colors.destructive }}>{error.message}</AppText> : null}
           </View>
         )}
+      />
+
+      <Controller
+        control={control}
+        name="round_seconds"
+        render={({ field: { value, onChange } }) => <RoundTimerPicker value={value ?? 0} onChange={onChange} />}
       />
 
       <FormError message={formError} />

@@ -8,6 +8,7 @@ export interface User {
   /** Only present on the signed-in user's own record. */
   locale?: Locale;
   email_notifications?: boolean;
+  email_verified?: boolean;
 }
 
 export interface Player {
@@ -48,6 +49,7 @@ export interface Round {
   number: number;
   spy_count: number;
   started_at: string;
+  ends_at: string | null;
   voting_started_at: string | null;
   ended_at: string | null;
   my_role: 'spy' | 'loyalist' | null;
@@ -59,12 +61,26 @@ export interface Round {
 
 export type GameType = 'spy' | 'phrase';
 
+export interface HistoryEntry {
+  number: number;
+  ending: string;
+  ended_at: string | null;
+  // Spy rounds
+  winning_team?: Team | null;
+  location?: Place | null;
+  spy_user_ids?: number[];
+  // Phrase deals
+  phrase?: string;
+  winner_user_id?: number | null;
+}
+
 /** The signed-in player's view of a Phrase deal: only their own word, until it ends. */
 export interface PhraseRound {
   number: number;
   language: Locale;
   word_count: number;
   started_at: string;
+  ends_at: string | null;
   ended_at: string | null;
   my_word: string | null;
   my_position: number | null;
@@ -74,7 +90,7 @@ export interface PhraseRound {
   scoring: { win: number; wrong_guess: number };
   guesses: { user_id: number; guess: string; correct: boolean }[];
   result: {
-    ending: 'guessed' | 'abandoned';
+    ending: 'guessed' | 'revealed' | 'time_up' | 'abandoned';
     winner_user_id: number | null;
     phrase: string;
     words: { position: number; word: string; user_id: number | null }[];
@@ -110,6 +126,10 @@ export interface Game {
   players?: Player[];
   round?: Round | null;
   phrase?: PhraseRound | null;
+  /** Seconds per round, or null for no timer. */
+  round_seconds?: number | null;
+  /** Earlier rounds, newest first (the one on show is left out). */
+  history?: HistoryEntry[];
   /** Host only: players waiting to be let in. */
   join_requests?: { id: number; user: User; created_at: string | null }[];
   /** Host only: invitations not (yet) accepted. */
@@ -189,6 +209,7 @@ export interface RegisterInput {
 
 export interface CreateGameInput {
   title: string;
+  round_seconds?: number;
   game_mode: GameMode;
   age_tier: AgeTier;
   max_players: number;
@@ -202,6 +223,7 @@ export interface PlayerJoinedPayload {
 
 export interface CreatePhraseGameInput {
   title: string;
+  round_seconds?: number;
   phrase_language: Locale;
   max_players: number;
 }

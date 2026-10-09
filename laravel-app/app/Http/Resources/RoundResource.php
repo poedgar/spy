@@ -33,6 +33,7 @@ class RoundResource extends JsonResource
             'number' => $this->number,
             'spy_count' => count($this->spy_user_ids),
             'started_at' => $this->started_at->toIso8601String(),
+            'ends_at' => $this->ends_at?->toIso8601String(),
             'voting_started_at' => $this->voting_started_at?->toIso8601String(),
             'ended_at' => $this->ended_at?->toIso8601String(),
             'my_role' => $viewerId === null ? null : ($isSpy ? 'spy' : 'loyalist'),

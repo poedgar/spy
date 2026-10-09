@@ -7,9 +7,10 @@ import { Button } from '@/components/Button';
 import { Card } from '@/components/Card';
 import { useI18n } from '@/i18n/I18nProvider';
 import { useTheme } from '@/theme/useTheme';
+import { RoundTimer } from './RoundTimer';
 
 /** The player's secret: hidden until they choose to look, so a neighbour can't read it. */
-export function RoleCard({ game, round }: { game: Game; round: Round }) {
+export function RoleCard({ game, round, onExpire }: { game: Game; round: Round; onExpire: () => void }) {
   const router = useRouter();
   const { t, place, locale } = useI18n();
   const { colors } = useTheme();
@@ -23,6 +24,7 @@ export function RoleCard({ game, round }: { game: Game; round: Round }) {
         {t('Round :number', { number: round.number })} ·{' '}
         {round.spy_count === 1 ? t('1 spy at the table') : t(':count spies at the table', { count: round.spy_count })}
       </AppText>
+      {round.ends_at ? <RoundTimer endsAt={round.ends_at} onExpire={onExpire} /> : null}
 
       {!revealed ? (
         <AppText variant="muted">{t('Your dossier is sealed. Reveal it when nobody can see your screen.')}</AppText>

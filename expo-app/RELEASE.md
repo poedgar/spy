@@ -5,10 +5,13 @@
 1. Install the CLI and log in: `npm install -g eas-cli && eas login`.
 2. Link the project: `eas init` (writes the project id; set it as `EAS_PROJECT_ID`
    in `.env` for local builds).
-3. Replace the placeholders in `app.config.ts`:
-   - `ios.bundleIdentifier` and `android.package` (currently `com.example.spynet`)
-   - `icon`, adaptive icon and splash images in `assets/`
-   - Update `appId` in `.maestro/*.yaml` to match.
+3. Choose your store identifier (e.g. `com.yourname.spynet`) and set it as
+   `APP_BUNDLE_ID` for every EAS environment
+   (`eas env:create --environment production --name APP_BUNDLE_ID --value com.yourname.spynet`).
+   Without it, `app.config.ts` falls back to the `com.example.spynet`
+   placeholder, which only works for local development. Update `appId` in
+   `.maestro/*.yaml` to match. (The icons, adaptive icon and splash in
+   `assets/` are the SpyNet mask mark; swap them if you have final artwork.)
 4. Environment variables per EAS environment (`development`, `preview`,
    `production`):
 

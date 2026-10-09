@@ -33,6 +33,8 @@ test('creates an operation with the chosen settings and opens the lobby', async 
     game_mode: 'codebreaker',
     age_tier: 'children',
     max_players: 4,
+    // Choosing Codebreaker suggested an 8-minute timer.
+    round_seconds: 480,
     mission_briefing: 'Find the mole.',
   });
   await waitFor(() => expect(screen).toHavePathname('/games/SPY-AB3D'));

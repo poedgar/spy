@@ -3,8 +3,7 @@
 #   maestro test -e CODE=SPY-XXXX .maestro/02_join_and_invite.yaml
 appId: com.example.spynet
 ---
-- launchApp:
-    clearState: true
+- runFlow: _start.yaml
 - tapOn:
     id: btn-welcome-register
 - tapOn:
@@ -15,6 +14,7 @@ appId: com.example.spynet
 - inputRandomEmail
 - tapOn:
     id: input-password
+- runFlow: _latin_keyboard.yaml
 - inputText: password
 - tapOn:
     id: input-password-confirmation
@@ -27,4 +27,4 @@ appId: com.example.spynet
     id: btn-join-game
 - assertVisible:
     id: lobby-code
-- assertVisible: Roster
+- assertVisible: Players

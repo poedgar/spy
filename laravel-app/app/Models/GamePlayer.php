@@ -23,6 +23,14 @@ class GamePlayer extends Model
     /** @use HasFactory<GamePlayerFactory> */
     use HasFactory;
 
+    /**
+     * Joining, readiness and scores all count as activity on the game
+     * (open games hide ones nobody has touched for a while).
+     *
+     * @var list<string>
+     */
+    protected $touches = ['game'];
+
     protected function casts(): array
     {
         return [

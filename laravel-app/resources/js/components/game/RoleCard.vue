@@ -3,6 +3,7 @@ import { router } from '@inertiajs/vue3';
 import { Eye, EyeOff, MapPin, ShieldCheck, VenetianMask } from '@lucide/vue';
 import { computed, ref } from 'vue';
 import LocationList from '@/components/game/LocationList.vue';
+import RoundTimer from '@/components/game/RoundTimer.vue';
 import { Button } from '@/components/ui/button';
 import {
     Dialog,
@@ -71,16 +72,19 @@ function submitGuess() {
         "
     >
         <div class="flex items-center justify-between gap-2">
-            <h2 class="font-semibold">
-                {{ t('Round :number', { number: round.number }) }} ·
-                {{
-                    round.spy_count === 1
-                        ? t('1 spy at the table')
-                        : t(':count spies at the table', {
-                              count: round.spy_count,
-                          })
-                }}
-            </h2>
+            <span class="flex flex-wrap items-center gap-2">
+                <h2 class="font-semibold">
+                    {{ t('Round :number', { number: round.number }) }} ·
+                    {{
+                        round.spy_count === 1
+                            ? t('1 spy at the table')
+                            : t(':count spies at the table', {
+                                  count: round.spy_count,
+                              })
+                    }}
+                </h2>
+                <RoundTimer v-if="round.ends_at" :ends-at="round.ends_at" />
+            </span>
             <Button
                 id="btn-reveal-role"
                 variant="outline"

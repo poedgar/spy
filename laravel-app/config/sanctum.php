@@ -50,7 +50,8 @@ return [
     |
     */
 
-    'expiration' => null,
+    // Mobile sign-ins last 90 days; the app signs out on the resulting 401.
+    'expiration' => (int) env('SANCTUM_TOKEN_EXPIRATION', 60 * 24 * 90) ?: null,
 
     /*
     |--------------------------------------------------------------------------

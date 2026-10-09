@@ -33,6 +33,7 @@ class PhraseRoundResource extends JsonResource
             'language' => $this->language,
             'word_count' => count($words),
             'started_at' => $this->started_at->toIso8601String(),
+            'ends_at' => $this->ends_at?->toIso8601String(),
             'ended_at' => $this->ended_at?->toIso8601String(),
             'my_word' => $position === null ? null : $words[$position],
             'my_position' => $position === null ? null : $position + 1,

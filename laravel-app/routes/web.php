@@ -21,7 +21,8 @@ Route::middleware(['auth'])->group(function () {
     Route::get('games/spy', [DashboardController::class, 'spy'])->name('games.spy');
     Route::get('games/phrase', [DashboardController::class, 'phrase'])->name('games.phrase');
     Route::post('games/phrase', [PhraseController::class, 'store'])->name('phrase.store');
-    Route::get('games/{game}', [GameController::class, 'show'])->name('games.show');
+    Route::get('games/{code}', [GameController::class, 'show'])->name('games.show');
+    Route::delete('games/{game}', [LobbyController::class, 'close'])->name('games.close');
     Route::post('games', [GameController::class, 'store'])->name('games.store');
     Route::post('games/{code}/join', [GameController::class, 'join'])->middleware('throttle:join')->name('games.join');
     Route::post('games/{game}/leave', [GameController::class, 'leave'])->name('games.leave');
@@ -34,6 +35,7 @@ Route::middleware(['auth'])->group(function () {
     Route::post('games/{game}/reset', [GameController::class, 'reset'])->name('games.reset');
     Route::post('games/{game}/phrase/start', [PhraseController::class, 'start'])->name('phrase.start');
     Route::post('games/{game}/phrase/turn', [PhraseController::class, 'turn'])->name('phrase.turn');
+    Route::post('games/{game}/phrase/reveal', [PhraseController::class, 'reveal'])->name('phrase.reveal');
     Route::post('games/{game}/phrase/guess', [PhraseController::class, 'guess'])->name('phrase.guess');
     Route::post('games/{game}/settings', [LobbyController::class, 'settings'])->name('games.settings');
     Route::delete('games/{game}/players/{user}', [LobbyController::class, 'removePlayer'])->name('games.players.remove');
@@ -44,7 +46,7 @@ Route::middleware(['auth'])->group(function () {
     Route::post('games/{game}/join-requests/{joinRequest}/decline', [LobbyController::class, 'decline'])->name('join-requests.decline');
     Route::delete('games/{game}/invitations/{invitation}', [LobbyController::class, 'cancelInvitation'])->name('invitations.cancel');
     Route::get('games/{game}/invite', [InvitationController::class, 'index'])->name('invitations.index');
-    Route::post('games/{game}/invitations', [InvitationController::class, 'store'])->name('invitations.store');
+    Route::post('games/{game}/invitations', [InvitationController::class, 'store'])->middleware('throttle:invite')->name('invitations.store');
     Route::post('invitations/{invitation}/accept', [InvitationController::class, 'accept'])->name('invitations.accept');
     Route::post('invitations/{invitation}/decline', [InvitationController::class, 'decline'])->name('invitations.decline');
 });

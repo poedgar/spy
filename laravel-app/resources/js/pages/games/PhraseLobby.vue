@@ -1,88 +1,46 @@
 <script setup lang="ts">
-import { Head, Link, router, useForm, usePage } from '@inertiajs/vue3';
+import { Head, useForm } from '@inertiajs/vue3';
 import {
-    Check,
-    Copy,
     Eye,
     EyeOff,
-    LogOut,
     MessageCircleQuestion,
     Play,
-    RotateCcw,
+    SearchX,
     Trophy,
-    UserPlus,
 } from '@lucide/vue';
 import { computed, ref } from 'vue';
 import HostPanel from '@/components/game/HostPanel.vue';
-import PlayerActions from '@/components/game/PlayerActions.vue';
+import LobbyHeader from '@/components/game/LobbyHeader.vue';
+import Roster from '@/components/game/Roster.vue';
+import RoundHistory from '@/components/game/RoundHistory.vue';
+import RoundTimer from '@/components/game/RoundTimer.vue';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useGameChannel } from '@/composables/useGameChannel';
-import { useTrans } from '@/composables/useTrans';
+import { useLobby } from '@/composables/useLobby';
 import type { Game } from '@/types/game';
 
 const props = defineProps<{
     game: Game;
 }>();
 
-const { t } = useTrans();
-const page = usePage<{
-    auth: { user: { id: number } };
-    errors: Record<string, string>;
-}>();
-
-const myId = computed(() => page.props.auth.user.id);
-const isHost = computed(() => myId.value === props.game.host.id);
-const me = computed(() =>
-    props.game.players.find((player) => player.user.id === myId.value),
+const { t, myId, isHost, canStart, busy, playerName, act } = useLobby(
+    () => props.game,
 );
+
 const phrase = computed(() => props.game.phrase ?? null);
 const active = computed(() => props.game.status === 'active');
-const canStart = computed(
-    () => props.game.players.length >= props.game.min_players,
-);
 const isAsker = computed(() => phrase.value?.asker_user_id === myId.value);
-const scoreboard = computed(() =>
-    [...props.game.players].sort((a, b) => b.score - a.score),
+const nobodyGuessed = computed(
+    () => phrase.value?.result && phrase.value.result.winner_user_id === null,
 );
 
-/** Codenames can repeat, so the name tells players apart. */
-const playerName = (userId: number | null) => {
-    const user = props.game.players.find(
-        (player) => player.user.id === userId,
-    )?.user;
-
-    return user ? `${user.codename} (${user.name})` : t('a departed player');
-};
-
-const statusLabels = computed<Record<Game['status'], string>>(() => ({
-    recruiting: t('Recruiting'),
-    active: t('Round in progress'),
-    voting: t('Voting'),
-    completed: t('Round over'),
-}));
-
-const busy = ref(false);
-const copied = ref(false);
 // Hidden by default so a neighbour can't read the word off the screen.
 const revealed = ref(false);
 const guessForm = useForm({ guess: '' });
 
 useGameChannel(props.game.id);
-
-function act(path: string, confirmMessage?: string) {
-    if (confirmMessage && !window.confirm(confirmMessage)) {
-        return;
-    }
-
-    busy.value = true;
-    router.post(
-        `/games/${props.game.code}/${path}`,
-        {},
-        { preserveScroll: true, onFinish: () => (busy.value = false) },
-    );
-}
 
 function guess() {
     guessForm.post(`/games/${props.game.code}/phrase/guess`, {
@@ -90,70 +48,38 @@ function guess() {
         onSuccess: () => guessForm.reset(),
     });
 }
-
-async function copyInvite() {
-    const link = `${window.location.origin}/games/phrase?join=${props.game.code}`;
-
-    try {
-        await navigator.clipboard.writeText(link);
-    } catch {
-        window.prompt(t('Copy this invite link:'), link);
-    }
-
-    copied.value = true;
-    window.setTimeout(() => (copied.value = false), 2000);
-}
 </script>
 
 <template>
     <Head :title="game.title" />
 
     <div class="flex flex-1 flex-col gap-4 p-4">
-        <div
-            id="lobby-header"
-            class="rounded-xl border border-sidebar-border/70 p-4 dark:border-sidebar-border"
-        >
-            <div class="flex flex-wrap items-center justify-between gap-2">
-                <p class="text-sm text-muted-foreground">
-                    {{ t('Invite code:') }}
-                    <span id="game-invite-code" class="font-mono font-bold">{{
-                        game.code
-                    }}</span>
-                    <Button
-                        id="btn-copy-invite"
-                        variant="ghost"
-                        size="icon-sm"
-                        :title="t('Copy invite link')"
-                        @click="copyInvite"
-                    >
-                        <component :is="copied ? Check : Copy" />
-                    </Button>
+        <LobbyHeader :game="game" :in-round="active">
+            <template #meta>
+                <p class="mt-2 text-sm text-muted-foreground">
+                    {{
+                        t(':count / :max players', {
+                            count: game.players.length,
+                            max: game.max_players,
+                        })
+                    }}
+                    ·
+                    {{
+                        game.phrase_language === 'uk'
+                            ? t('Ukrainian phrases')
+                            : t('English phrases')
+                    }}
+                    <template v-if="game.round_seconds">
+                        ·
+                        {{
+                            t(':minutes min rounds', {
+                                minutes: game.round_seconds / 60,
+                            })
+                        }}
+                    </template>
                 </p>
-                <Badge id="game-status" variant="secondary">{{
-                    statusLabels[game.status]
-                }}</Badge>
-            </div>
-            <h1 class="text-xl font-bold">{{ game.title }}</h1>
-            <p class="mt-2 text-sm text-muted-foreground">
-                {{
-                    t(':count / :max players', {
-                        count: game.players.length,
-                        max: game.max_players,
-                    })
-                }}
-                ·
-                {{
-                    game.phrase_language === 'uk'
-                        ? t('Ukrainian phrases')
-                        : t('English phrases')
-                }}
-            </p>
-
-            <p v-if="page.props.errors.game" class="mt-2 text-sm text-red-600">
-                {{ page.props.errors.game }}
-            </p>
-
-            <div class="mt-3 flex flex-wrap gap-2">
+            </template>
+            <template #actions>
                 <template v-if="isHost">
                     <Button
                         v-if="!active"
@@ -169,71 +95,25 @@ async function copyInvite() {
                         }}
                     </Button>
                     <Button
-                        v-if="game.status !== 'recruiting'"
-                        id="btn-reset-game"
+                        v-if="active"
+                        id="btn-reveal-phrase"
                         variant="outline"
                         :disabled="busy"
                         @click="
                             act(
-                                'reset',
-                                active
-                                    ? t(
-                                          'End this phrase without scoring and reopen recruiting?',
-                                      )
-                                    : undefined,
+                                'phrase/reveal',
+                                t(
+                                    'Show everyone the phrase and end this round without points?',
+                                ),
                             )
                         "
                     >
-                        <RotateCcw />
-                        {{ t('Back to recruiting') }}
+                        <SearchX />
+                        {{ t('Reveal and end') }}
                     </Button>
-                    <Link
-                        v-if="game.status === 'recruiting'"
-                        id="btn-invite-players"
-                        :href="`/games/${game.code}/invite`"
-                        class="inline-flex items-center gap-1 self-center text-sm text-primary underline underline-offset-4"
-                    >
-                        <UserPlus class="size-4" />
-                        {{ t('Invite Players') }}
-                    </Link>
                 </template>
-                <Button
-                    v-if="!active"
-                    id="btn-leave-game"
-                    variant="outline"
-                    :disabled="busy"
-                    @click="
-                        act(
-                            'leave',
-                            isHost
-                                ? t(
-                                      'Leave? Hosting passes to the next player, or the game closes if nobody is left.',
-                                  )
-                                : t('Leave this game?'),
-                        )
-                    "
-                >
-                    <LogOut />
-                    {{ t('Leave') }}
-                </Button>
-            </div>
-            <p
-                v-if="isHost && !active && !canStart"
-                class="mt-2 text-sm text-muted-foreground"
-            >
-                {{
-                    t('At least :count players are required to start.', {
-                        count: game.min_players,
-                    })
-                }}
-            </p>
-            <p
-                v-else-if="!isHost && game.status === 'recruiting'"
-                class="mt-2 text-sm text-muted-foreground"
-            >
-                {{ t('Waiting for the host to start the game…') }}
-            </p>
-        </div>
+            </template>
+        </LobbyHeader>
 
         <HostPanel v-if="isHost && game.status === 'recruiting'" :game="game" />
 
@@ -248,14 +128,20 @@ async function copyInvite() {
                 "
             >
                 <div class="flex items-center justify-between gap-2">
-                    <h2 class="font-semibold">
-                        {{
-                            t('Phrase :number · :count words', {
-                                number: phrase.number,
-                                count: phrase.word_count,
-                            })
-                        }}
-                    </h2>
+                    <span class="flex flex-wrap items-center gap-2">
+                        <h2 class="font-semibold">
+                            {{
+                                t('Phrase :number · :count words', {
+                                    number: phrase.number,
+                                    count: phrase.word_count,
+                                })
+                            }}
+                        </h2>
+                        <RoundTimer
+                            v-if="phrase.ends_at"
+                            :ends-at="phrase.ends_at"
+                        />
+                    </span>
                     <Button
                         id="btn-reveal-word"
                         variant="outline"
@@ -373,15 +259,29 @@ async function copyInvite() {
         <div
             v-if="game.status === 'completed' && phrase?.result"
             id="phrase-results"
-            class="rounded-xl border border-emerald-500/60 bg-emerald-500/5 p-4"
+            class="rounded-xl border p-4"
+            :class="
+                nobodyGuessed
+                    ? 'border-sidebar-border/70 dark:border-sidebar-border'
+                    : 'border-emerald-500/60 bg-emerald-500/5'
+            "
         >
             <h2 class="flex items-center gap-2 text-lg font-bold">
-                <Trophy class="size-5" />
-                {{
-                    t(':player guessed the phrase!', {
-                        player: playerName(phrase.result.winner_user_id),
-                    })
-                }}
+                <component
+                    :is="nobodyGuessed ? SearchX : Trophy"
+                    class="size-5"
+                />
+                <template v-if="!nobodyGuessed">
+                    {{
+                        t(':player guessed the phrase!', {
+                            player: playerName(phrase.result.winner_user_id),
+                        })
+                    }}
+                </template>
+                <template v-else-if="phrase.result.ending === 'time_up'">
+                    {{ t("Time's up! Nobody guessed the phrase.") }}
+                </template>
+                <template v-else>{{ t('Nobody guessed it') }}</template>
             </h2>
             <p id="revealed-phrase" class="mt-2 text-2xl font-semibold">
                 “{{ phrase.result.phrase }}”
@@ -431,72 +331,16 @@ async function copyInvite() {
             </ul>
         </div>
 
-        <div
-            id="operatives-roster"
-            class="rounded-xl border border-sidebar-border/70 p-4 dark:border-sidebar-border"
-        >
-            <div class="mb-2 flex items-center justify-between gap-2">
-                <h2 class="font-semibold">{{ t('Players') }}</h2>
-                <Button
-                    v-if="me && !active"
-                    id="btn-toggle-ready"
+        <Roster :game="game" :in-round="active">
+            <template #badge="{ player }">
+                <Badge
+                    v-if="active && phrase?.asker_user_id === player.user.id"
                     variant="outline"
-                    size="sm"
-                    :disabled="busy"
-                    @click="act('ready')"
+                    >{{ t('asking') }}</Badge
                 >
-                    {{
-                        me.status === 'ready'
-                            ? t('Mark me not ready')
-                            : t('Mark me ready')
-                    }}
-                </Button>
-            </div>
-            <ul id="roster-list" class="space-y-1">
-                <li
-                    v-for="player in scoreboard"
-                    :key="player.id"
-                    class="flex items-center justify-between gap-2"
-                >
-                    <span class="flex items-center gap-2">
-                        <span
-                            :class="[
-                                'inline-block h-2 w-2 rounded-full',
-                                player.status === 'ready'
-                                    ? 'bg-green-500'
-                                    : 'bg-muted-foreground/40',
-                            ]"
-                        />
-                        {{ player.user.codename }}
-                        <span class="text-sm text-muted-foreground">{{
-                            player.user.name
-                        }}</span>
-                        <span
-                            v-if="player.is_host"
-                            class="text-xs text-muted-foreground"
-                            >({{ t('Host') }})</span
-                        >
-                        <Badge
-                            v-if="
-                                active &&
-                                phrase?.asker_user_id === player.user.id
-                            "
-                            variant="outline"
-                            >{{ t('asking') }}</Badge
-                        >
-                    </span>
-                    <span class="flex items-center gap-2">
-                        <PlayerActions
-                            v-if="isHost && !active && player.user.id !== myId"
-                            :code="game.code"
-                            :player="player.user"
-                        />
-                        <span class="text-xs text-muted-foreground">{{
-                            t(':score pts', { score: player.score })
-                        }}</span>
-                    </span>
-                </li>
-            </ul>
-        </div>
+            </template>
+        </Roster>
+
+        <RoundHistory :game="game" />
     </div>
 </template>

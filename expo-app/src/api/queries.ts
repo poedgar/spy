@@ -119,7 +119,7 @@ export function useInvite(code: string) {
 }
 
 type LobbyAction =
-  | { type: 'ready' | 'start' | 'voting' | 'tally' | 'reset' | 'phrase-start' | 'phrase-turn' }
+  | { type: 'ready' | 'start' | 'voting' | 'tally' | 'reset' | 'phrase-start' | 'phrase-turn' | 'phrase-reveal' }
   | { type: 'vote'; suspectId: number }
   | { type: 'approval'; requiresApproval: boolean }
   | { type: 'listing'; isListed: boolean }
@@ -149,6 +149,8 @@ export function useLobbyAction(code: string) {
           return gamesApi.startPhrase(code);
         case 'phrase-turn':
           return gamesApi.passTurn(code);
+        case 'phrase-reveal':
+          return gamesApi.revealPhrase(code);
         case 'approval':
           return gamesApi.updateSettings(code, { requires_approval: action.requiresApproval });
         case 'listing':
@@ -186,10 +188,11 @@ export function useGuessPhrase(code: string) {
   });
 }
 
-export function useLeaveGame(code: string) {
+/** Leaving, or (for the host) closing the game: either way the lobby is gone. */
+export function useLeaveGame(code: string, options: { close?: boolean } = {}) {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: () => gamesApi.leave(code),
+    mutationFn: () => (options.close ? gamesApi.close(code) : gamesApi.leave(code)),
     onSuccess: () => {
       queryClient.removeQueries({ queryKey: queryKeys.game(code) });
       void queryClient.invalidateQueries({ queryKey: queryKeys.spyHome });

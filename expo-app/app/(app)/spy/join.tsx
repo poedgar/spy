@@ -36,7 +36,7 @@ export default function JoinGame() {
       const result = await joinGame.mutateAsync(normalized);
       if (isJoinRequested(result)) {
         showBanner({ message: t('Request sent. The host will let you in.') });
-        router.replace(homePathFor(result.game_type));
+        router.dismissTo(homePathFor(result.game_type));
         return;
       }
       router.replace(`/games/${result.code}`);

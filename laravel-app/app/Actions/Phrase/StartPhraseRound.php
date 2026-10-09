@@ -65,6 +65,7 @@ class StartPhraseRound
                 'turn_order' => $playerIds->shuffle()->values()->all(),
                 'turn_index' => 0,
                 'started_at' => now(),
+                'ends_at' => $game->round_seconds ? now()->addSeconds($game->round_seconds) : null,
             ]);
 
             $game->update(['status' => GameStatus::Active]);

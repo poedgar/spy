@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Actions\Games\CastVote;
 use App\Actions\Games\CreateGame;
+use App\Actions\Games\EnforceRoundTimer;
 use App\Actions\Games\GuessLocation;
 use App\Actions\Games\LeaveGame;
 use App\Actions\Games\ResetGame;
@@ -25,8 +26,17 @@ use Inertia\Response;
 
 class GameController extends Controller
 {
-    public function show(Request $request, Game $game): Response|RedirectResponse
+    public function show(Request $request, string $code, EnforceRoundTimer $enforceTimer): Response|RedirectResponse
     {
+        $game = Game::where('code', $code)->first();
+
+        // Closed (deleted) while someone had it open: back to the games list.
+        if ($game === null) {
+            Inertia::flash('toast', ['type' => 'error', 'message' => __('That game is no longer available.')]);
+
+            return to_route('dashboard');
+        }
+
         // Someone removed, or who left in another tab, lands back on the
         // game's home with an explanation rather than an error page.
         if (! $game->isHost($request->user()) && ! $game->hasPlayer($request->user())) {
@@ -35,7 +45,8 @@ class GameController extends Controller
             return to_route(self::homeRoute($game));
         }
 
-        $game->load(['host', 'players.user', 'currentRound.votes', 'currentPhraseRound.guesses', 'joinRequests.user', 'invitations.toUser']);
+        $enforceTimer->handle($game);
+        $game->refresh()->load(Game::LOBBY_RELATIONS);
 
         if ($game->game_type === GameType::Phrase) {
             return inertia('games/PhraseLobby', [

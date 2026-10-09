@@ -64,6 +64,12 @@ class NotificationPresenter
                 $home,
                 ['type' => 'home', 'game_type' => $type],
             ],
+            'game_closed' => [
+                $t('Game closed'),
+                $t('The host closed :title.', ['title' => $title]),
+                $home,
+                ['type' => 'home', 'game_type' => $type],
+            ],
             'became_host' => [
                 $t('You are the host now'),
                 $t('You now host :title.', ['title' => $title]),

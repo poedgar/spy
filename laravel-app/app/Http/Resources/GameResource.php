@@ -6,8 +6,11 @@ use App\Enums\GameStatus;
 use App\Enums\GameType;
 use App\Enums\InvitationStatus;
 use App\Models\Game;
+use App\Models\GameRound;
 use App\Models\Invitation;
 use App\Models\JoinRequest;
+use App\Models\PhraseRound;
+use App\Support\LocationCatalog;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -38,6 +41,7 @@ class GameResource extends JsonResource
             'phrase_language' => $this->phrase_language,
             'max_players' => $this->max_players,
             'max_allowed_players' => $this->game_type->maxPlayers(),
+            'round_seconds' => $this->round_seconds,
             'min_players' => $this->game_type->minPlayers(),
             'mission_briefing' => $this->mission_briefing,
             'status' => $this->status,
@@ -80,6 +84,12 @@ class GameResource extends JsonResource
                     ? null
                     : RoundResource::make($this->currentRound),
             ),
+            // Earlier rounds, newest first. The one shown as the current
+            // result is left out so it isn't listed twice.
+            'history' => $this->when(
+                $this->relationLoaded('pastRounds') || $this->relationLoaded('pastPhraseRounds'),
+                fn () => $this->history(),
+            ),
             'phrase' => $this->when(
                 $this->game_type === GameType::Phrase && $this->relationLoaded('currentPhraseRound'),
                 fn () => $this->status === GameStatus::Recruiting || $this->currentPhraseRound === null
@@ -87,5 +97,45 @@ class GameResource extends JsonResource
                     : PhraseRoundResource::make($this->currentPhraseRound),
             ),
         ];
+    }
+
+    /**
+     * @return list<array<string, mixed>>
+     */
+    private function history(): array
+    {
+        $shown = $this->status === GameStatus::Completed ? $this->currentRoundNumber() : null;
+
+        if ($this->game_type === GameType::Phrase) {
+            return array_values($this->pastPhraseRounds
+                ->reject(fn (PhraseRound $round) => $round->number === $shown)
+                ->map(fn (PhraseRound $round) => [
+                    'number' => $round->number,
+                    'ending' => $round->ending,
+                    'phrase' => $round->text(),
+                    'winner_user_id' => $round->winner_user_id,
+                    'ended_at' => $round->ended_at?->toIso8601String(),
+                ])->all());
+        }
+
+        return array_values($this->pastRounds
+            ->reject(fn (GameRound $round) => $round->number === $shown)
+            ->map(fn (GameRound $round) => [
+                'number' => $round->number,
+                'ending' => $round->ending,
+                'winning_team' => $round->winning_team,
+                'location' => LocationCatalog::present($round->location_id),
+                'spy_user_ids' => $round->spy_user_ids,
+                'ended_at' => $round->ended_at?->toIso8601String(),
+            ])->all());
+    }
+
+    private function currentRoundNumber(): ?int
+    {
+        $current = $this->game_type === GameType::Phrase
+            ? $this->resource->currentPhraseRound
+            : $this->resource->currentRound;
+
+        return $current?->number;
     }
 }

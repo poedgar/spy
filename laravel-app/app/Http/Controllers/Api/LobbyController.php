@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Actions\Invitations\CancelInvitation;
 use App\Actions\Lobby\AnswerJoinRequest;
+use App\Actions\Lobby\CloseGame;
 use App\Actions\Lobby\RemovePlayer;
 use App\Actions\Lobby\RequestToJoin;
 use App\Actions\Lobby\TransferHost;
@@ -85,6 +86,13 @@ class LobbyController extends Controller
     public function cancelRequest(Request $request, string $code, RequestToJoin $requestToJoin): Response
     {
         $requestToJoin->cancel(Game::where('code', $code)->firstOrFail(), $request->user());
+
+        return response()->noContent();
+    }
+
+    public function close(Request $request, string $code, CloseGame $closeGame): Response
+    {
+        $closeGame->handle(GameController::member($request, $code), $request->user());
 
         return response()->noContent();
     }

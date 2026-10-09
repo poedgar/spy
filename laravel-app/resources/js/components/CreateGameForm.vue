@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { useForm } from '@inertiajs/vue3';
-import { computed } from 'vue';
+import RoundTimerSelect from '@/components/game/RoundTimerSelect.vue';
+import { computed, watch } from 'vue';
 import { useGameLabels } from '@/composables/useGameLabels';
 import { useTrans } from '@/composables/useTrans';
 import type { AgeTier, GameMode } from '@/types/game';
@@ -21,6 +22,7 @@ const form = useForm({
     ),
     requires_approval: false,
     is_listed: true,
+    round_seconds: 0,
 });
 
 /** Mirrors Game::spyCountFor on the server. */
@@ -33,6 +35,16 @@ const spiesAtCapacity = computed(() => {
 
     return players < 8 ? 2 : 1 + Math.floor((players - 2) / 3);
 });
+
+// Codebreaker is the race-the-clock mode: suggest a timer.
+watch(
+    () => form.game_mode,
+    (mode) => {
+        if (mode === 'codebreaker' && form.round_seconds === 0) {
+            form.round_seconds = 480;
+        }
+    },
+);
 
 function submit() {
     form.post('/games');
@@ -165,6 +177,8 @@ function submit() {
             />
             {{ t('Approve new players before they join') }}
         </label>
+
+        <RoundTimerSelect v-model="form.round_seconds" />
 
         <label class="flex items-center gap-2 text-sm">
             <input

@@ -32,6 +32,7 @@ function deal(overrides: Partial<PhraseRound> = {}): PhraseRound {
     language: 'en',
     word_count: 5,
     started_at: '2026-10-08T10:00:00Z',
+    ends_at: null,
     ended_at: null,
     my_word: 'louder',
     my_position: 3,
@@ -81,7 +82,12 @@ test('creating a phrase game sends the language and table size', async () => {
     fireEvent.press(screen.getByTestId('btn-create-phrase'));
   });
 
-  expect(gamesApi.createPhrase).toHaveBeenCalledWith({ title: 'Word Play', phrase_language: 'uk', max_players: 10 });
+  expect(gamesApi.createPhrase).toHaveBeenCalledWith({
+    title: 'Word Play',
+    phrase_language: 'uk',
+    max_players: 10,
+    round_seconds: 0,
+  });
   await waitFor(() => expect(screen).toHavePathname('/games/SPY-AB3D'));
 });
 

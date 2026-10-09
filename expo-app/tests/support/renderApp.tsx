@@ -2,7 +2,7 @@ import { QueryClientProvider } from '@tanstack/react-query';
 import { renderRouter } from 'expo-router/testing-library';
 import * as SecureStore from 'expo-secure-store';
 import type { ComponentType, ReactNode } from 'react';
-import { meApi } from '@/api/endpoints';
+import { meApi, notificationsApi } from '@/api/endpoints';
 import { createQueryClient } from '@/api/queryClient';
 import type { User } from '@/api/types';
 import { AuthProvider } from '@/auth/AuthProvider';
@@ -23,6 +23,11 @@ export async function renderApp(routes: Routes, options: { initialUrl: string; u
   if (options.user) {
     await SecureStore.setItemAsync(SESSION_KEY, JSON.stringify({ token: 'test-token', user: options.user }));
     jest.mocked(meApi.get).mockResolvedValue(options.user);
+  }
+
+  // The notification bell is on most screens; give mocked APIs an empty feed.
+  if (jest.isMockFunction(notificationsApi.list) && !jest.mocked(notificationsApi.list).getMockImplementation()) {
+    jest.mocked(notificationsApi.list).mockResolvedValue({ unread_count: 0, notifications: [] });
   }
 
   const queryClient = createQueryClient();

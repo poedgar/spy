@@ -49,6 +49,7 @@ class StartRound
                 'location_id' => $this->drawLocation($game, $previous),
                 'spy_user_ids' => $playerIds->shuffle()->take(Game::spyCountFor($playerIds->count()))->values()->all(),
                 'started_at' => now(),
+                'ends_at' => $game->round_seconds ? now()->addSeconds($game->round_seconds) : null,
             ]);
 
             $game->update(['status' => GameStatus::Active]);
