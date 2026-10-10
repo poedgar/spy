@@ -1,3 +1,4 @@
+import { registerGlobals } from '@livekit/react-native';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { Slot } from 'expo-router';
 import { useEffect, useState } from 'react';
@@ -11,6 +12,9 @@ import { RealtimeProvider } from '@/realtime/RealtimeProvider';
 
 // An unexpected error shows a "Retry" screen instead of closing the app.
 export { ErrorBoundary } from 'expo-router';
+
+// WebRTC for voice chat (LiveKit); must run before any room is created.
+registerGlobals();
 
 export default function RootLayout() {
   const [queryClient] = useState(createQueryClient);

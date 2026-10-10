@@ -51,6 +51,9 @@ Once, on the server:
   verification.
 - `APP_NAME="Marvelous Games"`, and `SANCTUM_TOKEN_EXPIRATION` if mobile sign-ins
   should last other than 90 days.
+- **Voice chat** (optional): `LIVEKIT_URL`, `LIVEKIT_API_KEY`,
+  `LIVEKIT_API_SECRET` from a LiveKit Cloud project (free plan is fine).
+  Without them, lobbies simply don't offer voice.
 
 ## CI
 

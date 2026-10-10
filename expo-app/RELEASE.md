@@ -55,6 +55,10 @@
 - [ ] Sharing an invite from the lobby and opening `marvelousgames://join/<code>` on
       another device pre-fills Join Operation.
 - [ ] Log in with a 2FA-enabled account (code and recovery code).
+- [ ] Voice chat (needs LiveKit set up on the server): two phones join the
+      same lobby's voice, hear each other, mute shows on the other phone,
+      and leaving the lobby ends the call. The microphone prompt appears on
+      first join.
 - [ ] Delete account works and the account can no longer log in (web or app).
 - [ ] Store listings: privacy policy URL, screenshots, description, and the
       App Store "account deletion" answer pointing at Settings → Delete account.

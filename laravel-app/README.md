@@ -130,8 +130,9 @@ unknown URL never reaches the session).
 Building on Phase 1, this adds:
 
 - A Pusher-backed presence channel (`online-users`) tracking who's
-  currently online, with no persisted "online" column — presence
-  channel membership is the live source of truth.
+  currently online. The server also notes each user's `last_seen_at`
+  (at most once a minute), so the invite list can show who is online
+  even without Pusher: active in the last 5 minutes counts.
 - A pending/accept/decline game-invitation flow: from a game's Lobby
   (host only, while the game is `recruiting`), invite a specific
   registered user. They see it on their Spy page's "Pending
@@ -152,6 +153,20 @@ simultaneous authenticated sessions) — verify those manually. The
 invite → Spy page → accept/decline → lobby flow itself is CI-covered:
 it never depends on Pusher connectivity, since sending an invitation
 succeeds whether or not the broadcast does.
+
+## Voice chat
+
+Players in a game can talk in its lobby (web and mobile). Audio runs on
+[LiveKit](https://livekit.io), never through this server: Laravel only
+signs a short-lived token for players of the game
+(`GET /games/{code}/voice`, and `/api/v1/games/{code}/voice` for the
+app), scoped to that game's room and to the microphone.
+
+It is off until `LIVEKIT_URL`, `LIVEKIT_API_KEY` and `LIVEKIT_API_SECRET`
+are set; games report `voice_enabled` so the apps show the panel only
+then. LiveKit Cloud's free plan is enough to start (create a project,
+copy its URL, e.g. `wss://….livekit.cloud`, and an API key and secret).
+The web app loads the LiveKit client only when someone joins.
 
 ## Setup
 

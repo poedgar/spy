@@ -4,6 +4,7 @@ import { AppText } from '@/components/AppText';
 import { Badge } from '@/components/Badge';
 import { Button } from '@/components/Button';
 import { Screen } from '@/components/Screen';
+import { VoicePanel } from '@/voice/VoicePanel';
 import { HostPanel } from './HostPanel';
 import { modeLabels, spyCountFor, tierLabels } from './labels';
 import { LobbyHeader } from './LobbyHeader';
@@ -71,6 +72,10 @@ export function SpyLobby({ game, refreshing, onRefresh }: Props) {
       </LobbyHeader>
 
       {isHost && game.status === 'recruiting' ? <HostPanel game={game} busy={busy} run={run} /> : null}
+
+      {game.voice_enabled && game.players?.some((player) => player.user.id === me.id) ? (
+        <VoicePanel code={game.code} />
+      ) : null}
 
       {round && inRound ? <RoleCard key={round.number} game={game} round={round} onExpire={onRefresh} /> : null}
 

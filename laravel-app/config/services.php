@@ -39,4 +39,11 @@ return [
         'access_token' => env('EXPO_ACCESS_TOKEN'),
     ],
 
+    // Voice chat in game lobbies. Leave empty to turn it off.
+    'livekit' => [
+        'url' => env('LIVEKIT_URL'),
+        'key' => env('LIVEKIT_API_KEY'),
+        'secret' => env('LIVEKIT_API_SECRET'),
+    ],
+
 ];

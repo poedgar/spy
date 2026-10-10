@@ -10,6 +10,7 @@ import { Card } from '@/components/Card';
 import { Screen } from '@/components/Screen';
 import { TextField } from '@/components/TextField';
 import { useTheme } from '@/theme/useTheme';
+import { VoicePanel } from '@/voice/VoicePanel';
 import { HostPanel } from './HostPanel';
 import { LobbyHeader } from './LobbyHeader';
 import { RoundHistory } from './RoundHistory';
@@ -84,6 +85,10 @@ export function PhraseLobby({ game, refreshing, onRefresh }: Props) {
       </LobbyHeader>
 
       {isHost && game.status === 'recruiting' ? <HostPanel game={game} busy={busy} run={run} /> : null}
+
+      {game.voice_enabled && game.players?.some((player) => player.user.id === me.id) ? (
+        <VoicePanel code={game.code} />
+      ) : null}
 
       {active && phrase ? (
         <>

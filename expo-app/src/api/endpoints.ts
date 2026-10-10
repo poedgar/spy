@@ -1,13 +1,13 @@
 import { request } from './client';
 import type {
+  AgeTier,
   AuthResult,
   CreateGameInput,
   CreatePhraseGameInput,
   Game,
-  AgeTier,
   InvitableUser,
-  JoinRequested,
   Invitation,
+  JoinRequested,
   Locale,
   LocationGuide,
   NotificationFeed,
@@ -15,6 +15,7 @@ import type {
   SpyHome,
   TokenResult,
   User,
+  VoiceAccess,
 } from './types';
 
 const enc = encodeURIComponent;
@@ -77,6 +78,8 @@ export const gamesApi = {
   locations: (tier: AgeTier) => request<LocationGuide>('GET', `/locations?tier=${tier}`),
   invitableUsers: (code: string, search = '') =>
     request<InvitableUser[]>('GET', `/games/${enc(code)}/invitable-users${search ? `?q=${enc(search)}` : ''}`),
+  /** What the app needs to join the game's LiveKit voice room. */
+  voice: (code: string) => request<VoiceAccess>('GET', `/games/${enc(code)}/voice`),
   invite: (code: string, toUserId: number) =>
     request<Invitation>('POST', `/games/${enc(code)}/invitations`, { to_user_id: toUserId }),
   accept: (invitationId: number) => request<Game>('POST', `/invitations/${invitationId}/accept`),

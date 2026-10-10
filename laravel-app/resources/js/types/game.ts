@@ -92,6 +92,8 @@ export interface Game {
     players: Player[];
     requires_approval: boolean;
     is_listed: boolean;
+    /** LiveKit is configured, so the lobby offers voice chat. */
+    voice_enabled: boolean;
     /** Host only. */
     join_requests?: { id: number; user: Operative; created_at: string }[];
     /** Host only: invitations not (yet) accepted. */

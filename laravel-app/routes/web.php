@@ -8,6 +8,7 @@ use App\Http\Controllers\LocaleController;
 use App\Http\Controllers\LocationController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\PhraseController;
+use App\Http\Controllers\VoiceController;
 use Illuminate\Support\Facades\Route;
 
 Route::inertia('/', 'Welcome')->name('home');
@@ -46,6 +47,7 @@ Route::middleware(['auth'])->group(function () {
     Route::post('games/{game}/join-requests/{joinRequest}/decline', [LobbyController::class, 'decline'])->name('join-requests.decline');
     Route::delete('games/{game}/invitations/{invitation}', [LobbyController::class, 'cancelInvitation'])->name('invitations.cancel');
     Route::get('games/{game}/invite', [InvitationController::class, 'index'])->name('invitations.index');
+    Route::get('games/{game}/voice', [VoiceController::class, 'show'])->middleware('throttle:30,1')->name('games.voice');
     Route::post('games/{game}/invitations', [InvitationController::class, 'store'])->middleware('throttle:invite')->name('invitations.store');
     Route::post('invitations/{invitation}/accept', [InvitationController::class, 'accept'])->name('invitations.accept');
     Route::post('invitations/{invitation}/decline', [InvitationController::class, 'decline'])->name('invitations.decline');

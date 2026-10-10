@@ -119,6 +119,8 @@ export interface Game {
   host_id: number;
   requires_approval?: boolean;
   is_listed?: boolean;
+  /** LiveKit is configured on the server, so lobbies offer voice chat. */
+  voice_enabled?: boolean;
   player_count: number;
   spy_count?: number;
   created_at: string | null;
@@ -257,4 +259,11 @@ export interface AppNotification {
 export interface NotificationFeed {
   unread_count: number;
   notifications: AppNotification[];
+}
+
+/** A LiveKit server and a token to join one game's voice room. */
+export interface VoiceAccess {
+  url: string;
+  token: string;
+  room: string;
 }

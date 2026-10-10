@@ -10,6 +10,7 @@ use App\Models\GameRound;
 use App\Models\Invitation;
 use App\Models\JoinRequest;
 use App\Models\PhraseRound;
+use App\Support\LiveKit;
 use App\Support\LocationCatalog;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
@@ -48,6 +49,7 @@ class GameResource extends JsonResource
             'host_id' => $this->host_id,
             'requires_approval' => $this->requires_approval,
             'is_listed' => $this->is_listed,
+            'voice_enabled' => LiveKit::enabled(),
             'player_count' => $playerCount,
             'spy_count' => Game::spyCountFor($playerCount),
             'created_at' => $this->created_at?->toIso8601String(),

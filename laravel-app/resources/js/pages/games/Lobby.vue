@@ -9,6 +9,7 @@ import RoleCard from '@/components/game/RoleCard.vue';
 import Roster from '@/components/game/Roster.vue';
 import RoundHistory from '@/components/game/RoundHistory.vue';
 import RoundResults from '@/components/game/RoundResults.vue';
+import VoicePanel from '@/components/game/VoicePanel.vue';
 import VotingPanel from '@/components/game/VotingPanel.vue';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -23,7 +24,7 @@ const props = defineProps<{
     categories: Categories;
 }>();
 
-const { t, isHost, canStart } = useLobby(() => props.game);
+const { t, isHost, canStart, me } = useLobby(() => props.game);
 const { modes, tiers } = useGameLabels();
 
 const round = computed(() => props.game.round);
@@ -101,6 +102,8 @@ useGameChannel(props.game.id);
         </LobbyHeader>
 
         <HostPanel v-if="isHost && game.status === 'recruiting'" :game="game" />
+
+        <VoicePanel v-if="game.voice_enabled && me" :game="game" />
 
         <RoleCard
             v-if="inRound && round"

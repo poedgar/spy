@@ -14,6 +14,7 @@ import LobbyHeader from '@/components/game/LobbyHeader.vue';
 import Roster from '@/components/game/Roster.vue';
 import RoundHistory from '@/components/game/RoundHistory.vue';
 import RoundTimer from '@/components/game/RoundTimer.vue';
+import VoicePanel from '@/components/game/VoicePanel.vue';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -25,7 +26,7 @@ const props = defineProps<{
     game: Game;
 }>();
 
-const { t, myId, isHost, canStart, busy, playerName, act } = useLobby(
+const { t, myId, isHost, canStart, busy, playerName, act, me } = useLobby(
     () => props.game,
 );
 
@@ -116,6 +117,8 @@ function guess() {
         </LobbyHeader>
 
         <HostPanel v-if="isHost && game.status === 'recruiting'" :game="game" />
+
+        <VoicePanel v-if="game.voice_enabled && me" :game="game" />
 
         <template v-if="active && phrase">
             <div

@@ -9,6 +9,7 @@ use App\Http\Controllers\Api\MeController;
 use App\Http\Controllers\Api\NotificationController;
 use App\Http\Controllers\Api\PhraseController;
 use App\Http\Controllers\Api\PushTokenController;
+use App\Http\Controllers\VoiceController;
 use Illuminate\Support\Facades\Broadcast;
 use Illuminate\Support\Facades\Route;
 
@@ -37,6 +38,7 @@ Route::prefix('v1')->group(function () {
         Route::post('games/phrase', [PhraseController::class, 'store']);
         Route::post('games', [GameController::class, 'store']);
         Route::get('games/{code}', [GameController::class, 'show']);
+        Route::get('games/{code}/voice', [VoiceController::class, 'showByCode'])->middleware('throttle:30,1');
         Route::post('games/{code}/join', [GameController::class, 'join'])->middleware('throttle:join');
         Route::post('games/{code}/leave', [GameController::class, 'leave']);
         Route::post('games/{code}/ready', [GameController::class, 'ready']);

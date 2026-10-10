@@ -27,6 +27,8 @@ const config: ExpoConfig = {
       backgroundColor: '#171717',
     },
     googleServicesFile: process.env.GOOGLE_SERVICES_JSON,
+    // Voice chat needs only the microphone; the WebRTC plugin asks for more.
+    blockedPermissions: ['android.permission.CAMERA', 'android.permission.SYSTEM_ALERT_WINDOW'],
   },
   plugins: [
     'expo-router',
@@ -40,6 +42,12 @@ const config: ExpoConfig = {
         backgroundColor: '#ffffff',
         dark: { backgroundColor: '#0a0a0a' },
       },
+    ],
+    // Voice chat in game lobbies (LiveKit over WebRTC).
+    '@livekit/react-native-expo-plugin',
+    [
+      '@config-plugins/react-native-webrtc',
+      { microphonePermission: 'Marvelous Games uses the microphone for voice chat with the other players.' },
     ],
   ],
   extra: {

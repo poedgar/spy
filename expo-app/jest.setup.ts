@@ -37,3 +37,27 @@ jest.mock('@/realtime/echo', () => {
 beforeEach(() => {
   jest.requireMock<{ __echo: { reset(): void } }>('@/realtime/echo').__echo.reset();
 });
+
+// LiveKit needs native WebRTC; tests get a stand-in room with this phone's
+// participant in it. Tests can swap participants via __setParticipants.
+jest.mock('@livekit/react-native', () => {
+  const local = {
+    identity: '1',
+    name: 'SHADOW_FOX',
+    isMicrophoneEnabled: true,
+    setMicrophoneEnabled: jest.fn(async () => undefined),
+  };
+  let participants: unknown[] = [local];
+  return {
+    registerGlobals: jest.fn(),
+    AudioSession: { startAudioSession: jest.fn(async () => undefined), stopAudioSession: jest.fn(async () => undefined) },
+    LiveKitRoom: ({ children }: { children: unknown }) => children,
+    useParticipants: () => participants,
+    useLocalParticipant: () => ({ localParticipant: local, isMicrophoneEnabled: local.isMicrophoneEnabled }),
+    useIsSpeaking: () => false,
+    __local: local,
+    __setParticipants: (next: unknown[]) => {
+      participants = next;
+    },
+  };
+});
