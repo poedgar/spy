@@ -50,7 +50,7 @@ class GuessLocation
                 'winning_team' => $correct ? Team::Spies : Team::Loyalists,
                 'guessed_by_user_id' => $spy->id,
                 'guessed_location_id' => $locationId,
-            ]);
+            ], $spy->id);
 
             return $correct;
         });

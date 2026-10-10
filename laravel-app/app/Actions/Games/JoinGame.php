@@ -10,6 +10,7 @@ use App\Models\Game;
 use App\Models\GamePlayer;
 use App\Models\User;
 use App\Support\BestEffortBroadcast;
+use App\Support\GameNews;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Support\Facades\DB;
 
@@ -54,6 +55,7 @@ class JoinGame
 
         if ($player) {
             BestEffortBroadcast::dispatch(new PlayerJoined($player));
+            GameNews::playerJoined($game);
         }
 
         return $game->refresh();

@@ -1,5 +1,6 @@
 import { request } from './client';
 import type {
+  ChatMessage,
   AgeTier,
   AuthResult,
   CreateGameInput,
@@ -16,6 +17,7 @@ import type {
   TokenResult,
   User,
   VoiceAccess,
+  VoiceParticipant,
 } from './types';
 
 const enc = encodeURIComponent;
@@ -78,6 +80,10 @@ export const gamesApi = {
   locations: (tier: AgeTier) => request<LocationGuide>('GET', `/locations?tier=${tier}`),
   invitableUsers: (code: string, search = '') =>
     request<InvitableUser[]>('GET', `/games/${enc(code)}/invitable-users${search ? `?q=${enc(search)}` : ''}`),
+  /** Who is in the game's voice room, seen without joining it. */
+  voiceParticipants: (code: string) => request<VoiceParticipant[]>('GET', `/games/${enc(code)}/voice/participants`),
+  messages: (code: string) => request<ChatMessage[]>('GET', `/games/${enc(code)}/messages`),
+  postMessage: (code: string, body: string) => request<ChatMessage>('POST', `/games/${enc(code)}/messages`, { body }),
   /** What the app needs to join the game's LiveKit voice room. */
   voice: (code: string) => request<VoiceAccess>('GET', `/games/${enc(code)}/voice`),
   invite: (code: string, toUserId: number) =>

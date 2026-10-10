@@ -10,6 +10,7 @@ import { Card } from '@/components/Card';
 import { Screen } from '@/components/Screen';
 import { TextField } from '@/components/TextField';
 import { useTheme } from '@/theme/useTheme';
+import { ChatPanel } from '@/chat/ChatPanel';
 import { VoicePanel } from '@/voice/VoicePanel';
 import { HostPanel } from './HostPanel';
 import { LobbyHeader } from './LobbyHeader';
@@ -89,6 +90,8 @@ export function PhraseLobby({ game, refreshing, onRefresh }: Props) {
       {game.voice_enabled && game.players?.some((player) => player.user.id === me.id) ? (
         <VoicePanel code={game.code} />
       ) : null}
+
+      {game.players?.some((player) => player.user.id === me.id) ? <ChatPanel code={game.code} gameId={game.id} /> : null}
 
       {active && phrase ? (
         <>

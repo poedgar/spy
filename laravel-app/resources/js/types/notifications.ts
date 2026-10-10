@@ -4,7 +4,12 @@ export type NotificationKind =
     | 'join_answered'
     | 'round_started'
     | 'removed'
-    | 'became_host';
+    | 'became_host'
+    | 'game_closed'
+    | 'invitation_answered'
+    | 'round_ended'
+    | 'ready_to_start'
+    | 'player_left';
 
 /** A notification as the server presents it, in the reader's language. */
 export interface AppNotification {

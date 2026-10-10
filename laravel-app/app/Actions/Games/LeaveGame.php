@@ -9,6 +9,7 @@ use App\Models\Game;
 use App\Models\GamePlayer;
 use App\Models\User;
 use App\Notifications\BecameHost;
+use App\Notifications\PlayerLeft;
 use App\Support\BestEffortBroadcast;
 use Illuminate\Support\Facades\DB;
 
@@ -58,6 +59,8 @@ class LeaveGame
 
         if ($newHostId !== null) {
             User::find($newHostId)?->notify(new BecameHost($game->refresh()));
+        } else {
+            $game->refresh()->host?->notify(new PlayerLeft($game, $user));
         }
 
         BestEffortBroadcast::dispatch(new GameUpdated($game->refresh()));

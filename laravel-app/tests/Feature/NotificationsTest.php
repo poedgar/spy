@@ -15,6 +15,7 @@ use App\Notifications\InvitationReceived;
 use App\Notifications\JoinRequestAnsweredNotification;
 use App\Notifications\RemovedFromGame;
 use App\Notifications\RoundStartedNotification;
+use App\Support\NotificationPresenter;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
@@ -257,4 +258,54 @@ test('with a sync queue, a push or mail outage never fails the player who sent t
     // Stored for the bell even though push and mail both failed.
     expect($guest->notifications()->sole()->data['kind'])->toBe('invitation');
     Http::assertSentCount(1);
+});
+
+test('the inviter hears when an invitation is accepted, with a push, or declined, without one', function () {
+    fakeExpo();
+    $accepted = Invitation::factory()->create();
+    $accepted->game->update(['max_players' => 6]);
+    PushToken::create(['user_id' => $accepted->from_user_id, 'token' => 'ExponentPushToken[host]', 'platform' => 'ios']);
+
+    Sanctum::actingAs($accepted->toUser);
+    $this->postJson("/api/v1/invitations/{$accepted->id}/accept")->assertOk();
+
+    $sent = $accepted->fromUser->notifications()->sole();
+    expect($sent->data)->toMatchArray([
+        'kind' => 'invitation_answered',
+        'accepted' => true,
+        'from_codename' => $accepted->toUser->codename,
+        'game_code' => $accepted->game->code,
+    ]);
+    Http::assertSent(fn ($request) => $request->data()[0]['to'] === 'ExponentPushToken[host]'
+        && $request->data()[0]['data'] === ['type' => 'game', 'code' => $accepted->game->code]);
+
+    $declined = Invitation::factory()->create();
+    Sanctum::actingAs($declined->toUser);
+    $this->postJson("/api/v1/invitations/{$declined->id}/decline")->assertNoContent();
+
+    expect($declined->fromUser->notifications()->sole()->data)->toMatchArray(['kind' => 'invitation_answered', 'accepted' => false])
+        ->and(Http::recorded())->toHaveCount(1);
+});
+
+test('accepting after already joining by code tells the inviter nothing new', function () {
+    Notification::fake();
+    $invitation = Invitation::factory()->create();
+    $invitation->game->update(['max_players' => 6]);
+    GamePlayer::factory()->create(['game_id' => $invitation->game_id, 'user_id' => $invitation->to_user_id]);
+    Sanctum::actingAs($invitation->toUser);
+
+    $this->postJson("/api/v1/invitations/{$invitation->id}/accept")->assertOk();
+
+    Notification::assertNothingSentTo($invitation->fromUser);
+});
+
+test('an answered invitation reads naturally in Ukrainian', function () {
+    $presented = NotificationPresenter::present([
+        'kind' => 'invitation_answered', 'accepted' => true, 'from_codename' => 'NIGHT_HAWK',
+        'game_code' => 'SPY-AB3D', 'game_title' => 'Нічна зміна', 'game_type' => 'spy',
+    ], 'uk');
+
+    expect($presented['title'])->toBe('Запрошення прийнято')
+        ->and($presented['body'])->toBe('NIGHT_HAWK приймає ваше запрошення до «Нічна зміна».')
+        ->and($presented['link'])->toBe('/games/SPY-AB3D');
 });

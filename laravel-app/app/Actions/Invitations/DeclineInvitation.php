@@ -5,6 +5,7 @@ namespace App\Actions\Invitations;
 use App\Enums\InvitationStatus;
 use App\Models\Invitation;
 use App\Models\User;
+use App\Notifications\InvitationAnswered;
 
 class DeclineInvitation
 {
@@ -14,6 +15,7 @@ class DeclineInvitation
 
         if ($invitation->status === InvitationStatus::Pending) {
             $invitation->update(['status' => InvitationStatus::Declined]);
+            $invitation->fromUser?->notify(new InvitationAnswered($invitation, accepted: false));
         }
     }
 }

@@ -11,7 +11,9 @@ use App\Models\Game;
 use App\Models\GamePlayer;
 use App\Models\Invitation;
 use App\Models\User;
+use App\Notifications\InvitationAnswered;
 use App\Support\BestEffortBroadcast;
+use App\Support\GameNews;
 use Illuminate\Support\Facades\DB;
 
 class AcceptInvitation
@@ -59,6 +61,9 @@ class AcceptInvitation
 
         if ($player) {
             BestEffortBroadcast::dispatch(new PlayerJoined($player));
+            GameNews::playerJoined($invitation->game);
+            // Someone already in the game (joined by code) is no news.
+            $invitation->fromUser?->notify(new InvitationAnswered($invitation, accepted: true));
         }
 
         return $invitation->game->refresh();

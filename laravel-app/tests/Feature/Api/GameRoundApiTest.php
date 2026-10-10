@@ -4,49 +4,11 @@ use App\Enums\GameStatus;
 use App\Enums\PlayerStatus;
 use App\Enums\RoundEnding;
 use App\Enums\Team;
-use App\Models\Game;
 use App\Models\GamePlayer;
-use App\Models\GameRound;
 use App\Models\User;
 use App\Support\LocationCatalog;
 use App\Support\LocationData;
 use Laravel\Sanctum\Sanctum;
-
-/**
- * @return array{0: Game, 1: User, 2: list<User>}
- */
-function gameWithPlayers(int $count, array $attributes = []): array
-{
-    $host = User::factory()->create();
-    $game = Game::factory()->create(['host_id' => $host->id, ...$attributes]);
-    GamePlayer::factory()->create(['game_id' => $game->id, 'user_id' => $host->id, 'is_host' => true]);
-
-    $others = User::factory()->count($count - 1)->create()->each(
-        fn (User $user) => GamePlayer::factory()->create(['game_id' => $game->id, 'user_id' => $user->id]),
-    );
-
-    return [$game, $host, [$host, ...$others->all()]];
-}
-
-function startedRound(Game $game, User $host): GameRound
-{
-    Sanctum::actingAs($host);
-    test()->postJson("/api/v1/games/{$game->code}/start")->assertOk();
-
-    return $game->currentRound()->firstOrFail();
-}
-
-/**
- * @param  list<User>  $players
- * @return array{0: User, 1: User} a spy and a loyalist
- */
-function rolesOf(GameRound $round, array $players): array
-{
-    $spy = collect($players)->first(fn (User $user) => $round->isSpy($user));
-    $loyalist = collect($players)->first(fn (User $user) => ! $round->isSpy($user));
-
-    return [$spy, $loyalist];
-}
 
 test('the host starts a round: a location from the tier and the right number of spies', function () {
     [$game, $host] = gameWithPlayers(5, ['age_tier' => 'children']);

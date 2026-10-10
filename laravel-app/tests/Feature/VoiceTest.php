@@ -4,6 +4,7 @@ use App\Models\Game;
 use App\Models\GamePlayer;
 use App\Models\User;
 use App\Support\LiveKit;
+use Illuminate\Support\Facades\Http;
 use Laravel\Sanctum\Sanctum;
 
 beforeEach(function () {
@@ -72,4 +73,41 @@ test('voice chat is off until LiveKit is configured, and the lobby says so', fun
 
     $this->getJson("/api/v1/games/{$this->game->code}/voice")->assertNotFound();
     $this->getJson("/api/v1/games/{$this->game->code}")->assertJsonPath('voice_enabled', false);
+});
+
+test('a lobby can see who is in voice without joining, via LiveKit\'s API over HTTPS', function () {
+    Http::fake(['example.livekit.cloud/*' => Http::response(['participants' => [
+        ['identity' => '7', 'name' => 'NIGHT_HAWK', 'state' => 'ACTIVE'],
+        ['identity' => '8', 'name' => 'GONE_GHOST', 'state' => 'DISCONNECTED'],
+    ]])]);
+    Sanctum::actingAs($this->player);
+
+    $this->getJson("/api/v1/games/{$this->game->code}/voice/participants")
+        ->assertOk()
+        ->assertExactJson([['identity' => '7', 'name' => 'NIGHT_HAWK']]);
+
+    Http::assertSent(function ($request) {
+        [, $claims] = decodeJwt(str_replace('Bearer ', '', $request->header('Authorization')[0]));
+
+        return $request->url() === 'https://example.livekit.cloud/twirp/livekit.RoomService/ListParticipants'
+            && $request->data() === ['room' => "game-{$this->game->id}"]
+            && $claims['video'] === ['room' => "game-{$this->game->id}", 'roomAdmin' => true];
+    });
+
+    // Cached briefly: a lobby full of viewers asks LiveKit once.
+    $this->getJson("/api/v1/games/{$this->game->code}/voice/participants")->assertOk();
+    Http::assertSentCount(1);
+});
+
+test('if LiveKit is unreachable, nobody appears to be in voice', function () {
+    Http::fake(['example.livekit.cloud/*' => Http::response('down', 503)]);
+    Sanctum::actingAs($this->player);
+
+    $this->getJson("/api/v1/games/{$this->game->code}/voice/participants")->assertOk()->assertExactJson([]);
+});
+
+test('only players may see who is in voice', function () {
+    Sanctum::actingAs(User::factory()->create());
+
+    $this->getJson("/api/v1/games/{$this->game->code}/voice/participants")->assertForbidden();
 });

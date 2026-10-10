@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\ChatController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\GameController;
 use App\Http\Controllers\InvitationController;
@@ -48,6 +49,9 @@ Route::middleware(['auth'])->group(function () {
     Route::delete('games/{game}/invitations/{invitation}', [LobbyController::class, 'cancelInvitation'])->name('invitations.cancel');
     Route::get('games/{game}/invite', [InvitationController::class, 'index'])->name('invitations.index');
     Route::get('games/{game}/voice', [VoiceController::class, 'show'])->middleware('throttle:30,1')->name('games.voice');
+    Route::get('games/{game}/voice/participants', [VoiceController::class, 'participants'])->name('games.voice.participants');
+    Route::get('games/{game}/messages', [ChatController::class, 'index'])->name('games.messages');
+    Route::post('games/{game}/messages', [ChatController::class, 'store'])->middleware('throttle:chat')->name('games.messages.store');
     Route::post('games/{game}/invitations', [InvitationController::class, 'store'])->middleware('throttle:invite')->name('invitations.store');
     Route::post('invitations/{invitation}/accept', [InvitationController::class, 'accept'])->name('invitations.accept');
     Route::post('invitations/{invitation}/decline', [InvitationController::class, 'decline'])->name('invitations.decline');

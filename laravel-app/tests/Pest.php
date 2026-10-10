@@ -1,6 +1,13 @@
 <?php
 
+use App\Enums\GameType;
+use App\Models\Game;
+use App\Models\GamePlayer;
+use App\Models\GameRound;
+use App\Models\PhraseRound;
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Laravel\Sanctum\Sanctum;
 use Tests\TestCase;
 
 /*
@@ -47,4 +54,73 @@ expect()->extend('toBeOne', function () {
 function something()
 {
     // ..
+}
+
+// Shared game setups for the feature tests.
+
+/**
+ * @return array{0: Game, 1: User, 2: list<User>}
+ */
+function gameWithPlayers(int $count, array $attributes = []): array
+{
+    $host = User::factory()->create();
+    $game = Game::factory()->create(['host_id' => $host->id, ...$attributes]);
+    GamePlayer::factory()->create(['game_id' => $game->id, 'user_id' => $host->id, 'is_host' => true]);
+
+    $others = User::factory()->count($count - 1)->create()->each(
+        fn (User $user) => GamePlayer::factory()->create(['game_id' => $game->id, 'user_id' => $user->id]),
+    );
+
+    return [$game, $host, [$host, ...$others->all()]];
+}
+
+function startedRound(Game $game, User $host): GameRound
+{
+    Sanctum::actingAs($host);
+    test()->postJson("/api/v1/games/{$game->code}/start")->assertOk();
+
+    return $game->currentRound()->firstOrFail();
+}
+
+/**
+ * @param  list<User>  $players
+ * @return array{0: User, 1: User} a spy and a loyalist
+ */
+function rolesOf(GameRound $round, array $players): array
+{
+    $spy = collect($players)->first(fn (User $user) => $round->isSpy($user));
+    $loyalist = collect($players)->first(fn (User $user) => ! $round->isSpy($user));
+
+    return [$spy, $loyalist];
+}
+
+/**
+ * @return array{0: Game, 1: User, 2: list<User>}
+ */
+function phraseGame(int $count, string $language = 'en'): array
+{
+    $host = User::factory()->create();
+    $game = Game::factory()->create([
+        'host_id' => $host->id,
+        'game_type' => GameType::Phrase,
+        'game_mode' => null,
+        'mission_briefing' => null,
+        'phrase_language' => $language,
+        'max_players' => 10,
+    ]);
+    GamePlayer::factory()->create(['game_id' => $game->id, 'user_id' => $host->id, 'is_host' => true]);
+
+    $others = User::factory()->count($count - 1)->create()->each(
+        fn (User $user) => GamePlayer::factory()->create(['game_id' => $game->id, 'user_id' => $user->id]),
+    );
+
+    return [$game, $host, [$host, ...$others->all()]];
+}
+
+function dealPhrase(Game $game, User $host): PhraseRound
+{
+    Sanctum::actingAs($host);
+    test()->postJson("/api/v1/games/{$game->code}/phrase/start")->assertOk();
+
+    return $game->currentPhraseRound()->firstOrFail();
 }

@@ -33,7 +33,7 @@ class TallyVotes
 
         $game->ensureType(GameType::Spy);
 
-        $ended = DB::transaction(function () use ($game): bool {
+        $ended = DB::transaction(function () use ($game, $host): bool {
             $game = $game->freshLocked();
 
             // A host's tally can cross the automatic one: whoever loses the
@@ -58,7 +58,7 @@ class TallyVotes
             $this->endRound->handle($game, $round, RoundEnding::Vote, [
                 'winning_team' => $accusedId !== null && $round->isSpy($accusedId) ? Team::Loyalists : Team::Spies,
                 'accused_user_id' => $accusedId,
-            ]);
+            ], $host?->id);
 
             return true;
         });

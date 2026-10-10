@@ -1,5 +1,6 @@
 import type { RemoteTrack, Room } from 'livekit-client';
 import { onBeforeUnmount, ref, shallowRef } from 'vue';
+import { jsonFetch } from '@/lib/jsonFetch';
 
 export interface VoiceMember {
     identity: string;
@@ -10,6 +11,32 @@ export interface VoiceMember {
 }
 
 type Status = 'idle' | 'connecting' | 'connected' | 'error';
+
+/** Joining voice once means joining it automatically next time, on this device. */
+const AUTO_JOIN_KEY = 'voice.autoJoin';
+
+function rememberAutoJoin(on: boolean): void {
+    try {
+        if (on) {
+            localStorage.setItem(AUTO_JOIN_KEY, '1');
+        } else {
+            localStorage.removeItem(AUTO_JOIN_KEY);
+        }
+    } catch {
+        // Storage can be unavailable (private mode); auto-join just won't stick.
+    }
+}
+
+function autoJoinRemembered(): boolean {
+    try {
+        return localStorage.getItem(AUTO_JOIN_KEY) === '1';
+    } catch {
+        return false;
+    }
+}
+
+/** How often a lobby checks who is in voice while you're not. */
+const PARTICIPANTS_POLL_MS = 10000;
 
 /**
  * The game's LiveKit voice room. Audio goes straight between the browser
@@ -25,7 +52,21 @@ export function useVoiceRoom(code: () => string) {
     // Browsers may block sound until the page is clicked again.
     const audioBlocked = ref(false);
     const room = shallowRef<Room | null>(null);
+    // Who is talking, seen from outside the room (before joining).
+    const inVoice = ref<{ identity: string; name: string }[]>([]);
+    const autoJoin = ref(autoJoinRemembered());
     let audioHost: HTMLElement | null = null;
+    let poll: number | undefined;
+
+    async function refreshInVoice() {
+        if (room.value || document.visibilityState !== 'visible') {
+            return;
+        }
+
+        inVoice.value = await jsonFetch<{ identity: string; name: string }[]>(
+            `/games/${code()}/voice/participants`,
+        ).catch(() => []);
+    }
 
     function refresh() {
         const current = room.value;
@@ -67,22 +108,10 @@ export function useVoiceRoom(code: () => string) {
         error.value = null;
 
         try {
-            const response = await fetch(`/games/${code()}/voice`, {
-                headers: { Accept: 'application/json' },
-                credentials: 'same-origin',
-            });
-
-            if (!response.ok) {
-                throw new Error(
-                    (await response.json().catch(() => null))?.message ??
-                        `HTTP ${response.status}`,
-                );
-            }
-
-            const { url, token } = (await response.json()) as {
+            const { url, token } = await jsonFetch<{
                 url: string;
                 token: string;
-            };
+            }>(`/games/${code()}/voice`);
             const { Room, RoomEvent } = await import('livekit-client');
             const next = new Room({ adaptiveStream: true, dynacast: true });
             next.on(RoomEvent.TrackSubscribed, (track) => {
@@ -109,16 +138,17 @@ export function useVoiceRoom(code: () => string) {
             await next.connect(url, token);
             room.value = next;
             status.value = 'connected';
+            autoJoin.value = true;
+            rememberAutoJoin(true);
             // Join talking; the microphone prompt appears here.
             await next.localParticipant
                 .setMicrophoneEnabled(true)
                 .catch(() => undefined);
             refresh();
         } catch (caught) {
-            status.value = 'error';
             error.value =
                 caught instanceof Error ? caught.message : String(caught);
-            await leave();
+            await disconnect();
             status.value = 'error';
         }
     }
@@ -141,7 +171,7 @@ export function useVoiceRoom(code: () => string) {
         refresh();
     }
 
-    async function leave() {
+    async function disconnect() {
         const current = room.value;
         room.value = null;
         await current?.disconnect();
@@ -150,8 +180,34 @@ export function useVoiceRoom(code: () => string) {
         refresh();
     }
 
+    /** Leaving on purpose also stops joining automatically next time. */
+    async function leave() {
+        autoJoin.value = false;
+        rememberAutoJoin(false);
+        await disconnect();
+        void refreshInVoice();
+    }
+
+    /** Called once the panel's audio element exists. */
+    function start(host: HTMLElement) {
+        audioHost = host;
+
+        if (autoJoin.value) {
+            void join(host);
+        } else {
+            void refreshInVoice();
+        }
+
+        poll = window.setInterval(
+            () => void refreshInVoice(),
+            PARTICIPANTS_POLL_MS,
+        );
+    }
+
     onBeforeUnmount(() => {
-        void leave();
+        window.clearInterval(poll);
+        // Leaving the lobby isn't leaving voice on purpose: keep auto-join.
+        void disconnect();
     });
 
     return {
@@ -160,6 +216,9 @@ export function useVoiceRoom(code: () => string) {
         members,
         micOn,
         audioBlocked,
+        inVoice,
+        autoJoin,
+        start,
         join,
         leave,
         toggleMic,

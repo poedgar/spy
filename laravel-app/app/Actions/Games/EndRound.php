@@ -9,7 +9,9 @@ use App\Events\GameUpdated;
 use App\Models\Game;
 use App\Models\GamePlayer;
 use App\Models\GameRound;
+use App\Notifications\RoundEnded;
 use App\Support\BestEffortBroadcast;
+use App\Support\GameNews;
 
 /**
  * Shared by every way a round can finish. Runs inside the caller's
@@ -19,8 +21,9 @@ class EndRound
 {
     /**
      * @param  array{winning_team?: Team|null, accused_user_id?: int|null, guessed_by_user_id?: int, guessed_location_id?: int}  $outcome
+     * @param  int|null  $actorId  who ended it (they already know the result)
      */
-    public function handle(Game $game, GameRound $round, RoundEnding $ending, array $outcome = []): void
+    public function handle(Game $game, GameRound $round, RoundEnding $ending, array $outcome = [], ?int $actorId = null): void
     {
         $round->update([...$outcome, 'ending' => $ending, 'ended_at' => now()]);
 
@@ -37,6 +40,14 @@ class EndRound
         $game->update([
             'status' => $ending === RoundEnding::Abandoned ? GameStatus::Recruiting : GameStatus::Completed,
         ]);
+
+        // Sent once the caller's transaction commits (GameNotification::afterCommit).
+        if ($ending !== RoundEnding::Abandoned) {
+            GameNews::toPlayers($game, new RoundEnded($game, [
+                'number' => $round->number,
+                'winning_team' => $round->winning_team?->value,
+            ]), $actorId);
+        }
     }
 
     public function broadcast(Game $game): void

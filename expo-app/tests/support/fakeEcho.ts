@@ -16,6 +16,10 @@ export function createFakeEcho() {
     notification(handler: Handler) {
       return this.listen(NOTIFICATION_EVENT, handler);
     },
+    stopListening(event: string) {
+      listeners.delete(`${name}:${event}`);
+      return this;
+    },
   });
 
   const presenceChannel = {

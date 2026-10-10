@@ -2,6 +2,7 @@
 import { Head } from '@inertiajs/vue3';
 import { Play, Vote } from '@lucide/vue';
 import { computed } from 'vue';
+import ChatPanel from '@/components/game/ChatPanel.vue';
 import HostPanel from '@/components/game/HostPanel.vue';
 import LobbyHeader from '@/components/game/LobbyHeader.vue';
 import LocationGuideDialog from '@/components/game/LocationGuideDialog.vue';
@@ -104,6 +105,8 @@ useGameChannel(props.game.id);
         <HostPanel v-if="isHost && game.status === 'recruiting'" :game="game" />
 
         <VoicePanel v-if="game.voice_enabled && me" :game="game" />
+
+        <ChatPanel v-if="me" :game="game" />
 
         <RoleCard
             v-if="inRound && round"

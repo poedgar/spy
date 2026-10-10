@@ -10,7 +10,9 @@ use App\Exceptions\GameRuleException;
 use App\Models\Game;
 use App\Models\GamePlayer;
 use App\Models\User;
+use App\Notifications\RoundEnded;
 use App\Support\BestEffortBroadcast;
+use App\Support\GameNews;
 use App\Support\PhraseCatalog;
 use Illuminate\Support\Facades\DB;
 
@@ -59,6 +61,11 @@ class GuessPhrase
                 'winner_user_id' => $user->id,
             ]);
             $game->update(['status' => GameStatus::Completed]);
+            GameNews::toPlayers($game, new RoundEnded($game, [
+                'number' => $round->number,
+                'phrase_ending' => PhraseEnding::Guessed->value,
+                'winner_codename' => $user->codename,
+            ]), $user->id);
 
             return true;
         });

@@ -9,7 +9,9 @@ use App\Events\GameUpdated;
 use App\Exceptions\GameRuleException;
 use App\Models\Game;
 use App\Models\User;
+use App\Notifications\RoundEnded;
 use App\Support\BestEffortBroadcast;
+use App\Support\GameNews;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -38,11 +40,14 @@ class RevealPhrase
                 return false;
             }
 
-            $game->currentPhraseRound()->firstOrFail()->update([
-                'ended_at' => now(),
-                'ending' => $host ? PhraseEnding::Revealed : PhraseEnding::TimeUp,
-            ]);
+            $round = $game->currentPhraseRound()->firstOrFail();
+            $ending = $host ? PhraseEnding::Revealed : PhraseEnding::TimeUp;
+            $round->update(['ended_at' => now(), 'ending' => $ending]);
             $game->update(['status' => GameStatus::Completed]);
+            GameNews::toPlayers($game, new RoundEnded($game, [
+                'number' => $round->number,
+                'phrase_ending' => $ending->value,
+            ]), $host?->id);
 
             return true;
         });

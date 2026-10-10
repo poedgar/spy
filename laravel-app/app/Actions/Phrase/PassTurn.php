@@ -8,6 +8,7 @@ use App\Events\GameUpdated;
 use App\Exceptions\GameRuleException;
 use App\Models\Game;
 use App\Models\User;
+use App\Notifications\YourTurnToAsk;
 use App\Support\BestEffortBroadcast;
 use Illuminate\Support\Facades\DB;
 
@@ -25,7 +26,7 @@ class PassTurn
         abort_unless($game->hasPlayer($user), 403);
         $game->ensureType(GameType::Phrase);
 
-        DB::transaction(function () use ($game, $user) {
+        $nextAskerId = DB::transaction(function () use ($game, $user): ?int {
             $game = $game->freshLocked();
 
             if ($game->status !== GameStatus::Active) {
@@ -39,7 +40,13 @@ class PassTurn
             }
 
             $round->increment('turn_index');
+
+            return $round->askerId();
         });
+
+        if ($nextAskerId !== null && $nextAskerId !== $user->id) {
+            User::find($nextAskerId)?->notify(new YourTurnToAsk($game));
+        }
 
         BestEffortBroadcast::dispatch(new GameUpdated($game->refresh()));
     }

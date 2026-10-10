@@ -50,6 +50,44 @@ class NotificationPresenter
                 $home,
                 ['type' => 'home', 'game_type' => $type],
             ],
+            'invitation_answered' => [
+                ! empty($data['accepted']) ? $t('Invitation accepted') : $t('Invitation declined'),
+                ! empty($data['accepted'])
+                    ? $t(':codename accepted your invitation to :title.', ['codename' => $data['from_codename'] ?? '', 'title' => $title])
+                    : $t(':codename declined your invitation to :title.', ['codename' => $data['from_codename'] ?? '', 'title' => $title]),
+                $lobby,
+                ['type' => 'game', 'code' => $code],
+            ],
+            'your_turn' => [
+                $t('Your turn to ask'),
+                $t('Ask another player a question about their word in :title.', ['title' => $title]),
+                $lobby,
+                ['type' => 'game', 'code' => $code],
+            ],
+            'round_ended' => [
+                $t('Round :number is over', ['number' => $data['number'] ?? 1]),
+                match (true) {
+                    ($data['winning_team'] ?? null) === 'spies' => $t('The spies won in :title.', ['title' => $title]),
+                    ($data['winning_team'] ?? null) === 'loyalists' => $t('The loyalists won in :title.', ['title' => $title]),
+                    ($data['phrase_ending'] ?? null) === 'guessed' => $t(':codename guessed the phrase in :title!', ['codename' => $data['winner_codename'] ?? '', 'title' => $title]),
+                    ($data['phrase_ending'] ?? null) === 'time_up' => $t("Time's up in :title. Nobody guessed the phrase.", ['title' => $title]),
+                    default => $t('The host revealed the phrase in :title.', ['title' => $title]),
+                },
+                $lobby,
+                ['type' => 'game', 'code' => $code],
+            ],
+            'ready_to_start' => [
+                $t('Ready to start'),
+                $t(':count players are in :title. You can start.', ['count' => $data['count'] ?? 0, 'title' => $title]),
+                $lobby,
+                ['type' => 'game', 'code' => $code],
+            ],
+            'player_left' => [
+                $t('A player left'),
+                $t(':codename left :title.', ['codename' => $data['from_codename'] ?? '', 'title' => $title]),
+                $lobby,
+                ['type' => 'game', 'code' => $code],
+            ],
             'round_started' => [
                 $t('Round :number has begun', ['number' => $data['number'] ?? 1]),
                 $type === 'phrase'

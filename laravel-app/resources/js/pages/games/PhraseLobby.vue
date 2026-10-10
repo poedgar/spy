@@ -9,6 +9,7 @@ import {
     Trophy,
 } from '@lucide/vue';
 import { computed, ref } from 'vue';
+import ChatPanel from '@/components/game/ChatPanel.vue';
 import HostPanel from '@/components/game/HostPanel.vue';
 import LobbyHeader from '@/components/game/LobbyHeader.vue';
 import Roster from '@/components/game/Roster.vue';
@@ -119,6 +120,8 @@ function guess() {
         <HostPanel v-if="isHost && game.status === 'recruiting'" :game="game" />
 
         <VoicePanel v-if="game.voice_enabled && me" :game="game" />
+
+        <ChatPanel v-if="me" :game="game" />
 
         <template v-if="active && phrase">
             <div

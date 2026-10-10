@@ -50,6 +50,9 @@ class AppServiceProvider extends ServiceProvider
         ]);
 
         RateLimiter::for('join', fn (Request $request) => Limit::perMinute(20)->by($request->user()?->id ?: $request->ip()));
+
+        // Lobby chat: a lively conversation, not a flood.
+        RateLimiter::for('chat', fn (Request $request) => Limit::perMinute(20)->by('chat:'.$request->user()?->id));
     }
 
     /**

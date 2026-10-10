@@ -4,6 +4,9 @@ namespace App\Support;
 
 use App\Models\Game;
 use App\Models\User;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Http;
+use Throwable;
 
 /**
  * Voice chat runs on LiveKit (https://livekit.io): the audio never touches
@@ -55,6 +58,53 @@ class LiveKit
                 'canPublishSources' => ['microphone'],
             ],
         ]);
+    }
+
+    /**
+     * Who is in the game's voice room right now, so a lobby can say
+     * "2 in voice: …" before anyone joins. Asked of LiveKit at most every
+     * few seconds per room; an outage just means an empty list.
+     *
+     * @return list<array{identity: string, name: string}>
+     */
+    public static function participants(Game $game): array
+    {
+        $room = self::roomFor($game);
+
+        return Cache::remember("livekit:participants:{$room}", 10, function () use ($room): array {
+            try {
+                $now = time();
+                $token = self::sign([
+                    'iss' => (string) config('services.livekit.key'),
+                    'nbf' => $now,
+                    'exp' => $now + 60,
+                    'video' => ['room' => $room, 'roomAdmin' => true],
+                ]);
+                // The same host serves the API over HTTP(S).
+                $api = preg_replace('/^ws/', 'http', rtrim(self::url(), '/'));
+
+                $participants = Http::withToken($token)->acceptJson()->asJson()->connectTimeout(2)->timeout(4)
+                    ->post("{$api}/twirp/livekit.RoomService/ListParticipants", ['room' => $room])
+                    ->throw()
+                    ->json('participants', []);
+            } catch (Throwable $e) {
+                report($e);
+
+                return [];
+            }
+
+            return array_values(array_map(
+                fn (array $participant) => [
+                    'identity' => (string) ($participant['identity'] ?? ''),
+                    'name' => (string) ($participant['name'] ?? $participant['identity'] ?? ''),
+                ],
+                array_filter(
+                    is_array($participants) ? $participants : [],
+                    fn ($participant) => is_array($participant)
+                        && ! in_array($participant['state'] ?? 'ACTIVE', ['DISCONNECTED', 3], true),
+                ),
+            ));
+        });
     }
 
     /**

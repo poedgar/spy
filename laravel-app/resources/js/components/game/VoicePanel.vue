@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Headphones, Mic, MicOff, PhoneOff } from '@lucide/vue';
-import { ref } from 'vue';
+import { onMounted, ref } from 'vue';
 import { Button } from '@/components/ui/button';
 import { useTrans } from '@/composables/useTrans';
 import { useVoiceRoom } from '@/composables/useVoiceRoom';
@@ -17,11 +17,19 @@ const {
     members,
     micOn,
     audioBlocked,
+    inVoice,
+    start,
     join,
     leave,
     toggleMic,
     enableAudio,
 } = useVoiceRoom(() => props.game.code);
+
+onMounted(() => {
+    if (audioHost.value) {
+        start(audioHost.value);
+    }
+});
 </script>
 
 <template>
@@ -76,10 +84,33 @@ const {
             {{ t('Could not join voice chat.') }} {{ error }}
         </p>
         <p
+            v-else-if="status !== 'connected' && inVoice.length > 0"
+            id="voice-occupants"
+            class="mt-2 text-sm"
+        >
+            🎙
+            {{
+                t(':count in voice: :names', {
+                    count: inVoice.length,
+                    names: inVoice.map((member) => member.name).join(', '),
+                })
+            }}
+        </p>
+        <p
             v-else-if="status !== 'connected'"
             class="mt-2 text-sm text-muted-foreground"
         >
             {{ t('Talk with the other players while you play.') }}
+        </p>
+        <p
+            v-if="status === 'connected'"
+            class="mt-2 text-xs text-muted-foreground"
+        >
+            {{
+                t(
+                    "You'll rejoin voice automatically on this device. Leave voice to stop.",
+                )
+            }}
         </p>
 
         <button

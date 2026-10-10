@@ -23,6 +23,20 @@ class VoiceController extends Controller
         return $this->tokenResponse($request, Game::where('code', $code)->firstOrFail());
     }
 
+    /** Who is talking in the game's voice room, without joining it. */
+    public function participants(Request $request, Game $game): JsonResponse
+    {
+        abort_unless(LiveKit::enabled(), 404, __('Voice chat is not set up.'));
+        abort_unless($game->hasPlayer($request->user()), 403);
+
+        return response()->json(LiveKit::participants($game));
+    }
+
+    public function participantsByCode(Request $request, string $code): JsonResponse
+    {
+        return $this->participants($request, Game::where('code', $code)->firstOrFail());
+    }
+
     private function tokenResponse(Request $request, Game $game): JsonResponse
     {
         abort_unless(LiveKit::enabled(), 404, __('Voice chat is not set up.'));

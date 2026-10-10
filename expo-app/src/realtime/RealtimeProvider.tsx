@@ -180,3 +180,29 @@ export function useGameChannel(gameId: number | undefined, onChange: (payload?: 
     }, [echo, gameId]),
   );
 }
+
+/**
+ * Listens for one event on a game's channel (e.g. ".chat.message") while
+ * mounted. Only stops listening on unmount: the lobby owns the channel.
+ */
+export function useGameEvent<T>(gameId: number | undefined, event: string, onEvent: (payload: T) => void) {
+  const { echo } = useContext(RealtimeContext);
+  const handler = useRef(onEvent);
+  useEffect(() => {
+    handler.current = onEvent;
+  });
+
+  useEffect(() => {
+    if (!echo || gameId === undefined) return;
+    const channel = echo.private(`game.${gameId}`);
+    try {
+      channel.listen(event, (payload: T) => handler.current(payload));
+    } catch (caught) {
+      console.error('Game event unavailable', caught);
+      return;
+    }
+    return () => {
+      channel.stopListening(event);
+    };
+  }, [echo, gameId, event]);
+}
