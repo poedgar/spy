@@ -1,10 +1,19 @@
 # The simulator keyboard follows the Mac's input language. Password fields
-# only accept what the on-screen keyboard can type, so switch from a
-# Cyrillic (Ukrainian) keyboard to English before typing one.
+# only accept what the on-screen keyboard can type, so switch to an English
+# layout (one with a "q" key) before typing one. The globe key cycles
+# through the installed keyboards (e.g. English, Ukrainian, Emoji).
 appId: com.poedgar.marvelousgames
 ---
-- runFlow:
-    when:
-      visible: й
+- extendedWaitUntil:
+    visible: Next keyboard|q
+    timeout: 5000
+    optional: true
+- repeat:
+    times: 3
+    while:
+      notVisible: q
     commands:
-      - tapOn: English.*
+      - tapOn:
+          text: Next keyboard|English.*
+          optional: true
+      - waitForAnimationToEnd

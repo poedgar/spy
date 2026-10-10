@@ -108,3 +108,17 @@ test('an unverified email is pointed out, with a way to resend the link', async 
   expect(meApi.resendVerification).toHaveBeenCalled();
   expect(await screen.findByText('Verification link sent.')).toBeOnTheScreen();
 });
+
+test('if realtime cannot start, the app keeps working and Settings shows why', async () => {
+  const { createEcho } = jest.requireMock<{ createEcho: jest.Mock }>('@/realtime/echo');
+  createEcho.mockImplementationOnce(() => {
+    throw new TypeError('undefined cannot be used as a constructor');
+  });
+  const consoleError = jest.spyOn(console, 'error').mockImplementation(() => {});
+
+  await renderApp(routes, { initialUrl: '/settings', user: fakeUser });
+
+  expect(await screen.findByTestId('btn-logout')).toBeOnTheScreen();
+  expect(await screen.findByText(/TypeError: undefined cannot be used as a constructor/)).toBeOnTheScreen();
+  consoleError.mockRestore();
+});

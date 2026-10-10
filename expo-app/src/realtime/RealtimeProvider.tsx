@@ -16,11 +16,24 @@ interface PresenceMember {
   codename: string;
 }
 
-const RealtimeContext = createContext<{ echo: EchoClient | null; onlineUserIds: Set<number>; connected: boolean }>({
+const RealtimeContext = createContext<{
+  echo: EchoClient | null;
+  onlineUserIds: Set<number>;
+  connected: boolean;
+  error: string | null;
+}>({
   echo: null,
   onlineUserIds: new Set(),
   connected: false,
+  error: null,
 });
+
+/** An error's name, message and first stack frames, for Settings to show. */
+function describeError(error: unknown): string {
+  if (!(error instanceof Error)) return String(error);
+  const frames = (error.stack ?? '').split('\n').slice(1, 9).map((line) => line.trim());
+  return [`${error.name}: ${error.message}`, ...frames].join('\n');
+}
 
 export function RealtimeProvider({ children }: { children: ReactNode }) {
   const { state } = useAuth();
@@ -31,14 +44,24 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
   const [echo, setEcho] = useState<EchoClient | null>(null);
   const [onlineUserIds, setOnlineUserIds] = useState<Set<number>>(new Set());
   const [connected, setConnected] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!token || !userId || !PUSHER_KEY) return;
 
-    const instance = createEcho(token);
+    // Realtime is best-effort: if it can't start, screens poll instead of
+    // the app failing. The error stays visible in Settings for diagnosis.
+    let instance: EchoClient;
+    try {
+      instance = createEcho(token);
+    } catch (caught) {
+      console.error('Realtime unavailable', caught);
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setError(describeError(caught));
+      return;
+    }
     // The Echo client is an external system created per session; exposing it
     // through state costs one extra render on sign-in, which is intended.
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     setEcho(instance);
 
     // Screens fall back to polling while the socket is down.
@@ -47,36 +70,41 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
     connection.bind('state_change', onStateChange);
     setConnected(connection.state === 'connected');
 
-    instance
-      .join('online-users')
-      .here((members: PresenceMember[]) => setOnlineUserIds(new Set(members.map((m) => m.id))))
-      .joining((member: PresenceMember) => setOnlineUserIds((prev) => new Set(prev).add(member.id)))
-      .leaving((member: PresenceMember) =>
-        setOnlineUserIds((prev) => {
-          const next = new Set(prev);
-          next.delete(member.id);
-          return next;
-        }),
-      );
+    try {
+      instance
+        .join('online-users')
+        .here((members: PresenceMember[]) => setOnlineUserIds(new Set(members.map((m) => m.id))))
+        .joining((member: PresenceMember) => setOnlineUserIds((prev) => new Set(prev).add(member.id)))
+        .leaving((member: PresenceMember) =>
+          setOnlineUserIds((prev) => {
+            const next = new Set(prev);
+            next.delete(member.id);
+            return next;
+          }),
+        );
 
-    // Notifications arrive on the user's private channel: refresh what they
-    // may have changed and show a banner that opens where they point.
-    instance.private(`user.${userId}`).notification((notification: AppNotification) => {
-      for (const key of [queryKeys.notifications, queryKeys.spyHome, queryKeys.phraseHome]) {
-        void queryClient.invalidateQueries({ queryKey: key });
-      }
-      if (notification.game_code) {
-        void queryClient.invalidateQueries({ queryKey: queryKeys.game(notification.game_code) });
-      }
-      showBanner({
-        tone: notification.kind === 'removed' ? 'error' : 'info',
-        message: `${notification.title}: ${notification.body}`,
-        onPress: () => {
-          void notificationsApi.read(notification.id).catch(() => {});
-          router.push(notificationHref(notification.link));
-        },
+      // Notifications arrive on the user's private channel: refresh what they
+      // may have changed and show a banner that opens where they point.
+      instance.private(`user.${userId}`).notification((notification: AppNotification) => {
+        for (const key of [queryKeys.notifications, queryKeys.spyHome, queryKeys.phraseHome]) {
+          void queryClient.invalidateQueries({ queryKey: key });
+        }
+        if (notification.game_code) {
+          void queryClient.invalidateQueries({ queryKey: queryKeys.game(notification.game_code) });
+        }
+        showBanner({
+          tone: notification.kind === 'removed' ? 'error' : 'info',
+          message: `${notification.title}: ${notification.body}`,
+          onPress: () => {
+            void notificationsApi.read(notification.id).catch(() => {});
+            router.push(notificationHref(notification.link));
+          },
+        });
       });
-    });
+    } catch (caught) {
+      console.error('Realtime channels unavailable', caught);
+      setError(describeError(caught));
+    }
 
     // iOS drops sockets in the background anyway; push notifications cover
     // that gap. pusher-js resubscribes every channel on reconnect.
@@ -97,12 +125,19 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token, userId]);
 
-  return <RealtimeContext.Provider value={{ echo, onlineUserIds, connected }}>{children}</RealtimeContext.Provider>;
+  return (
+    <RealtimeContext.Provider value={{ echo, onlineUserIds, connected, error }}>{children}</RealtimeContext.Provider>
+  );
 }
 
 /** False when realtime is unconfigured or the socket is down: poll instead. */
 export function useRealtimeConnected(): boolean {
   return useContext(RealtimeContext).connected;
+}
+
+/** Why realtime couldn't start, if it couldn't. */
+export function useRealtimeError(): string | null {
+  return useContext(RealtimeContext).error;
 }
 
 export function useOnlineUserIds(): Set<number> {
@@ -131,10 +166,16 @@ export function useGameChannel(gameId: number | undefined, onChange: (payload?: 
     useCallback(() => {
       if (!echo || gameId === undefined) return;
       const name = `game.${gameId}`;
-      echo
-        .private(name)
-        .listen('.player.joined', (payload: PlayerJoinedPayload) => handler.current(payload))
-        .listen('.game.updated', () => handler.current());
+      try {
+        echo
+          .private(name)
+          .listen('.player.joined', (payload: PlayerJoinedPayload) => handler.current(payload))
+          .listen('.game.updated', () => handler.current());
+      } catch (caught) {
+        // The lobby polls while realtime is down; never fail the screen.
+        console.error('Game channel unavailable', caught);
+        return;
+      }
       return () => echo.leave(name);
     }, [echo, gameId]),
   );

@@ -10,6 +10,7 @@ import { meApi } from '@/api/endpoints';
 import { useAuth, useSignedInUser } from '@/auth/AuthProvider';
 import { useBanner } from '@/banner/BannerProvider';
 import { useI18n } from '@/i18n/I18nProvider';
+import { useRealtimeConnected, useRealtimeError } from '@/realtime/RealtimeProvider';
 
 export default function Settings() {
   const { t } = useI18n();
@@ -19,6 +20,8 @@ export default function Settings() {
   const [loggingOut, setLoggingOut] = useState(false);
   const { showBanner } = useBanner();
   const resend = useMutation({ mutationFn: meApi.resendVerification });
+  const realtimeConnected = useRealtimeConnected();
+  const realtimeError = useRealtimeError();
 
   return (
     <Screen>
@@ -49,6 +52,21 @@ export default function Settings() {
         </Card>
       ) : null}
       <LanguagePicker />
+      <Card testID="realtime-status">
+        <AppText variant="heading">{t('Live updates')}</AppText>
+        <AppText variant="muted">
+          {realtimeError
+            ? t("Live updates couldn't start, so the app refreshes every few seconds instead. If you report this, include the details below.")
+            : realtimeConnected
+              ? t('Connected')
+              : t('Not connected. The app refreshes every few seconds instead.')}
+        </AppText>
+        {realtimeError ? (
+          <AppText testID="realtime-error" variant="mono" selectable style={{ fontSize: 11, fontWeight: '400' }}>
+            {realtimeError}
+          </AppText>
+        ) : null}
+      </Card>
       <Button label={t('Profile')} variant="secondary" onPress={() => router.push('/settings/profile')} />
       <Button label={t('Password')} variant="secondary" onPress={() => router.push('/settings/password')} />
       <Button label={t('Delete account')} variant="secondary" onPress={() => router.push('/settings/delete-account')} />
