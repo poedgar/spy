@@ -1,6 +1,14 @@
 import Echo from 'laravel-echo';
-import Pusher from 'pusher-js/react-native';
+import type PusherClient from 'pusher-js/react-native';
+import * as PusherModule from 'pusher-js/react-native';
 import { API_URL, PUSHER_CLUSTER, PUSHER_KEY } from '@/config';
+
+// pusher-js 8.6's React Native build exports `{ Pusher }` at runtime while
+// its types declare a default export; a default import is then the module
+// object, and `new` on it fails ("Object cannot be used as a constructor").
+const Pusher =
+  (PusherModule as unknown as { Pusher?: typeof PusherClient }).Pusher ??
+  (PusherModule as unknown as { default: typeof PusherClient }).default;
 
 export type EchoClient = Echo<'pusher'>;
 
