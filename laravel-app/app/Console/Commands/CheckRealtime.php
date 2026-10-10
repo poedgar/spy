@@ -2,8 +2,10 @@
 
 namespace App\Console\Commands;
 
+use Carbon\CarbonInterface;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Broadcast;
+use Illuminate\Support\Facades\DB;
 use Throwable;
 
 /**
@@ -21,7 +23,11 @@ class CheckRealtime extends Command
     {
         $driver = (string) config('broadcasting.default');
         $this->line("Broadcaster (BROADCAST_CONNECTION): <info>{$driver}</info>");
-        $this->line('Queue (QUEUE_CONNECTION): <info>'.config('queue.default').'</info> — live notifications are queued, so a worker must run');
+        $queue = (string) config('queue.default');
+        $this->line("Queue (QUEUE_CONNECTION): <info>{$queue}</info>".($queue === 'sync'
+            ? ' — notifications go out during the request that sends them; no worker needed'
+            : ' — live notifications are queued, so a worker must run'));
+        $this->reportQueue();
 
         if ($driver !== 'pusher') {
             $this->error("Broadcasts go to \"{$driver}\", not Pusher, so nothing is delivered live. Set BROADCAST_CONNECTION=pusher.");
@@ -47,5 +53,29 @@ class CheckRealtime extends Command
         $this->info('A test broadcast reached Pusher. If browsers still miss updates, check that the key above matches the front end and that a queue worker is running.');
 
         return self::SUCCESS;
+    }
+
+    /**
+     * Jobs waiting mean no worker is taking them; failed ones say why
+     * deliveries broke.
+     */
+    private function reportQueue(): void
+    {
+        if (config('queue.default') !== 'database') {
+            return;
+        }
+
+        $waiting = DB::table('jobs')->count();
+        $oldest = DB::table('jobs')->min('created_at');
+        $age = $oldest ? now()->setTimestamp((int) $oldest)->diffForHumans(['syntax' => CarbonInterface::DIFF_ABSOLUTE]) : null;
+        $this->line("Jobs waiting: <info>{$waiting}</info>".($age ? " (oldest waiting {$age} — no worker is running if this keeps growing)" : ''));
+
+        $failed = DB::table('failed_jobs')->where('failed_at', '>=', now()->subDay())->count();
+        $this->line("Jobs failed in the last day: <info>{$failed}</info>");
+
+        $latest = DB::table('failed_jobs')->latest('failed_at')->first(['failed_at', 'exception']);
+        if ($latest) {
+            $this->line('Latest failure ('.$latest->failed_at.'): '.strtok((string) $latest->exception, "\n"));
+        }
     }
 }

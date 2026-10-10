@@ -240,3 +240,21 @@ test('every push channel the server uses is created by the mobile app', function
         expect($matches[1])->toContain($notification->toExpoPush($user)['channelId']);
     }
 });
+
+test('with a sync queue, a push or mail outage never fails the player who sent the invitation', function () {
+    config(['queue.default' => 'sync', 'mail.default' => 'failing']);
+    config(['mail.mailers.failing' => ['transport' => 'smtp', 'host' => '127.0.0.1', 'port' => 1, 'timeout' => 1]]);
+    Http::fake(['exp.host/*' => Http::response('down', 500)]);
+    $host = User::factory()->create();
+    $game = Game::factory()->create(['host_id' => $host->id]);
+    GamePlayer::factory()->create(['game_id' => $game->id, 'user_id' => $host->id, 'is_host' => true]);
+    $guest = User::factory()->create(['email_verified_at' => now()]);
+    PushToken::create(['user_id' => $guest->id, 'token' => 'ExponentPushToken[one]', 'platform' => 'android']);
+    Sanctum::actingAs($host);
+
+    $this->postJson("/api/v1/games/{$game->code}/invitations", ['to_user_id' => $guest->id])->assertCreated();
+
+    // Stored for the bell even though push and mail both failed.
+    expect($guest->notifications()->sole()->data['kind'])->toBe('invitation');
+    Http::assertSentCount(1);
+});

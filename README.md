@@ -39,8 +39,11 @@ Every deploy:
 
 Once, on the server:
 
-- **Queue worker** (`php artisan queue:work`): live notifications, pushes and
-  emails are queued. The in-app bell works without it.
+- **Queue:** live notifications, pushes and emails are queued, so either
+  run a worker (`php artisan queue:work`, or a Laravel Cloud managed queue)
+  or set `QUEUE_CONNECTION=sync` to send them during the request (no worker;
+  push and mail failures are logged, never shown to players). The in-app
+  bell works either way.
 - **Scheduler** (`php artisan schedule:work`, or cron running
   `php artisan schedule:run` every minute): prunes old notifications, stale
   games and expired mobile sign-ins daily.

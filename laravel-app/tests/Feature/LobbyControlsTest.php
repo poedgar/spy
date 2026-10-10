@@ -16,6 +16,7 @@ use App\Models\Invitation;
 use App\Models\JoinRequest;
 use App\Models\User;
 use App\Notifications\BecameHost;
+use App\Notifications\Channels\BestEffortMailChannel;
 use App\Notifications\GameClosed;
 use App\Notifications\InvitationReceived;
 use App\Queries\GameHomeQuery;
@@ -237,12 +238,12 @@ test('invitees are emailed unless they turned emails off', function () {
     $invitation = Invitation::factory()->create();
 
     app(NotifyInvitee::class)->handle(new InvitationIssued($invitation));
-    Notification::assertSentTo($invitation->toUser, InvitationReceived::class, fn ($notification, $channels) => in_array('mail', $channels, true));
+    Notification::assertSentTo($invitation->toUser, InvitationReceived::class, fn ($notification, $channels) => in_array(BestEffortMailChannel::class, $channels, true));
 
     $muted = Invitation::factory()->create();
     $muted->toUser->update(['email_notifications' => false]);
     app(NotifyInvitee::class)->handle(new InvitationIssued($muted));
-    Notification::assertSentTo($muted->toUser, InvitationReceived::class, fn ($notification, $channels) => ! in_array('mail', $channels, true));
+    Notification::assertSentTo($muted->toUser, InvitationReceived::class, fn ($notification, $channels) => ! in_array(BestEffortMailChannel::class, $channels, true));
 });
 
 test('the invitation email is written in the invitees language', function () {
@@ -329,7 +330,7 @@ test('invitation emails only go to verified addresses', function () {
 
     app(NotifyInvitee::class)->handle(new InvitationIssued($invitation));
 
-    Notification::assertSentTo($invitation->toUser, InvitationReceived::class, fn ($notification, $channels) => ! in_array('mail', $channels, true));
+    Notification::assertSentTo($invitation->toUser, InvitationReceived::class, fn ($notification, $channels) => ! in_array(BestEffortMailChannel::class, $channels, true));
 });
 
 test('signing up or changing your email sends a verification link', function () {

@@ -4,6 +4,7 @@ namespace App\Notifications;
 
 use App\Models\Invitation;
 use App\Models\User;
+use App\Notifications\Channels\BestEffortMailChannel;
 use App\Support\NotificationPresenter;
 use Illuminate\Notifications\Messages\MailMessage;
 
@@ -47,7 +48,7 @@ class InvitationReceived extends GameNotification
         // Never email an address its owner hasn't confirmed: anyone can sign
         // up with someone else's email.
         if ($notifiable instanceof User && $notifiable->email_notifications && $notifiable->hasVerifiedEmail()) {
-            $channels[] = 'mail';
+            $channels[] = BestEffortMailChannel::class;
         }
 
         return $channels;

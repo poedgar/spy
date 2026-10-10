@@ -27,7 +27,8 @@ class ExpoPush
         foreach ($tokens->values()->chunk(self::BATCH_SIZE) as $batch) {
             $batch = $batch->values();
 
-            $request = Http::acceptJson()->asJson();
+            // Short timeouts: this may run inside a player's request.
+            $request = Http::acceptJson()->asJson()->connectTimeout(3)->timeout(5);
 
             if ($accessToken = config('services.expo.access_token')) {
                 $request = $request->withToken($accessToken);
