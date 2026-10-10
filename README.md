@@ -44,9 +44,11 @@ Once, on the server:
 - **Scheduler** (`php artisan schedule:work`, or cron running
   `php artisan schedule:run` every minute): prunes old notifications, stale
   games and expired mobile sign-ins daily.
-- **Realtime:** Pusher credentials (`PUSHER_APP_*`), or a self-hosted
-  Pusher-compatible server via `PUSHER_HOST/PORT/SCHEME`. Without it the apps
-  still work, refreshing every few seconds instead of instantly.
+- **Realtime:** `BROADCAST_CONNECTION=pusher` and Pusher credentials
+  (`PUSHER_APP_*`), or a self-hosted Pusher-compatible server via
+  `PUSHER_HOST/PORT/SCHEME`. Without it the apps still work, refreshing
+  every few seconds instead of instantly. `php artisan app:check-realtime`
+  shows what is set and sends a test broadcast.
 - **Mail** (`MAIL_*`): invitation emails, password resets, email
   verification.
 - `APP_NAME="Marvelous Games"`, and `SANCTUM_TOKEN_EXPIRATION` if mobile sign-ins
