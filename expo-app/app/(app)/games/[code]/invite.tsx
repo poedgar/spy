@@ -29,7 +29,12 @@ export default function InvitePlayers() {
   const invite = useInvite(code);
   useRefreshOnFocus(users.refetch);
 
-  const sorted = useMemo(() => sortByPresence(users.data ?? [], online), [users.data, online]);
+  // Online as the server saw it, or live from the realtime presence channel.
+  const onlineIds = useMemo(
+    () => new Set([...online, ...(users.data ?? []).filter((user) => user.online).map((user) => user.id)]),
+    [users.data, online],
+  );
+  const sorted = useMemo(() => sortByPresence(users.data ?? [], onlineIds), [users.data, onlineIds]);
 
   return (
     <Screen refreshing={users.isRefetching} onRefresh={() => void users.refetch()}>
@@ -48,14 +53,14 @@ export default function InvitePlayers() {
           message={
             search.trim().length >= 2
               ? t('Nobody matches that search.')
-              : t('Players you have played with appear here. Search to find anyone else.')
+              : t('Players online now and people you have played with appear here. Search to find anyone else.')
           }
         />
       ) : null}
       {sorted.map((user) => (
         <Card key={user.id} testID={`invitable-${user.id}`}>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.sm }}>
-            <OnlineDot online={online.has(user.id)} />
+            <OnlineDot online={onlineIds.has(user.id)} />
             <View style={{ flex: 1 }}>
               <AppText>{user.codename}</AppText>
               <AppText variant="muted">{user.name}</AppText>

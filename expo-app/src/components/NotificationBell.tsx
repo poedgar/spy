@@ -1,6 +1,6 @@
 import { useRouter } from 'expo-router';
 import { Pressable, Text, View } from 'react-native';
-import { useNotifications } from '@/api/queries';
+import { HEARTBEAT_MS, NOTIFICATIONS_POLL_MS, useNotifications } from '@/api/queries';
 import { useI18n } from '@/i18n/I18nProvider';
 import { useRealtimeConnected } from '@/realtime/RealtimeProvider';
 import { useTheme } from '@/theme/useTheme';
@@ -12,7 +12,7 @@ export function NotificationBell() {
   const { t } = useI18n();
   const { colors, fontSize } = useTheme();
   const connected = useRealtimeConnected();
-  const feed = useNotifications({ poll: !connected });
+  const feed = useNotifications({ pollMs: connected ? HEARTBEAT_MS : NOTIFICATIONS_POLL_MS });
   const unread = feed.data?.unread_count ?? 0;
 
   return (

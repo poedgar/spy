@@ -158,7 +158,8 @@ export default function CreateGame() {
       <FormTextField
         control={control}
         name="mission_briefing"
-        label={t('Mission briefing')}
+        label={t('Mission briefing (optional)')}
+        placeholder={t('A rogue operative has intercepted intelligence files.')}
         testID="input-mission-briefing"
         multiline
         numberOfLines={4}

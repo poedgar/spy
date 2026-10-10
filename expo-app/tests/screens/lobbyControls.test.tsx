@@ -118,13 +118,13 @@ test('the host can leave too; hosting moves on', async () => {
   expect(gamesApi.leave).toHaveBeenCalledWith('SPY-AB3D');
 });
 
-test('the invite list searches beyond past teammates', async () => {
+test('the invite list searches beyond who is online and past teammates', async () => {
   jest.mocked(gamesApi.invitableUsers).mockImplementation(async (_code, search) =>
-    search ? [{ ...guest, invite_status: null }] : [],
+    search ? [{ ...guest, online: false, invite_status: null }] : [],
   );
   await renderApp(routes, { initialUrl: '/games/SPY-AB3D/invite', user: fakeUser });
 
-  expect(await screen.findByText('Players you have played with appear here. Search to find anyone else.')).toBeOnTheScreen();
+  expect(await screen.findByText('Players online now and people you have played with appear here. Search to find anyone else.')).toBeOnTheScreen();
   fireEvent.changeText(screen.getByTestId('input-invite-search'), 'heron');
 
   expect(await screen.findByTestId(`invitable-${guest.id}`)).toBeOnTheScreen();

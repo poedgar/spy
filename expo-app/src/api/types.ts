@@ -114,7 +114,7 @@ export interface Game {
   max_allowed_players?: number;
   max_players: number;
   min_players?: number;
-  mission_briefing: string;
+  mission_briefing: string | null;
   status: GameStatus;
   host_id: number;
   requires_approval?: boolean;
@@ -169,6 +169,8 @@ export interface InvitableUser {
   id: number;
   name: string;
   codename: string;
+  /** Active in the last few minutes, as the server saw it. */
+  online: boolean;
   invite_status: 'pending' | null;
 }
 

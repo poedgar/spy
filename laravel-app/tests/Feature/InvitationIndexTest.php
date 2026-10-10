@@ -112,8 +112,9 @@ test('searching finds anyone by name or codename, and only past teammates show w
     $this->actingAs($host)->get(route('invitations.index', $game))
         ->assertInertia(fn ($page) => $page->has('users', 1)->where('users.0.id', $teammate->id));
 
-    $this->get(route('invitations.index', [$game, 'q' => 'otter']))
-        ->assertInertia(fn ($page) => $page->has('users', 1)->where('users.0.id', $stranger->id)->where('search', 'otter'));
+    // The full codename: random factory names can contain "otter" (Potter).
+    $this->get(route('invitations.index', [$game, 'q' => 'quiet_otter']))
+        ->assertInertia(fn ($page) => $page->has('users', 1)->where('users.0.id', $stranger->id)->where('search', 'quiet_otter'));
 
     // One character is too broad to search with.
     $this->get(route('invitations.index', [$game, 'q' => 's']))

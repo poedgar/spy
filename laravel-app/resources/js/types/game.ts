@@ -83,7 +83,7 @@ export interface Game {
     age_tier: AgeTier;
     max_players: number;
     min_players: number;
-    mission_briefing: string;
+    mission_briefing: string | null;
     status: GameStatus;
     host_id: number;
     player_count: number;

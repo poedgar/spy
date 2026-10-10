@@ -17,9 +17,7 @@ const form = useForm({
     age_tier: 'adults' as AgeTier,
     // Tables start at the minimum; the host raises it for bigger groups.
     max_players: MIN_PLAYERS,
-    mission_briefing: t(
-        'A rogue operative has intercepted intelligence files.',
-    ),
+    mission_briefing: '',
     requires_approval: false,
     is_listed: true,
     round_seconds: 0,
@@ -154,11 +152,14 @@ function submit() {
             <label
                 for="input-mission-briefing"
                 class="mb-1 block text-sm font-medium"
-                >{{ t('Mission briefing') }}</label
+                >{{ t('Mission briefing (optional)') }}</label
             >
             <textarea
                 id="input-mission-briefing"
                 v-model="form.mission_briefing"
+                :placeholder="
+                    t('A rogue operative has intercepted intelligence files.')
+                "
                 class="w-full rounded border px-2 py-1"
             ></textarea>
             <p

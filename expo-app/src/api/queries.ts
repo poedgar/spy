@@ -218,11 +218,14 @@ export function useRefreshOnFocus(refetch: () => unknown) {
 /** How often the bell refreshes while realtime is unavailable. */
 export const NOTIFICATIONS_POLL_MS = 30000;
 
-export function useNotifications(options: { poll?: boolean } = {}) {
+/** How often the bell checks in anyway, so the server knows you're online. */
+export const HEARTBEAT_MS = 60000;
+
+export function useNotifications(options: { pollMs?: number } = {}) {
   return useQuery({
     queryKey: queryKeys.notifications,
     queryFn: notificationsApi.list,
-    refetchInterval: options.poll ? NOTIFICATIONS_POLL_MS : false,
+    refetchInterval: options.pollMs ?? false,
   });
 }
 

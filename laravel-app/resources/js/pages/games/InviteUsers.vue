@@ -9,6 +9,8 @@ interface UserRow {
     id: number;
     name: string;
     codename: string;
+    /** Active in the last few minutes, as the server saw it. */
+    online: boolean;
     invite_status: 'pending' | null;
 }
 
@@ -27,7 +29,8 @@ const props = defineProps<{
 const query = ref(props.search);
 let searchTimer: number | undefined;
 
-// Without a search the list shows past teammates; searching reaches anyone.
+// Without a search the list shows who is online and past teammates;
+// searching reaches anyone.
 watch(query, (value) => {
     window.clearTimeout(searchTimer);
     searchTimer = window.setTimeout(() => {
@@ -42,10 +45,14 @@ watch(query, (value) => {
 const { onlineUserIds } = usePresence();
 const { t } = useTrans();
 
+// The server's view, updated live by the realtime presence channel.
+const isOnline = (user: UserRow) =>
+    user.online || onlineUserIds.value.has(user.id);
+
 const sortedUsers = computed(() =>
     [...props.users].sort((a, b) => {
-        const aOnline = onlineUserIds.value.has(a.id);
-        const bOnline = onlineUserIds.value.has(b.id);
+        const aOnline = isOnline(a);
+        const bOnline = isOnline(b);
         if (aOnline !== bOnline) {
             return aOnline ? -1 : 1;
         }
@@ -90,7 +97,7 @@ function invite(userId: number) {
                 query.trim().length >= 2
                     ? t('Nobody matches that search.')
                     : t(
-                          'Players you have played with appear here. Search to find anyone else.',
+                          'Players online now and people you have played with appear here. Search to find anyone else.',
                       )
             }}
         </p>
@@ -106,7 +113,7 @@ function invite(userId: number) {
                     <span
                         :class="[
                             'inline-block h-2 w-2 rounded-full',
-                            onlineUserIds.has(user.id)
+                            isOnline(user)
                                 ? 'bg-green-500'
                                 : 'bg-muted-foreground/40',
                         ]"

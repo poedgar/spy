@@ -30,6 +30,7 @@ use Laravel\Sanctum\HasApiTokens;
  * @property string|null $two_factor_secret
  * @property string|null $two_factor_recovery_codes
  * @property Carbon|null $two_factor_confirmed_at
+ * @property Carbon|null $last_seen_at
  * @property string|null $remember_token
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
@@ -41,6 +42,9 @@ class User extends Authenticatable implements HasLocalePreference, MustVerifyEma
     /** @use HasFactory<UserFactory> */
     use HasApiTokens, HasFactory, Notifiable, PasskeyAuthenticatable, TwoFactorAuthenticatable;
 
+    /** Active within this many minutes counts as online. */
+    public const ONLINE_MINUTES = 5;
+
     /**
      * @var array<string, mixed>
      */
@@ -48,6 +52,11 @@ class User extends Authenticatable implements HasLocalePreference, MustVerifyEma
         'locale' => 'en',
         'email_notifications' => true,
     ];
+
+    public function isOnline(): bool
+    {
+        return $this->last_seen_at !== null && $this->last_seen_at->gte(now()->subMinutes(self::ONLINE_MINUTES));
+    }
 
     /**
      * Get the attributes that should be cast.
@@ -60,6 +69,7 @@ class User extends Authenticatable implements HasLocalePreference, MustVerifyEma
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'two_factor_confirmed_at' => 'datetime',
+            'last_seen_at' => 'datetime',
             'locale' => Locale::class,
             'email_notifications' => 'boolean',
         ];

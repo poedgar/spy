@@ -40,7 +40,9 @@ useGameChannel(props.game.id);
     <div class="flex flex-1 flex-col gap-4 p-4">
         <LobbyHeader :game="game" :in-round="inRound">
             <template #meta>
-                <p class="mt-1 text-sm">{{ game.mission_briefing }}</p>
+                <p v-if="game.mission_briefing" class="mt-1 text-sm">
+                    {{ game.mission_briefing }}
+                </p>
                 <p class="mt-2 text-sm text-muted-foreground">
                     {{
                         t(':count / :max operatives', {

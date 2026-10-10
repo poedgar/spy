@@ -44,7 +44,8 @@ test('creating a game validates input', function () {
 
     $this->postJson('/api/v1/games', ['max_players' => 99])
         ->assertUnprocessable()
-        ->assertJsonValidationErrors(['title', 'game_mode', 'max_players', 'mission_briefing']);
+        ->assertJsonValidationErrors(['title', 'game_mode', 'max_players'])
+        ->assertJsonMissingValidationErrors(['mission_briefing']);
 });
 
 test('a member can view the lobby without leaking secrets or other players emails', function () {

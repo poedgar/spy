@@ -52,7 +52,7 @@ class StoreGameRequest extends FormRequest
             'game_mode' => ['required', 'string', Rule::enum(GameMode::class)],
             'age_tier' => ['required', 'string', Rule::enum(AgeTier::class)],
             'max_players' => ['required', 'integer', 'min:'.GameType::Spy->minPlayers(), 'max:'.GameType::Spy->maxPlayers()],
-            'mission_briefing' => ['required', 'string', 'max:2000'],
+            'mission_briefing' => ['nullable', 'string', 'max:2000'],
             'requires_approval' => ['sometimes', 'boolean'],
             'is_listed' => ['sometimes', 'boolean'],
             // Seconds per round; empty or 0 means no timer.

@@ -41,7 +41,7 @@ export function SpyLobby({ game, refreshing, onRefresh }: Props) {
               {game.age_tier ? ` · ${tierLabels(t)[game.age_tier].label}` : ''}
               {game.round_seconds ? ` · ${t(':minutes min rounds', { minutes: game.round_seconds / 60 })}` : ''}
             </AppText>
-            <AppText>{game.mission_briefing}</AppText>
+            {game.mission_briefing ? <AppText>{game.mission_briefing}</AppText> : null}
           </>
         }
       >

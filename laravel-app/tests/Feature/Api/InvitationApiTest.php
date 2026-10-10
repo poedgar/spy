@@ -25,12 +25,51 @@ test('the host lists invitable users: past teammates, or anyone matching a searc
 
     $this->getJson("/api/v1/games/{$this->game->code}/invitable-users")
         ->assertOk()
-        ->assertExactJson([['id' => $other->id, 'name' => $other->name, 'codename' => $other->codename, 'invite_status' => null]]);
+        ->assertExactJson([['id' => $other->id, 'name' => $other->name, 'codename' => $other->codename, 'online' => false, 'invite_status' => null]]);
 
-    $this->getJson("/api/v1/games/{$this->game->code}/invitable-users?q=heron")
+    $this->getJson("/api/v1/games/{$this->game->code}/invitable-users?q=lunar_heron")
         ->assertOk()
         ->assertJsonPath('0.id', $stranger->id)
         ->assertJsonCount(1);
+});
+
+test('without a search, everyone online is listed too, online first', function () {
+    $teammate = User::factory()->create(['name' => 'Aaron Teammate']);
+    $earlier = Game::factory()->create();
+    GamePlayer::factory()->create(['game_id' => $earlier->id, 'user_id' => $this->host->id]);
+    GamePlayer::factory()->create(['game_id' => $earlier->id, 'user_id' => $teammate->id]);
+    $online = User::factory()->create(['name' => 'Zoe Online', 'last_seen_at' => now()->subMinutes(2)]);
+    User::factory()->create(['name' => 'Stale Stranger', 'last_seen_at' => now()->subMinutes(User::ONLINE_MINUTES + 1)]);
+    User::factory()->create(['name' => 'Never Seen']);
+    Sanctum::actingAs($this->host);
+
+    $this->getJson("/api/v1/games/{$this->game->code}/invitable-users")
+        ->assertOk()
+        ->assertJsonCount(2)
+        ->assertJsonPath('0.id', $online->id)
+        ->assertJsonPath('0.online', true)
+        ->assertJsonPath('1.id', $teammate->id)
+        ->assertJsonPath('1.online', false);
+});
+
+test('using the app marks you as recently seen, at most once a minute', function () {
+    $player = User::factory()->create();
+    Sanctum::actingAs($player);
+
+    $this->getJson('/api/v1/me')->assertOk();
+    $first = $player->fresh()->last_seen_at;
+    expect($first)->not->toBeNull();
+
+    // Each real request loads the user afresh; so does each step here.
+    $this->travel(30)->seconds();
+    Sanctum::actingAs($player->fresh());
+    $this->getJson('/api/v1/me')->assertOk();
+    expect($player->fresh()->last_seen_at->equalTo($first))->toBeTrue();
+
+    $this->travel(2)->minutes();
+    $this->actingAs($player->fresh())->get(route('dashboard'))->assertOk();
+    expect($player->fresh()->last_seen_at->gt($first))->toBeTrue()
+        ->and($player->fresh()->isOnline())->toBeTrue();
 });
 
 test('a non-host cannot list invitable users', function () {

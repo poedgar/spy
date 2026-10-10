@@ -8,6 +8,12 @@ import type { AppNotification } from '@/types/notifications';
 /** How often the bell refreshes while the realtime connection is down. */
 const FALLBACK_POLL_MS = 30000;
 
+/**
+ * How often an open, visible tab checks in anyway, so the server knows the
+ * player is online (see RecordLastSeen) even when nothing needs refreshing.
+ */
+const HEARTBEAT_MS = 60000;
+
 /** Props a notification can change, on whichever page is open. */
 const AFFECTED_PROPS = [
     'notifications',
@@ -64,9 +70,16 @@ export function useLiveNotifications(currentUserId: number): void {
             },
         );
 
-        // Without a socket nothing arrives live, so check in now and then.
+        // Without a socket nothing arrives live, so check in now and then;
+        // with one, still check in about once a minute while visible.
+        let lastCheck = Date.now();
         timer = window.setInterval(() => {
-            if (connection.state !== 'connected') {
+            const heartbeatDue =
+                document.visibilityState === 'visible' &&
+                Date.now() - lastCheck >= HEARTBEAT_MS;
+
+            if (connection.state !== 'connected' || heartbeatDue) {
+                lastCheck = Date.now();
                 router.reload({ only: ['notifications'] });
             }
         }, FALLBACK_POLL_MS);

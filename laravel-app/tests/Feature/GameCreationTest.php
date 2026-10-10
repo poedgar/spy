@@ -46,7 +46,22 @@ test('creating a game validates required fields', function () {
 
     $response = $this->actingAs($user)->post(route('games.store'), []);
 
-    $response->assertSessionHasErrors(['title', 'game_mode', 'max_players', 'mission_briefing']);
+    $response->assertSessionHasErrors(['title', 'game_mode', 'max_players']);
+    $response->assertSessionDoesntHaveErrors('mission_briefing');
+});
+
+test('the mission briefing is optional', function () {
+    $user = User::factory()->create();
+
+    $this->actingAs($user)->post(route('games.store'), [
+        'title' => 'No Briefing',
+        'game_mode' => 'mole',
+        'age_tier' => 'adults',
+        'max_players' => 5,
+        'mission_briefing' => '',
+    ])->assertSessionHasNoErrors();
+
+    expect(Game::where('title', 'No Briefing')->sole()->mission_briefing)->toBeNull();
 });
 
 test('creating a game sets its game_type to spy', function () {
