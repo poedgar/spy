@@ -37,12 +37,15 @@ export function useLiveNotifications(currentUserId: number): void {
     const { t } = useTrans();
     const connection = echo.connector.pusher.connection;
     let timer: number | undefined;
+    let subscribed = false;
 
     const refresh = () => router.reload({ only: AFFECTED_PROPS });
 
     onMounted(() => {
-        echo.private(`user.${currentUserId}`).notification(
-            (notification: AppNotification) => {
+        echo.private(`user.${currentUserId}`)
+            .subscribed(() => (subscribed = true))
+            .error(() => (subscribed = false))
+            .notification((notification: AppNotification) => {
                 refresh();
 
                 toast.info(notification.title, {
@@ -67,18 +70,20 @@ export function useLiveNotifications(currentUserId: number): void {
                         openNotification(notification);
                     };
                 }
-            },
-        );
+            });
 
-        // Without a socket nothing arrives live, so check in now and then;
-        // with one, still check in about once a minute while visible.
+        // Without a socket (or with the channel refused) nothing arrives
+        // live, so check in now and then; otherwise still check in about
+        // once a minute while visible.
         let lastCheck = Date.now();
         timer = window.setInterval(() => {
             const heartbeatDue =
                 document.visibilityState === 'visible' &&
                 Date.now() - lastCheck >= HEARTBEAT_MS;
 
-            if (connection.state !== 'connected' || heartbeatDue) {
+            const live = connection.state === 'connected' && subscribed;
+
+            if (!live || heartbeatDue) {
                 lastCheck = Date.now();
                 router.reload({ only: ['notifications'] });
             }

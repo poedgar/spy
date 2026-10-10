@@ -1,5 +1,5 @@
 import * as Notifications from 'expo-notifications';
-import { router } from 'expo-router';
+import { router, useRootNavigationState } from 'expo-router';
 import { type ReactNode, useEffect } from 'react';
 import { useAuth } from '@/auth/AuthProvider';
 import { pushHrefFrom } from '@/linking';
@@ -20,6 +20,9 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
   const { state } = useAuth();
   const userId = state.status === 'signedIn' ? state.user.id : null;
   const lastResponse = Notifications.useLastNotificationResponse();
+  // A tap can cold-start the app; navigating before the router is ready
+  // throws, which would crash a release build.
+  const navigationReady = Boolean(useRootNavigationState()?.key);
 
   useEffect(() => {
     if (userId === null) return;
@@ -30,11 +33,16 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
 
   // Covers both a tap while running and a tap that cold-started the app.
   useEffect(() => {
-    if (!lastResponse || userId === null) return;
+    if (!lastResponse || userId === null || !navigationReady) return;
+    Notifications.clearLastNotificationResponse();
     const href = pushHrefFrom(lastResponse.notification.request.content.data);
-    if (href) router.push(href);
-    void Notifications.clearLastNotificationResponseAsync();
-  }, [lastResponse, userId]);
+    if (!href) return;
+    try {
+      router.push(href);
+    } catch {
+      // Never crash over a notification; the app simply opens where it was.
+    }
+  }, [lastResponse, userId, navigationReady]);
 
   return <>{children}</>;
 }

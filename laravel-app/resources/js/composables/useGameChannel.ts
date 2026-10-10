@@ -11,13 +11,15 @@ const FALLBACK_POLL_MS = 5000;
  * the server for its own view.
  *
  * Websockets can be unavailable (Pusher not configured, a flaky network),
- * so while the connection is down the lobby polls instead, and it reloads
- * once on reconnecting to catch anything missed in between.
+ * so while the connection is down, or the game's channel isn't subscribed
+ * (e.g. its authorization failed), the lobby polls instead. It reloads once
+ * on reconnecting to catch anything missed in between.
  */
 export function useGameChannel(gameId: number): void {
     const reload = () => router.reload({ only: ['game'] });
     const connection = echo.connector.pusher.connection;
     let timer: number | undefined;
+    let subscribed = false;
 
     const onStateChange = ({
         previous,
@@ -33,16 +35,17 @@ export function useGameChannel(gameId: number): void {
 
     onMounted(() => {
         echo.private(`game.${gameId}`)
+            .subscribed(() => (subscribed = true))
+            .error(() => (subscribed = false))
             .listen('.player.joined', reload)
             .listen('.game.updated', reload);
 
         connection.bind('state_change', onStateChange);
 
         timer = window.setInterval(() => {
-            if (
-                connection.state !== 'connected' &&
-                document.visibilityState === 'visible'
-            ) {
+            const live = connection.state === 'connected' && subscribed;
+
+            if (!live && document.visibilityState === 'visible') {
                 reload();
             }
         }, FALLBACK_POLL_MS);

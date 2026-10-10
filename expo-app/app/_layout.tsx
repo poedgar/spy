@@ -9,6 +9,9 @@ import { I18nProvider } from '@/i18n/I18nProvider';
 import { NotificationsProvider } from '@/notifications/NotificationsProvider';
 import { RealtimeProvider } from '@/realtime/RealtimeProvider';
 
+// An unexpected error shows a "Retry" screen instead of closing the app.
+export { ErrorBoundary } from 'expo-router';
+
 export default function RootLayout() {
   const [queryClient] = useState(createQueryClient);
 
