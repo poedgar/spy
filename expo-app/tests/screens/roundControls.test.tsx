@@ -1,11 +1,12 @@
 import { act, fireEvent, screen, waitFor } from 'expo-router/testing-library';
-import { Alert, Text } from 'react-native';
+import { Text } from 'react-native';
 import { gamesApi } from '@/api/endpoints';
 import { ApiError } from '@/api/errors';
 import type { Game, PhraseRound } from '@/api/types';
 import AppLayout from '../../app/(app)/_layout';
 import Lobby from '../../app/(app)/games/[code]/index';
 import { fakeGame, fakeUser, otherUser } from '../support/fakes';
+import { answerDialog } from '../support/dialog';
 import { renderApp } from '../support/renderApp';
 
 jest.mock('@/api/endpoints');
@@ -48,10 +49,6 @@ function phraseGame(overrides: Partial<Game> = {}): Game {
   return fakeGame({ game_type: 'phrase', game_mode: null, phrase_language: 'en', players, player_count: 3, ...overrides });
 }
 
-beforeEach(() => {
-  jest.spyOn(Alert, 'alert').mockImplementation((_title, _message, buttons) => buttons?.[1]?.onPress?.());
-});
-
 test('a timed deal counts down, and the host can reveal and end it', async () => {
   const endsAt = new Date(Date.now() + 125_000).toISOString();
   jest.mocked(gamesApi.show).mockResolvedValue(phraseGame({ status: 'active', round_seconds: 300, phrase: deal({ ends_at: endsAt }) }));
@@ -72,6 +69,7 @@ test('a timed deal counts down, and the host can reveal and end it', async () =>
   await act(async () => {
     fireEvent.press(screen.getByTestId('btn-reveal-phrase'));
   });
+  await answerDialog('Confirm');
 
   expect(gamesApi.revealPhrase).toHaveBeenCalledWith('SPY-AB3D');
   expect(await screen.findByText('Nobody guessed it')).toBeOnTheScreen();
@@ -100,6 +98,7 @@ test('the host closes the game and goes back home', async () => {
   await act(async () => {
     fireEvent.press(close);
   });
+  await answerDialog('Confirm');
 
   expect(gamesApi.close).toHaveBeenCalledWith('SPY-AB3D');
   await waitFor(() => expect(screen).toHavePathname('/phrase'));

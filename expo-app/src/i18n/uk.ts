@@ -44,6 +44,7 @@ export const uk: Record<string, string> = {
   "Cancel request": "Скасувати запит",
   "Children (5+)": "Діти (5+)",
   "Choose a Game": "Оберіть гру",
+  "Close": "Закрити",
   "Close game": "Закрити гру",
   "Close this game for everyone? This cannot be undone.": "Закрити цю гру для всіх? Цю дію не можна скасувати.",
   "Close voting and reveal": "Завершити голосування й показати результати",

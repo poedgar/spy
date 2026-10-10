@@ -1,5 +1,5 @@
 import { act, fireEvent, screen, waitFor } from 'expo-router/testing-library';
-import { Alert, Text } from 'react-native';
+import { Text } from 'react-native';
 import { gamesApi } from '@/api/endpoints';
 import { ValidationError } from '@/api/errors';
 import type { Game, Round } from '@/api/types';
@@ -8,6 +8,7 @@ import Lobby from '../../app/(app)/games/[code]/index';
 import Locations from '../../app/(app)/locations';
 import { fakeGame, fakeUser, otherUser } from '../support/fakes';
 import type { FakeEcho } from '../support/fakeEcho';
+import { answerDialog } from '../support/dialog';
 import { renderApp } from '../support/renderApp';
 
 jest.mock('@/api/endpoints');
@@ -85,7 +86,6 @@ test('a loyalist reveals the location only on request', async () => {
 });
 
 test('a spy stakes the round on a location from the guide', async () => {
-  jest.spyOn(Alert, 'alert').mockImplementation((_title, _message, buttons) => buttons?.[1]?.onPress?.());
   jest.mocked(gamesApi.show).mockResolvedValue(game({ status: 'active', round: round({ my_role: 'spy', location: null }) }));
   jest.mocked(gamesApi.locations).mockResolvedValue({
     tier: 'adults',
@@ -103,6 +103,7 @@ test('a spy stakes the round on a location from the guide', async () => {
   await act(async () => {
     fireEvent.press(place);
   });
+  await answerDialog('Guess the location');
 
   expect(gamesApi.guess).toHaveBeenCalledWith('SPY-AB3D', 1);
   expect(await screen.findByText('Correct! The spies win the round.')).toBeOnTheScreen();
@@ -173,7 +174,6 @@ test('a game rule error from the server is shown as a banner', async () => {
 });
 
 test('a non-host can leave a recruiting game', async () => {
-  jest.spyOn(Alert, 'alert').mockImplementation((_title, _message, buttons) => buttons?.[1]?.onPress?.());
   jest.mocked(gamesApi.show).mockResolvedValue(game({ host_id: otherUser.id, host: otherUser }));
   jest.mocked(gamesApi.leave).mockResolvedValue(undefined);
   await renderApp(routes, { initialUrl: '/games/SPY-AB3D', user: fakeUser });
@@ -182,6 +182,7 @@ test('a non-host can leave a recruiting game', async () => {
   await act(async () => {
     fireEvent.press(leaveButton);
   });
+  await answerDialog('Confirm');
 
   expect(gamesApi.leave).toHaveBeenCalledWith('SPY-AB3D');
   await waitFor(() => expect(screen).toHavePathname('/spy'));

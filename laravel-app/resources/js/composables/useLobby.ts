@@ -1,5 +1,6 @@
 import { router, usePage } from '@inertiajs/vue3';
 import { computed, ref } from 'vue';
+import { confirmAction } from '@/composables/useConfirm';
 import { useTrans } from '@/composables/useTrans';
 import type { Game } from '@/types/game';
 
@@ -43,13 +44,13 @@ export function useLobby(game: () => Game) {
             : t('a departed player');
     }
 
-    function act(
+    async function act(
         path: string,
         confirmMessage?: string,
         method: 'post' | 'delete' = 'post',
         url = `/games/${game().code}/${path}`,
     ) {
-        if (confirmMessage && !window.confirm(confirmMessage)) {
+        if (confirmMessage && !(await confirmAction(confirmMessage))) {
             return;
         }
 

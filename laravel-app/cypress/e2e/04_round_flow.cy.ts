@@ -71,8 +71,8 @@ describe('A full round of Spy', () => {
                     .click();
                 cy.get('#role-card').should('contain', 'Round 2');
 
-                cy.on('window:confirm', () => true);
                 cy.get('#btn-reset-game').click();
+                cy.get('#btn-confirm-ok').click();
                 cy.get('#game-status').should('contain', 'Recruiting');
                 cy.get('#role-card').should('not.exist');
             });

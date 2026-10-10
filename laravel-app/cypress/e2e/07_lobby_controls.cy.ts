@@ -43,10 +43,11 @@ describe('Lobby controls', () => {
 
                 // Hand hosting over, then leave.
                 cy.visit(`/games/${code}`);
-                cy.on('window:confirm', () => true);
                 cy.get('[data-action="make-host"]').click();
+                cy.get('#btn-confirm-ok').click();
                 cy.get('#host-panel').should('not.exist');
                 cy.get('#btn-leave-game').click();
+                cy.get('#btn-confirm-ok').click();
                 cy.url().should('include', '/games/spy');
 
                 cy.clearCookies();

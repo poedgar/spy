@@ -6,6 +6,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { bindQueryClientToAppState, createQueryClient } from '@/api/queryClient';
 import { AuthProvider } from '@/auth/AuthProvider';
 import { BannerProvider } from '@/banner/BannerProvider';
+import { DialogProvider } from '@/dialog/DialogProvider';
 import { I18nProvider } from '@/i18n/I18nProvider';
 import { NotificationsProvider } from '@/notifications/NotificationsProvider';
 import { RealtimeProvider } from '@/realtime/RealtimeProvider';
@@ -27,11 +28,13 @@ export default function RootLayout() {
         <AuthProvider>
           <I18nProvider>
           <BannerProvider>
+            <DialogProvider>
             <RealtimeProvider>
               <NotificationsProvider>
                 <Slot />
               </NotificationsProvider>
             </RealtimeProvider>
+            </DialogProvider>
           </BannerProvider>
           </I18nProvider>
         </AuthProvider>

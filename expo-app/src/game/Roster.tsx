@@ -6,6 +6,7 @@ import { Badge } from '@/components/Badge';
 import { Button } from '@/components/Button';
 import { Card } from '@/components/Card';
 import { OnlineDot } from '@/components/OnlineDot';
+import { useDialog } from '@/dialog/DialogProvider';
 import { useOnlineUserIds } from '@/realtime/RealtimeProvider';
 import { useTheme } from '@/theme/useTheme';
 import { openPlayerMenu } from './playerMenu';
@@ -18,6 +19,7 @@ import { useLobbyControls } from './useLobbyControls';
 export function Roster({ game, inRound, badge }: { game: Game; inRound: boolean; badge?: (player: Player) => ReactNode }) {
   const { me, t, isHost, mine, busy, run } = useLobbyControls(game);
   const { spacing } = useTheme();
+  const showDialog = useDialog();
   const online = useOnlineUserIds();
 
   return (
@@ -31,7 +33,7 @@ export function Roster({ game, inRound, badge }: { game: Game; inRound: boolean;
             testID={`roster-${player.user.id}`}
             disabled={!isHost || inRound || player.user.id === me.id}
             accessibilityHint={isHost ? t('Make host') : undefined}
-            onPress={() => openPlayerMenu(t, player.user, (next) => run(next))}
+            onPress={() => openPlayerMenu(t, showDialog, player.user, (next) => run(next))}
             style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.sm }}
           >
             <OnlineDot online={online.has(player.user.id)} />

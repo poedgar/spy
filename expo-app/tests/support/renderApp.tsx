@@ -8,6 +8,7 @@ import type { User } from '@/api/types';
 import { AuthProvider } from '@/auth/AuthProvider';
 import { SESSION_KEY } from '@/auth/session';
 import { BannerProvider } from '@/banner/BannerProvider';
+import { DialogProvider } from '@/dialog/DialogProvider';
 import { I18nProvider } from '@/i18n/I18nProvider';
 import { RealtimeProvider } from '@/realtime/RealtimeProvider';
 
@@ -39,7 +40,9 @@ export async function renderApp(routes: Routes, options: { initialUrl: string; u
         <AuthProvider>
           <I18nProvider>
             <BannerProvider>
-              <RealtimeProvider>{children}</RealtimeProvider>
+              <DialogProvider>
+                <RealtimeProvider>{children}</RealtimeProvider>
+              </DialogProvider>
             </BannerProvider>
           </I18nProvider>
         </AuthProvider>

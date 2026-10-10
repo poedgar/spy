@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { usePage } from '@inertiajs/vue3';
+import ConfirmDialog from '@/components/ConfirmDialog.vue';
 import AppLayout from '@/layouts/app/AppSidebarLayout.vue';
 import { useLiveNotifications } from '@/composables/useLiveNotifications';
 import { usePresence } from '@/composables/usePresence';
@@ -20,5 +21,6 @@ useLiveNotifications(page.props.auth.user.id);
 <template>
     <AppLayout :breadcrumbs="breadcrumbs">
         <slot />
+        <ConfirmDialog />
     </AppLayout>
 </template>

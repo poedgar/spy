@@ -3,6 +3,7 @@ import { router } from '@inertiajs/vue3';
 import { Crown, UserMinus } from '@lucide/vue';
 import { ref } from 'vue';
 import { Button } from '@/components/ui/button';
+import { confirmAction } from '@/composables/useConfirm';
 import { useTrans } from '@/composables/useTrans';
 import type { Operative } from '@/types/game';
 
@@ -11,13 +12,13 @@ const props = defineProps<{ code: string; player: Operative }>();
 const { t } = useTrans();
 const busy = ref(false);
 
-function run(
+async function run(
     method: 'post' | 'delete',
     path: string,
     message: string,
     data = {},
 ) {
-    if (!window.confirm(message)) {
+    if (!(await confirmAction(message))) {
         return;
     }
 

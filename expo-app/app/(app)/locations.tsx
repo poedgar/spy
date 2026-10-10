@@ -1,10 +1,11 @@
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { useMemo, useState } from 'react';
-import { Alert, Pressable, SectionList, View } from 'react-native';
+import { Pressable, SectionList, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useGuessLocation, useLocations } from '@/api/queries';
 import type { AgeTier, Place } from '@/api/types';
 import { useBanner } from '@/banner/BannerProvider';
+import { useDialog } from '@/dialog/DialogProvider';
 import { AppText } from '@/components/AppText';
 import { TextField } from '@/components/TextField';
 import { applyServerErrors } from '@/forms/applyServerErrors';
@@ -24,6 +25,7 @@ export default function Locations() {
   const { t, place } = useI18n();
   const { colors, spacing, radius } = useTheme();
   const { showBanner } = useBanner();
+  const showDialog = useDialog();
   const [tier, setTier] = useState<AgeTier>(params.tier ?? 'adults');
   const [search, setSearch] = useState('');
   const guide = useLocations(tier);
@@ -47,25 +49,29 @@ export default function Locations() {
   }, [guide.data, search, place]);
 
   const stake = (location: Place) =>
-    Alert.alert(t('Guess the location'), t('Stake the round on :place', { place: place(location) }) + '?', [
-      { text: t('Cancel'), style: 'cancel' },
-      {
-        text: t('Guess the location'),
-        style: 'destructive',
-        onPress: () =>
-          guess.mutate(location.id, {
-            onSuccess: ({ correct }) => {
-              showBanner({
-                tone: correct ? 'info' : 'error',
-                message: correct ? t('Correct! The spies win the round.') : t('Wrong guess. The loyalists win the round.'),
-              });
-              router.back();
-            },
-            onError: (error) =>
-              showBanner({ tone: 'error', message: applyServerErrors(error, () => {}, []) ?? t('Something went wrong.') }),
-          }),
-      },
-    ]);
+    showDialog({
+      title: t('Guess the location'),
+      message: t('Stake the round on :place', { place: place(location) }) + '?',
+      buttons: [
+        { text: t('Cancel'), style: 'cancel' },
+        {
+          text: t('Guess the location'),
+          style: 'destructive',
+          onPress: () =>
+            guess.mutate(location.id, {
+              onSuccess: ({ correct }) => {
+                showBanner({
+                  tone: correct ? 'info' : 'error',
+                  message: correct ? t('Correct! The spies win the round.') : t('Wrong guess. The loyalists win the round.'),
+                });
+                router.back();
+              },
+              onError: (error) =>
+                showBanner({ tone: 'error', message: applyServerErrors(error, () => {}, []) ?? t('Something went wrong.') }),
+            }),
+        },
+      ],
+    });
 
   return (
     <SafeAreaView edges={['bottom', 'left', 'right']} style={{ flex: 1, backgroundColor: colors.background }}>

@@ -1,5 +1,5 @@
-import { act, fireEvent, screen, waitFor } from 'expo-router/testing-library';
-import { Alert, Text } from 'react-native';
+import { act, fireEvent, screen, waitFor, within } from 'expo-router/testing-library';
+import { Text } from 'react-native';
 import { gamesApi } from '@/api/endpoints';
 import type { Game } from '@/api/types';
 import AppLayout from '../../app/(app)/_layout';
@@ -8,6 +8,7 @@ import InvitePlayers from '../../app/(app)/games/[code]/invite';
 import JoinGame from '../../app/(app)/spy/join';
 import { fakeGame, fakeUser, otherUser } from '../support/fakes';
 import { type FakeEcho, NOTIFICATION_EVENT } from '../support/fakeEcho';
+import { answerDialog } from '../support/dialog';
 import { renderApp } from '../support/renderApp';
 
 jest.mock('@/api/endpoints');
@@ -85,7 +86,6 @@ test('the host re-sends or cancels an invitation that was not taken up', async (
 });
 
 test('the host hands hosting over from the roster', async () => {
-  jest.spyOn(Alert, 'alert').mockImplementation((_title, _message, buttons) => buttons?.[0]?.onPress?.());
   jest.mocked(gamesApi.show).mockResolvedValue(hostView());
   jest.mocked(gamesApi.transferHost).mockResolvedValue(hostView({ host_id: otherUser.id, host: otherUser }));
   await renderApp(routes, { initialUrl: '/games/SPY-AB3D', user: fakeUser });
@@ -94,13 +94,13 @@ test('the host hands hosting over from the roster', async () => {
   await act(async () => {
     fireEvent.press(row);
   });
+  await answerDialog('Make host');
 
   expect(gamesApi.transferHost).toHaveBeenCalledWith('SPY-AB3D', otherUser.id);
   await waitFor(() => expect(screen.queryByTestId('host-panel')).toBeNull());
 });
 
 test('the host can leave too; hosting moves on', async () => {
-  jest.spyOn(Alert, 'alert').mockImplementation((_title, _message, buttons) => buttons?.[1]?.onPress?.());
   jest.mocked(gamesApi.show).mockResolvedValue(hostView());
   jest.mocked(gamesApi.leave).mockResolvedValue(undefined);
   await renderApp(routes, { initialUrl: '/games/SPY-AB3D', user: fakeUser });
@@ -110,11 +110,13 @@ test('the host can leave too; hosting moves on', async () => {
     fireEvent.press(leave);
   });
 
-  expect(Alert.alert).toHaveBeenCalledWith(
-    'Leave? Hosting passes to the next player, or the game closes if nobody is left.',
-    undefined,
-    expect.anything(),
-  );
+  expect(
+    within(screen.getByTestId('dialog')).getByText(
+      'Leave? Hosting passes to the next player, or the game closes if nobody is left.',
+    ),
+  ).toBeOnTheScreen();
+  expect(gamesApi.leave).not.toHaveBeenCalled();
+  await answerDialog('Confirm');
   expect(gamesApi.leave).toHaveBeenCalledWith('SPY-AB3D');
 });
 
@@ -152,4 +154,18 @@ test('an approved request is announced live', async () => {
   );
 
   expect(await screen.findByText('You are in!: The host let you into Gatekeeper.')).toBeOnTheScreen();
+});
+
+test('cancelling a confirmation does nothing and closes it', async () => {
+  jest.mocked(gamesApi.show).mockResolvedValue(hostView());
+  await renderApp(routes, { initialUrl: '/games/SPY-AB3D', user: fakeUser });
+
+  const leave = await screen.findByTestId('btn-leave-game');
+  await act(async () => {
+    fireEvent.press(leave);
+  });
+  await answerDialog('Cancel');
+
+  expect(gamesApi.leave).not.toHaveBeenCalled();
+  expect(screen.queryByTestId('dialog')).toBeNull();
 });

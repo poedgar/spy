@@ -1,8 +1,9 @@
-import { Alert, Share } from 'react-native';
+import { Share } from 'react-native';
 import { useLobbyAction } from '@/api/queries';
 import type { Game } from '@/api/types';
 import { useSignedInUser } from '@/auth/AuthProvider';
 import { useBanner } from '@/banner/BannerProvider';
+import { useDialog } from '@/dialog/DialogProvider';
 import { applyServerErrors } from '@/forms/applyServerErrors';
 import { useI18n } from '@/i18n/I18nProvider';
 import { operativeName } from './labels';
@@ -13,6 +14,7 @@ const DEFAULT_MIN_PLAYERS = 3;
 export function useLobbyControls(game: Game) {
   const me = useSignedInUser();
   const { t } = useI18n();
+  const showDialog = useDialog();
   const { showBanner } = useBanner();
   const action = useLobbyAction(game.code);
 
@@ -23,10 +25,13 @@ export function useLobbyControls(game: Game) {
     showBanner({ tone: 'error', message: applyServerErrors(error, () => {}, []) ?? t('Something went wrong.') });
 
   const confirm = (title: string, onConfirm: () => void) =>
-    Alert.alert(title, undefined, [
-      { text: t('Cancel'), style: 'cancel' },
-      { text: t('Confirm'), style: 'destructive', onPress: onConfirm },
-    ]);
+    showDialog({
+      title,
+      buttons: [
+        { text: t('Cancel'), style: 'cancel' },
+        { text: t('Confirm'), style: 'destructive', onPress: onConfirm },
+      ],
+    });
 
   const share = () => {
     const params = { title: game.title, code: game.code, link: `marvelousgames://join/${game.code}` };
