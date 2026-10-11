@@ -3,10 +3,10 @@
 namespace App\Support;
 
 /**
- * The location pool for spy rounds, ported from the original SPA's
- * src/data/locations.ts. Ids are renumbered in file order (the SPA reuses 51
- * and 52) and are what game_rounds stores, so never renumber or reorder
- * existing entries: append new ones with the next id.
+ * The location pool as it first shipped (ported from the original SPA's
+ * src/data/locations.ts). Only the 2026_10_17 migration reads this, to fill
+ * the locations table; locations are now edited on the admin pages, not
+ * here.
  *
  * Tiers are cumulative: a teens game draws from children + teens, an adults
  * game from everything (see AgeTier::includedTiers()).

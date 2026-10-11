@@ -3,28 +3,65 @@
 namespace App\Support;
 
 use App\Enums\AgeTier;
+use App\Models\Location;
 use Illuminate\Support\Arr;
+use Illuminate\Support\Facades\Cache;
 
 /**
- * Read access to the location pool in LocationData.
+ * Read access to the location pool (the locations table, edited on the
+ * admin pages). Read through a cache that every change clears.
  *
  * @phpstan-type Place array{id: int, en: string, uk: string, category: string, tier: string}
  * @phpstan-type PresentedPlace array{id: int, en: string, uk: string, category: string}
  */
 class LocationCatalog
 {
+    private const CACHE_KEY = 'catalog:locations';
+
     /**
+     * Locations that can be dealt and guessed.
+     *
      * @return list<Place>
      */
     public static function all(): array
     {
-        return array_map(fn (array $place) => [
-            'id' => $place['id'],
-            'en' => $place['en'],
-            'uk' => $place['uk'],
-            'category' => $place['category'],
-            'tier' => $place['tier'],
-        ], LocationData::PLACES);
+        return array_values(array_map(
+            fn (array $row) => [
+                'id' => $row['id'],
+                'en' => $row['en'],
+                'uk' => $row['uk'],
+                'category' => $row['category'],
+                'tier' => $row['tier'],
+            ],
+            array_filter(self::rows(), fn (array $row) => ! $row['removed']),
+        ));
+    }
+
+    public static function forget(): void
+    {
+        Cache::forget(self::CACHE_KEY);
+    }
+
+    /**
+     * Every location ever offered, removed ones included (past rounds
+     * still name them).
+     *
+     * @return list<array{id: int, en: string, uk: string, category: string, tier: string, removed: bool}>
+     */
+    private static function rows(): array
+    {
+        return Cache::rememberForever(self::CACHE_KEY, fn () => array_values(Location::withTrashed()
+            ->orderBy('id')
+            ->get()
+            ->map(fn (Location $location) => [
+                'id' => $location->id,
+                'en' => $location->en,
+                'uk' => $location->uk,
+                'category' => $location->category,
+                'tier' => $location->tier,
+                'removed' => $location->deleted_at !== null,
+            ])
+            ->all()));
     }
 
     /**
@@ -58,13 +95,13 @@ class LocationCatalog
      */
     public static function present(?int $id): ?array
     {
-        $place = $id === null ? null : self::find($id);
+        $place = $id === null ? null : Arr::first(self::rows(), fn (array $row) => $row['id'] === $id);
 
         return $place === null ? null : self::presentPlace($place);
     }
 
     /**
-     * @param  Place  $place
+     * @param  array{id: int, en: string, uk: string, category: string}  $place
      * @return PresentedPlace
      */
     public static function presentPlace(array $place): array

@@ -73,7 +73,11 @@ account the **Admin** link in the sidebar:
 - **Users:** every account, how they sign in, whether they're verified,
   their games and when they were last seen.
 - **Games:** every game with its type, status, host, players, rounds and
-  last activity; search and filter by type, status or player.
+  last activity; search and filter by type, status or player. Games still
+  recruiting a day after creation, never started, can be removed.
+- **Locations** and **Phrases:** add, edit and remove what the games deal.
+  Removing only hides an entry from new rounds; a round keeps the phrase
+  it was dealt even if it is edited later.
 
 Admin access can only be granted from the command line.
 

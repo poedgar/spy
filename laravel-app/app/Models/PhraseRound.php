@@ -29,7 +29,7 @@ use Illuminate\Support\Carbon;
  * @property PhraseEnding|null $ending
  * @property int|null $winner_user_id
  */
-#[Fillable(['game_id', 'number', 'language', 'phrase_id', 'assignments', 'turn_order', 'turn_index', 'started_at', 'ends_at', 'ended_at', 'ending', 'winner_user_id'])]
+#[Fillable(['game_id', 'number', 'language', 'phrase_id', 'text', 'assignments', 'turn_order', 'turn_index', 'started_at', 'ends_at', 'ended_at', 'ending', 'winner_user_id'])]
 class PhraseRound extends Model
 {
     protected function casts(): array
@@ -52,7 +52,8 @@ class PhraseRound extends Model
 
     public function text(): string
     {
-        return PhraseCatalog::find($this->language, $this->phrase_id)['text'] ?? '';
+        // The text as dealt; rounds from before snapshots look it up.
+        return $this->getAttribute('text') ?? PhraseCatalog::find($this->language, $this->phrase_id)['text'] ?? '';
     }
 
     /**

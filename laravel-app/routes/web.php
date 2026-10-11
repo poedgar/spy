@@ -1,6 +1,8 @@
 <?php
 
 use App\Http\Controllers\Admin\GameController as AdminGameController;
+use App\Http\Controllers\Admin\LocationController as AdminLocationController;
+use App\Http\Controllers\Admin\PhraseController as AdminPhraseController;
 use App\Http\Controllers\Admin\UserController as AdminUserController;
 use App\Http\Controllers\ChatController;
 use App\Http\Controllers\DashboardController;
@@ -25,6 +27,14 @@ Route::middleware(['auth', 'can:admin'])->prefix('admin')->name('admin.')->group
     Route::get('games', [AdminGameController::class, 'index'])->name('games.index');
     Route::delete('games/abandoned', [AdminGameController::class, 'destroyAbandoned'])->name('games.destroy-abandoned');
     Route::delete('games/{game}', [AdminGameController::class, 'destroy'])->name('games.destroy');
+    Route::get('locations', [AdminLocationController::class, 'index'])->name('locations.index');
+    Route::post('locations', [AdminLocationController::class, 'store'])->name('locations.store');
+    Route::put('locations/{location}', [AdminLocationController::class, 'update'])->name('locations.update');
+    Route::delete('locations/{location}', [AdminLocationController::class, 'destroy'])->name('locations.destroy');
+    Route::get('phrases', [AdminPhraseController::class, 'index'])->name('phrases.index');
+    Route::post('phrases', [AdminPhraseController::class, 'store'])->name('phrases.store');
+    Route::put('phrases/{phrase}', [AdminPhraseController::class, 'update'])->name('phrases.update');
+    Route::delete('phrases/{phrase}', [AdminPhraseController::class, 'destroy'])->name('phrases.destroy');
 });
 
 // "Continue with Google" (Firebase) from the login and register pages.

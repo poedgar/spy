@@ -3,29 +3,69 @@
 namespace App\Support;
 
 use App\Enums\Locale;
+use App\Models\Phrase;
 use Illuminate\Support\Arr;
+use Illuminate\Support\Facades\Cache;
 
 /**
- * Read access to the phrase pools in PhraseData.
+ * Read access to the phrase pools (the phrases table, edited on the admin
+ * pages), one per language. A phrase's `id` here is its number within its
+ * language, which is what phrase_rounds store. Cached; changes clear it.
  *
- * @phpstan-type Phrase array{id: int, text: string}
+ * @phpstan-type PhraseEntry array{id: int, text: string}
  */
 class PhraseCatalog
 {
+    private const CACHE_KEY = 'catalog:phrases';
+
     /**
-     * @return list<Phrase>
+     * Phrases that can be dealt.
+     *
+     * @return list<PhraseEntry>
      */
     public static function all(Locale $language): array
     {
-        return PhraseData::PHRASES[$language->value];
+        return array_values(array_map(
+            fn (array $row) => ['id' => $row['id'], 'text' => $row['text']],
+            array_filter(self::rows()[$language->value] ?? [], fn (array $row) => ! $row['removed']),
+        ));
     }
 
     /**
-     * @return Phrase|null
+     * Removed phrases too: an old round may still refer to one.
+     *
+     * @return PhraseEntry|null
      */
     public static function find(Locale $language, int $id): ?array
     {
-        return Arr::first(self::all($language), fn (array $phrase) => $phrase['id'] === $id);
+        $row = Arr::first(self::rows()[$language->value] ?? [], fn (array $row) => $row['id'] === $id);
+
+        return $row === null ? null : ['id' => $row['id'], 'text' => $row['text']];
+    }
+
+    public static function forget(): void
+    {
+        Cache::forget(self::CACHE_KEY);
+    }
+
+    /**
+     * @return array<string, list<array{id: int, text: string, removed: bool}>>
+     */
+    private static function rows(): array
+    {
+        return Cache::rememberForever(self::CACHE_KEY, function () {
+            $rows = [];
+
+            foreach (Phrase::withTrashed()->orderBy('number')->get() as $phrase) {
+                $rows[$phrase->language][] = [
+                    'id' => $phrase->number,
+                    'text' => $phrase->text,
+                    'removed' => $phrase->deleted_at !== null,
+                ];
+            }
+
+            return $rows;
+        });
     }
 
     /**

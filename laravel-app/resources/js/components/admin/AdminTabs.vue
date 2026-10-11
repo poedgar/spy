@@ -7,11 +7,16 @@ const page = usePage();
 const tabs = [
     { label: 'Users', href: '/admin/users' },
     { label: 'Games', href: '/admin/games' },
+    { label: 'Locations', href: '/admin/locations' },
+    { label: 'Phrases', href: '/admin/phrases' },
 ];
 </script>
 
 <template>
-    <nav id="admin-tabs" class="flex gap-1 border-b border-sidebar-border/70">
+    <nav
+        id="admin-tabs"
+        class="flex gap-1 overflow-x-auto border-b border-sidebar-border/70"
+    >
         <Link
             v-for="tab in tabs"
             :key="tab.href"

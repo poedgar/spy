@@ -42,7 +42,8 @@ class GuessPhrase
             }
 
             $round = $game->currentPhraseRound()->firstOrFail();
-            $correct = PhraseCatalog::matches($round->language, $round->phrase_id, $guess);
+            // Against the phrase as dealt, even if it has been edited since.
+            $correct = PhraseCatalog::normalize($round->text()) === PhraseCatalog::normalize($guess);
 
             $round->guesses()->create(['user_id' => $user->id, 'guess' => $guess, 'correct' => $correct]);
 

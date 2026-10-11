@@ -3,11 +3,10 @@
 namespace App\Support;
 
 /**
- * The Phrase game's pools: well-known sayings, proverbs and lines, one pool
- * per language. Ids are stored in phrase_rounds, so never renumber or
- * reorder: append new phrases with the next id. Every player needs a word
- * of their own, so a game draws only phrases at least as long as its table;
- * keep enough 10-word phrases for the largest (10-player) tables.
+ * The Phrase game's pools as they first shipped. Only the 2026_10_17
+ * migration reads this, to fill the phrases table; phrases are now edited
+ * on the admin pages. Every player needs a word of their own, so keep
+ * enough 10-word phrases for the largest (10-player) tables.
  */
 class PhraseData
 {

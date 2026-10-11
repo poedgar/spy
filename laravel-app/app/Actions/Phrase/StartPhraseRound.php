@@ -54,13 +54,15 @@ class StartPhraseRound
                 throw new GameRuleException('game', __('There is no phrase long enough for :count players.', ['count' => $playerIds->count()]));
             }
 
-            $wordCount = count(PhraseCatalog::words(PhraseCatalog::find($language, $phraseId)['text'] ?? ''));
+            $text = PhraseCatalog::find($language, $phraseId)['text'] ?? '';
+            $wordCount = count(PhraseCatalog::words($text));
             $positions = collect(range(0, $wordCount - 1))->shuffle()->take($playerIds->count())->values();
 
             $round = $game->phraseRounds()->create([
                 'number' => ((int) $game->phraseRounds()->max('number')) + 1,
                 'language' => $language,
                 'phrase_id' => $phraseId,
+                'text' => $text,
                 'assignments' => $playerIds->values()->combine($positions)->all(),
                 'turn_order' => $playerIds->shuffle()->values()->all(),
                 'turn_index' => 0,
