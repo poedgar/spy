@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Link, usePage } from '@inertiajs/vue3';
-import { LayoutGrid, MapPinned, ShieldCheck } from '@lucide/vue';
+import { LayoutGrid, ShieldCheck } from '@lucide/vue';
 import { computed } from 'vue';
 import AppLogo from '@/components/AppLogo.vue';
 import LanguageSwitcher from '@/components/LanguageSwitcher.vue';
@@ -27,11 +27,6 @@ const mainNavItems = computed<NavItem[]>(() => [
         title: t('Games'),
         href: dashboard(),
         icon: LayoutGrid,
-    },
-    {
-        title: t('Locations'),
-        href: '/locations',
-        icon: MapPinned,
     },
     // Only administrators get the link; the page itself checks too.
     ...(page.props.auth.user?.is_admin

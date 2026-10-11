@@ -15,10 +15,5 @@ describe('Ukrainian language', () => {
         cy.clearCookies();
         cy.loginAgent(email);
         cy.contains('h1', 'Оберіть гру').should('be.visible');
-
-        cy.visit('/locations');
-        cy.contains('Довідник локацій').should('be.visible');
-        cy.get('input[type="search"]').type('Замок');
-        cy.contains('Замок').should('be.visible');
     });
 });

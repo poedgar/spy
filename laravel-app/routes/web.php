@@ -13,7 +13,6 @@ use App\Http\Controllers\GameNameController;
 use App\Http\Controllers\InvitationController;
 use App\Http\Controllers\LobbyController;
 use App\Http\Controllers\LocaleController;
-use App\Http\Controllers\LocationController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\PhraseController;
 use App\Http\Controllers\VoiceController;
@@ -51,7 +50,6 @@ Route::middleware(['auth', 'verified.play'])->group(function () {
     Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard');
     Route::post('notifications/read-all', [NotificationController::class, 'readAll'])->name('notifications.read-all');
     Route::post('notifications/{notification}/open', [NotificationController::class, 'open'])->name('notifications.open');
-    Route::get('locations', [LocationController::class, 'index'])->name('locations.index');
     Route::get('game-name', GameNameController::class)->name('game-name');
     Route::get('games/spy', [DashboardController::class, 'spy'])->name('games.spy');
     Route::get('games/phrase', [DashboardController::class, 'phrase'])->name('games.phrase');
