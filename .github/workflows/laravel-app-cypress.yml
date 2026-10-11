@@ -45,6 +45,8 @@ jobs:
       - name: Prepare environment
         run: |
           cp .env.example .env
+          # The suite registers fresh accounts and plays at once; emails aren't sent.
+          echo "REQUIRE_EMAIL_VERIFICATION=false" >> .env
           php artisan key:generate
           touch database/database.sqlite
           php artisan migrate --force

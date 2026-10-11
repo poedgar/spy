@@ -6,6 +6,7 @@ import { configureClient } from '@/api/client';
 import { authApi, meApi } from '@/api/endpoints';
 import { ApiError } from '@/api/errors';
 import type { RegisterInput, TokenResult, User } from '@/api/types';
+import { googleFirebaseIdToken } from './googleSignIn';
 import { clearSession, readSession, writeSession } from './session';
 
 export type AuthState =
@@ -18,6 +19,8 @@ interface AuthContextValue {
   login(email: string, password: string): Promise<{ challenge: string } | null>;
   completeTwoFactor(challenge: string, answer: { code?: string; recovery_code?: string }): Promise<void>;
   register(input: RegisterInput): Promise<void>;
+  /** null when signed in, 'cancelled', or a 2FA challenge to answer. */
+  signInWithGoogle(): Promise<null | 'cancelled' | { challenge: string }>;
   logout(): Promise<void>;
   signOutLocally(): Promise<void>;
   setUser(user: User): void;
@@ -97,6 +100,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       },
       async register(input) {
         await signIn(await authApi.register({ ...input, device_name: deviceName() }));
+      },
+      async signInWithGoogle() {
+        const idToken = await googleFirebaseIdToken();
+        if (!idToken) return 'cancelled';
+        const result = await authApi.firebase({ id_token: idToken, device_name: deviceName() });
+        if ('two_factor' in result) return { challenge: result.challenge };
+        await signIn(result);
+        return null;
       },
       async logout() {
         try {

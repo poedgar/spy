@@ -28,7 +28,17 @@
      upload it as a file env var named `GOOGLE_SERVICES_JSON`
      (`eas env:create --type file --name GOOGLE_SERVICES_JSON --value ./google-services.json`),
      and upload the FCM V1 service-account key with `eas credentials`.
-6. Backend (Laravel Cloud): managed database, queue worker enabled, mail
+6. Google sign-in (optional): enable **Google** in Firebase Authentication →
+   Sign-in method. Add the Android app's **SHA-1** fingerprints to the
+   Firebase Android app (from `eas credentials`, and Play Console → App
+   signing once on Play), then download `google-services.json` again and
+   re-upload it. Set `EXPO_PUBLIC_FIREBASE_*` and
+   `EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID` (the "Web client" OAuth id) for each
+   EAS environment. For iOS, add an iOS app in Firebase and upload its
+   `GoogleService-Info.plist` as the `GOOGLE_SERVICES_PLIST` file variable.
+   Note: the App Store requires "Sign in with Apple" alongside other
+   third-party sign-ins.
+7. Backend (Laravel Cloud): managed database, queue worker enabled, mail
    configured, Pusher variables set, and `EXPO_ACCESS_TOKEN` if you enable
    enhanced push security in your Expo account.
 

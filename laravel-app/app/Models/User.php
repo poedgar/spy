@@ -22,9 +22,11 @@ use Laravel\Sanctum\HasApiTokens;
  * @property int $id
  * @property string $name
  * @property string $email
+ * @property string|null $firebase_uid
  * @property string $codename
  * @property Locale $locale
  * @property bool $email_notifications
+ * @property bool $is_admin
  * @property Carbon|null $email_verified_at
  * @property string $password
  * @property string|null $two_factor_secret
@@ -36,7 +38,7 @@ use Laravel\Sanctum\HasApiTokens;
  * @property Carbon|null $updated_at
  */
 #[Fillable(['name', 'email', 'password', 'codename', 'locale', 'email_notifications'])]
-#[Hidden(['password', 'two_factor_secret', 'two_factor_recovery_codes', 'remember_token'])]
+#[Hidden(['password', 'two_factor_secret', 'two_factor_recovery_codes', 'remember_token', 'firebase_uid'])]
 class User extends Authenticatable implements HasLocalePreference, MustVerifyEmail, PasskeyUser
 {
     /** @use HasFactory<UserFactory> */
@@ -72,6 +74,7 @@ class User extends Authenticatable implements HasLocalePreference, MustVerifyEma
             'last_seen_at' => 'datetime',
             'locale' => Locale::class,
             'email_notifications' => 'boolean',
+            'is_admin' => 'boolean',
         ];
     }
 

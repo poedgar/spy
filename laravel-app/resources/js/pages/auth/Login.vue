@@ -11,6 +11,7 @@ import { Spinner } from '@/components/ui/spinner';
 import { register } from '@/routes';
 import { store } from '@/routes/login';
 import { request } from '@/routes/password';
+import GoogleSignIn from '@/components/GoogleSignIn.vue';
 import PasskeyVerify from '@/components/PasskeyVerify.vue';
 import { useTrans } from '@/composables/useTrans';
 
@@ -39,6 +40,7 @@ const { t } = useTrans();
         {{ status }}
     </div>
 
+    <GoogleSignIn class="mb-4" />
     <PasskeyVerify />
 
     <Form

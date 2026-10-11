@@ -52,13 +52,25 @@ Once, on the server:
   `PUSHER_HOST/PORT/SCHEME`. Without it the apps still work, refreshing
   every few seconds instead of instantly. `php artisan app:check-realtime`
   shows what is set and sends a test broadcast.
-- **Mail** (`MAIL_*`): invitation emails, password resets, email
-  verification.
+- **Mail** (`MAIL_*`): required — players must confirm their email before
+  playing. Also invitation emails and password resets. Without a working
+  mailer nobody new can play; `REQUIRE_EMAIL_VERIFICATION=false` turns the
+  requirement off.
 - `APP_NAME="Marvelous Games"`, and `SANCTUM_TOKEN_EXPIRATION` if mobile sign-ins
   should last other than 90 days.
+- **Google sign-in** (optional): `FIREBASE_PROJECT_ID` and the
+  `VITE_FIREBASE_*` web keys (before building the front end); add the site's
+  domain to Firebase Authentication → Settings → Authorized domains.
 - **Voice chat** (optional): `LIVEKIT_URL`, `LIVEKIT_API_KEY`,
   `LIVEKIT_API_SECRET` from a LiveKit Cloud project (free plan is fine).
   Without them, lobbies simply don't offer voice.
+
+## Administration
+
+`php artisan app:make-admin you@example.com` (`--revoke` to undo) gives an
+account the **Admin** link in the sidebar: every user, how they sign in,
+whether they're verified, their games and when they were last seen. Admin
+access can only be granted from the command line.
 
 ## CI
 

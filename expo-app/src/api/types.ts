@@ -9,6 +9,8 @@ export interface User {
   locale?: Locale;
   email_notifications?: boolean;
   email_verified?: boolean;
+  /** True while this account must confirm its email before playing. */
+  must_verify_email?: boolean;
 }
 
 export interface Player {

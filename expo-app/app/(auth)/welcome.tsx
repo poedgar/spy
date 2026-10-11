@@ -1,6 +1,7 @@
 import { useRouter } from 'expo-router';
 import { View } from 'react-native';
 import { AppText } from '@/components/AppText';
+import { GoogleSignInButton } from '@/auth/GoogleSignInButton';
 import { Button } from '@/components/Button';
 import { Screen } from '@/components/Screen';
 import { useI18n } from '@/i18n/I18nProvider';
@@ -17,6 +18,7 @@ export default function Welcome() {
       </View>
       <Button testID="btn-welcome-login" label={t('Log in')} onPress={() => router.push('/login')} />
       <Button testID="btn-welcome-register" label={t('Create an account')} variant="secondary" onPress={() => router.push('/register')} />
+      <GoogleSignInButton />
       <LanguagePicker />
     </Screen>
   );

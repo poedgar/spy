@@ -1,6 +1,7 @@
 <?php
 
 use App\Exceptions\GameRuleException;
+use App\Http\Middleware\EnsureVerifiedToPlay;
 use App\Http\Middleware\HandleAppearance;
 use App\Http\Middleware\HandleInertiaRequests;
 use App\Http\Middleware\RecordLastSeen;
@@ -28,6 +29,8 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->encryptCookies(except: ['appearance', 'sidebar_state', 'locale']);
 
         $middleware->prepend(SetLocale::class);
+
+        $middleware->alias(['verified.play' => EnsureVerifiedToPlay::class]);
 
         $middleware->web(append: [
             SetLocale::class,

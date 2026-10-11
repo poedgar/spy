@@ -28,6 +28,8 @@ export const authApi = {
     request<AuthResult>('POST', '/auth/login', input),
   twoFactor: (input: { challenge: string; code?: string; recovery_code?: string }) =>
     request<TokenResult>('POST', '/auth/two-factor', input),
+  /** "Continue with Google": a Firebase ID token for a session (or a 2FA challenge). */
+  firebase: (input: { id_token: string; device_name: string }) => request<AuthResult>('POST', '/auth/firebase', input),
   forgotPassword: (email: string) => request<{ message: string }>('POST', '/auth/forgot-password', { email }),
   logout: () => request<void>('POST', '/auth/logout'),
 };

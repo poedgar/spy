@@ -2,13 +2,17 @@
 
 namespace App\Providers;
 
+use App\Models\User;
 use Carbon\CarbonImmutable;
+use Illuminate\Auth\Notifications\VerifyEmail;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Support\Facades\URL;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Validation\Rules\Password;
 
@@ -29,6 +33,10 @@ class AppServiceProvider extends ServiceProvider
     {
         $this->configureDefaults();
         $this->configureRateLimiting();
+        $this->configureEmailVerification();
+
+        // Site administration (app:make-admin grants it).
+        Gate::define('admin', fn (User $user) => $user->is_admin);
     }
 
     /**
@@ -77,5 +85,18 @@ class AppServiceProvider extends ServiceProvider
                 ->uncompromised()
             : null,
         );
+    }
+
+    /**
+     * Verification emails link to a signed route that needs no login, so
+     * the link works from a phone's mail app as well as the web.
+     */
+    protected function configureEmailVerification(): void
+    {
+        VerifyEmail::createUrlUsing(fn (User $notifiable) => URL::temporarySignedRoute(
+            'email.verify.link',
+            now()->addMinutes((int) config('auth.verification.expire', 60)),
+            ['id' => $notifiable->getKey(), 'hash' => sha1($notifiable->getEmailForVerification())],
+        ));
     }
 }

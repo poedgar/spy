@@ -19,6 +19,7 @@ Route::prefix('v1')->group(function () {
     Route::post('auth/login', [AuthController::class, 'login'])->middleware('throttle:6,1');
     Route::post('auth/two-factor', [AuthController::class, 'twoFactor'])->middleware('throttle:6,1');
     Route::post('auth/forgot-password', [AuthController::class, 'forgotPassword'])->middleware('throttle:6,1');
+    Route::post('auth/firebase', [AuthController::class, 'firebase'])->middleware('throttle:10,1');
 
     Route::middleware('auth:sanctum')->group(function () {
         Route::post('auth/logout', [AuthController::class, 'logout']);
@@ -34,44 +35,47 @@ Route::prefix('v1')->group(function () {
         Route::post('me/push-tokens', [PushTokenController::class, 'store']);
         Route::delete('me/push-tokens/{token}', [PushTokenController::class, 'destroy']);
 
-        Route::get('games/spy', [GameController::class, 'spy']);
-        Route::get('games/phrase', [PhraseController::class, 'home']);
-        Route::post('games/phrase', [PhraseController::class, 'store']);
-        Route::post('games', [GameController::class, 'store']);
-        Route::get('games/{code}', [GameController::class, 'show']);
-        Route::get('games/{code}/voice', [VoiceController::class, 'showByCode'])->middleware('throttle:30,1');
-        Route::get('games/{code}/voice/participants', [VoiceController::class, 'participantsByCode']);
-        Route::get('games/{code}/messages', [ChatController::class, 'indexByCode']);
-        Route::post('games/{code}/messages', [ChatController::class, 'storeByCode'])->middleware('throttle:chat');
-        Route::post('games/{code}/join', [GameController::class, 'join'])->middleware('throttle:join');
-        Route::post('games/{code}/leave', [GameController::class, 'leave']);
-        Route::post('games/{code}/ready', [GameController::class, 'ready']);
-        Route::post('games/{code}/start', [GameController::class, 'start']);
-        Route::post('games/{code}/voting', [GameController::class, 'voting']);
-        Route::post('games/{code}/votes', [GameController::class, 'vote']);
-        Route::post('games/{code}/tally', [GameController::class, 'tally']);
-        Route::post('games/{code}/guess', [GameController::class, 'guess']);
-        Route::post('games/{code}/reset', [GameController::class, 'reset']);
-        Route::post('games/{code}/phrase/start', [PhraseController::class, 'start']);
-        Route::post('games/{code}/phrase/turn', [PhraseController::class, 'turn']);
-        Route::post('games/{code}/phrase/reveal', [PhraseController::class, 'reveal']);
-        Route::post('games/{code}/phrase/guess', [PhraseController::class, 'guess']);
+        // Playing needs a confirmed email address.
+        Route::middleware('verified.play')->group(function () {
+            Route::get('games/spy', [GameController::class, 'spy']);
+            Route::get('games/phrase', [PhraseController::class, 'home']);
+            Route::post('games/phrase', [PhraseController::class, 'store']);
+            Route::post('games', [GameController::class, 'store']);
+            Route::get('games/{code}', [GameController::class, 'show']);
+            Route::get('games/{code}/voice', [VoiceController::class, 'showByCode'])->middleware('throttle:30,1');
+            Route::get('games/{code}/voice/participants', [VoiceController::class, 'participantsByCode']);
+            Route::get('games/{code}/messages', [ChatController::class, 'indexByCode']);
+            Route::post('games/{code}/messages', [ChatController::class, 'storeByCode'])->middleware('throttle:chat');
+            Route::post('games/{code}/join', [GameController::class, 'join'])->middleware('throttle:join');
+            Route::post('games/{code}/leave', [GameController::class, 'leave']);
+            Route::post('games/{code}/ready', [GameController::class, 'ready']);
+            Route::post('games/{code}/start', [GameController::class, 'start']);
+            Route::post('games/{code}/voting', [GameController::class, 'voting']);
+            Route::post('games/{code}/votes', [GameController::class, 'vote']);
+            Route::post('games/{code}/tally', [GameController::class, 'tally']);
+            Route::post('games/{code}/guess', [GameController::class, 'guess']);
+            Route::post('games/{code}/reset', [GameController::class, 'reset']);
+            Route::post('games/{code}/phrase/start', [PhraseController::class, 'start']);
+            Route::post('games/{code}/phrase/turn', [PhraseController::class, 'turn']);
+            Route::post('games/{code}/phrase/reveal', [PhraseController::class, 'reveal']);
+            Route::post('games/{code}/phrase/guess', [PhraseController::class, 'guess']);
 
-        Route::get('locations', [LocationController::class, 'index']);
+            Route::get('locations', [LocationController::class, 'index']);
 
-        Route::delete('games/{code}', [LobbyController::class, 'close']);
-        Route::post('games/{code}/settings', [LobbyController::class, 'settings']);
-        Route::delete('games/{code}/players/{user}', [LobbyController::class, 'removePlayer']);
-        Route::post('games/{code}/host', [LobbyController::class, 'transferHost']);
-        Route::post('games/{code}/join-requests', [LobbyController::class, 'requestToJoin'])->middleware('throttle:join');
-        Route::delete('games/{code}/join-requests/mine', [LobbyController::class, 'cancelRequest']);
-        Route::post('games/{code}/join-requests/{joinRequest}/approve', [LobbyController::class, 'approve']);
-        Route::post('games/{code}/join-requests/{joinRequest}/decline', [LobbyController::class, 'decline']);
-        Route::delete('games/{code}/invitations/{invitation}', [LobbyController::class, 'cancelInvitation']);
-        Route::get('games/{code}/invitable-users', [InvitationController::class, 'invitable']);
-        Route::post('games/{code}/invitations', [InvitationController::class, 'store'])->middleware('throttle:invite');
-        Route::post('invitations/{invitation}/accept', [InvitationController::class, 'accept']);
-        Route::post('invitations/{invitation}/decline', [InvitationController::class, 'decline']);
+            Route::delete('games/{code}', [LobbyController::class, 'close']);
+            Route::post('games/{code}/settings', [LobbyController::class, 'settings']);
+            Route::delete('games/{code}/players/{user}', [LobbyController::class, 'removePlayer']);
+            Route::post('games/{code}/host', [LobbyController::class, 'transferHost']);
+            Route::post('games/{code}/join-requests', [LobbyController::class, 'requestToJoin'])->middleware('throttle:join');
+            Route::delete('games/{code}/join-requests/mine', [LobbyController::class, 'cancelRequest']);
+            Route::post('games/{code}/join-requests/{joinRequest}/approve', [LobbyController::class, 'approve']);
+            Route::post('games/{code}/join-requests/{joinRequest}/decline', [LobbyController::class, 'decline']);
+            Route::delete('games/{code}/invitations/{invitation}', [LobbyController::class, 'cancelInvitation']);
+            Route::get('games/{code}/invitable-users', [InvitationController::class, 'invitable']);
+            Route::post('games/{code}/invitations', [InvitationController::class, 'store'])->middleware('throttle:invite');
+            Route::post('invitations/{invitation}/accept', [InvitationController::class, 'accept']);
+            Route::post('invitations/{invitation}/decline', [InvitationController::class, 'decline']);
+        });
     });
 });
 

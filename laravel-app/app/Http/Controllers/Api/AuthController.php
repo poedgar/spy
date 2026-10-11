@@ -2,10 +2,12 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Actions\Auth\SignInWithFirebase;
 use App\Actions\Fortify\CreateNewUser;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\UserResource;
 use App\Models\User;
+use App\Support\FirebaseIdToken;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -57,6 +59,33 @@ class AuthController extends Controller
         }
 
         return $this->issueToken($user, $credentials['device_name']);
+    }
+
+    /**
+     * "Continue with Google": the app signs in with Firebase and sends its
+     * ID token. Two-factor accounts get the same challenge as login().
+     */
+    public function firebase(Request $request, SignInWithFirebase $signIn): JsonResponse
+    {
+        abort_unless(FirebaseIdToken::enabled(), 404);
+
+        $data = $request->validate([
+            'id_token' => ['required', 'string'],
+            'device_name' => ['required', 'string', 'max:255'],
+        ]);
+        $user = $signIn->handle($data['id_token']);
+
+        if ($user->hasEnabledTwoFactorAuthentication()) {
+            $challenge = Str::random(40);
+            Cache::put($this->challengeKey($challenge), [
+                'user_id' => $user->id,
+                'device_name' => $data['device_name'],
+            ], now()->addMinutes(5));
+
+            return response()->json(['two_factor' => true, 'challenge' => $challenge]);
+        }
+
+        return $this->issueToken($user, $data['device_name']);
     }
 
     public function logout(Request $request): Response

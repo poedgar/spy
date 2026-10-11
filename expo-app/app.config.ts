@@ -17,6 +17,8 @@ const config: ExpoConfig = {
   ios: {
     bundleIdentifier: bundleId,
     supportsTablet: false,
+    // Firebase's iOS config (Google sign-in); an EAS file variable like Android's.
+    googleServicesFile: process.env.GOOGLE_SERVICES_PLIST,
   },
   android: {
     package: bundleId,
@@ -43,6 +45,8 @@ const config: ExpoConfig = {
         dark: { backgroundColor: '#0a0a0a' },
       },
     ],
+    // "Continue with Google": reads the Firebase config files above.
+    '@react-native-google-signin/google-signin',
     // Voice chat in game lobbies (LiveKit over WebRTC).
     '@livekit/react-native-expo-plugin',
     [

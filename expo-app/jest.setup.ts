@@ -61,3 +61,9 @@ jest.mock('@livekit/react-native', () => {
     },
   };
 });
+
+// Google sign-in needs native modules; tests decide what it returns.
+jest.mock('@/auth/googleSignIn', () => ({
+  googleSignInEnabled: true,
+  googleFirebaseIdToken: jest.fn(async () => null),
+}));

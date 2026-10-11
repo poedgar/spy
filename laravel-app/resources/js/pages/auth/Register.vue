@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { Form, Head } from '@inertiajs/vue3';
+import GoogleSignIn from '@/components/GoogleSignIn.vue';
 import InputError from '@/components/InputError.vue';
 import PasswordInput from '@/components/PasswordInput.vue';
 import TextLink from '@/components/TextLink.vue';
@@ -27,6 +28,8 @@ const { t } = useTrans();
 
 <template>
     <Head :title="t('Register')" />
+
+    <GoogleSignIn class="mb-6" />
 
     <Form
         v-bind="store.form()"

@@ -7,6 +7,7 @@ import { FormError } from '@/components/FormError';
 import { FormTextField } from '@/components/FormTextField';
 import { Screen } from '@/components/Screen';
 import { useAuth } from '@/auth/AuthProvider';
+import { GoogleSignInButton } from '@/auth/GoogleSignInButton';
 import { applyServerErrors } from '@/forms/applyServerErrors';
 import { useI18n } from '@/i18n/I18nProvider';
 
@@ -35,6 +36,7 @@ export default function Login() {
       <FormTextField control={control} name="password" label={t('Password')} testID="input-password" secureTextEntry autoComplete="password" />
       <FormError message={formError} />
       <Button testID="btn-login" label={t('Log in')} loading={formState.isSubmitting} onPress={onSubmit} />
+      <GoogleSignInButton />
       <Link href="/forgot-password">
         <AppText variant="muted">{t('Forgot your password?')}</AppText>
       </Link>

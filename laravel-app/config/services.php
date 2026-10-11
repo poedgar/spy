@@ -39,6 +39,12 @@ return [
         'access_token' => env('EXPO_ACCESS_TOKEN'),
     ],
 
+    // "Continue with Google" through Firebase Authentication. The project id
+    // checks ID tokens; the web keys are public (VITE_FIREBASE_*).
+    'firebase' => [
+        'project_id' => env('FIREBASE_PROJECT_ID'),
+    ],
+
     // Voice chat in game lobbies. Leave empty to turn it off.
     'livekit' => [
         'url' => env('LIVEKIT_URL'),

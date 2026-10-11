@@ -23,6 +23,15 @@ export default function AppLayout() {
 
   if (state.status === 'loading') return null;
   if (signedOut) return <Redirect href="/welcome" />;
+  // Playing needs a confirmed email; settings stay open to fix a typo.
+  if (
+    state.status === 'signedIn' &&
+    state.user.must_verify_email &&
+    pathname !== '/verify-email' &&
+    !pathname.startsWith('/settings')
+  ) {
+    return <Redirect href="/verify-email" />;
+  }
 
   return (
     <Stack

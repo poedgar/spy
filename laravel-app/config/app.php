@@ -16,6 +16,12 @@ return [
     'name' => env('APP_NAME', 'Marvelous Games'),
 
     /*
+    | Players must confirm their email address before playing. Turn off for
+    | local development or automated browser tests.
+    */
+    'require_verified_email' => (bool) env('REQUIRE_EMAIL_VERIFICATION', true),
+
+    /*
     |--------------------------------------------------------------------------
     | Application Environment
     |--------------------------------------------------------------------------

@@ -1,7 +1,10 @@
 <?php
 
+use App\Http\Controllers\Admin\UserController as AdminUserController;
 use App\Http\Controllers\ChatController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\EmailVerificationLinkController;
+use App\Http\Controllers\FirebaseSignInController;
 use App\Http\Controllers\GameController;
 use App\Http\Controllers\InvitationController;
 use App\Http\Controllers\LobbyController;
@@ -15,7 +18,21 @@ use Illuminate\Support\Facades\Route;
 Route::inertia('/', 'Welcome')->name('home');
 Route::post('locale', [LocaleController::class, 'update'])->name('locale.update');
 
-Route::middleware(['auth'])->group(function () {
+Route::middleware(['auth', 'can:admin'])->prefix('admin')->name('admin.')->group(function () {
+    Route::get('users', [AdminUserController::class, 'index'])->name('users.index');
+});
+
+// "Continue with Google" (Firebase) from the login and register pages.
+Route::post('auth/firebase', FirebaseSignInController::class)
+    ->middleware(['guest', 'throttle:10,1'])
+    ->name('auth.firebase');
+
+// The link in the verification email: signed, so no login needed.
+Route::get('verify-email/{id}/{hash}', EmailVerificationLinkController::class)
+    ->middleware(['signed', 'throttle:6,1'])
+    ->name('email.verify.link');
+
+Route::middleware(['auth', 'verified.play'])->group(function () {
     Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard');
     Route::post('notifications/read-all', [NotificationController::class, 'readAll'])->name('notifications.read-all');
     Route::post('notifications/{notification}/open', [NotificationController::class, 'open'])->name('notifications.open');

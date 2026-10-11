@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { Link } from '@inertiajs/vue3';
-import { LayoutGrid, MapPinned } from '@lucide/vue';
+import { Link, usePage } from '@inertiajs/vue3';
+import { LayoutGrid, MapPinned, ShieldCheck } from '@lucide/vue';
 import { computed } from 'vue';
 import AppLogo from '@/components/AppLogo.vue';
 import LanguageSwitcher from '@/components/LanguageSwitcher.vue';
@@ -17,9 +17,10 @@ import {
 } from '@/components/ui/sidebar';
 import { useTrans } from '@/composables/useTrans';
 import { dashboard } from '@/routes';
-import type { NavItem } from '@/types';
+import type { Auth, NavItem } from '@/types';
 
 const { t } = useTrans();
+const page = usePage<{ auth: Auth }>();
 
 const mainNavItems = computed<NavItem[]>(() => [
     {
@@ -32,6 +33,10 @@ const mainNavItems = computed<NavItem[]>(() => [
         href: '/locations',
         icon: MapPinned,
     },
+    // Only administrators get the link; the page itself checks too.
+    ...(page.props.auth.user?.is_admin
+        ? [{ title: t('Admin'), href: '/admin/users', icon: ShieldCheck }]
+        : []),
 ]);
 </script>
 

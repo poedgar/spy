@@ -3,8 +3,10 @@ import { Form, Head } from '@inertiajs/vue3';
 import TextLink from '@/components/TextLink.vue';
 import { Button } from '@/components/ui/button';
 import { Spinner } from '@/components/ui/spinner';
-import { logout } from '@/routes';
 import { useTrans } from '@/composables/useTrans';
+import { logout } from '@/routes';
+import { edit as editProfile } from '@/routes/profile';
+import { send } from '@/routes/verification';
 
 defineOptions({
     layout: {
@@ -16,6 +18,7 @@ defineOptions({
 
 defineProps<{
     status?: string;
+    email?: string | null;
 }>();
 
 const { t } = useTrans();
@@ -23,6 +26,11 @@ const { t } = useTrans();
 
 <template>
     <Head :title="t('Email verification')" />
+
+    <p v-if="email" class="mb-4 text-center text-sm">
+        {{ t('We sent the link to :email.', { email }) }}
+        {{ t('Open it on any device, then come back here.') }}
+    </p>
 
     <div
         v-if="status === 'verification-link-sent'"
@@ -35,7 +43,28 @@ const { t } = useTrans();
         }}
     </div>
 
-    <TextLink :href="logout()" as="button" class="mx-auto block text-sm">
-        {{ t('Log out') }}
-    </TextLink>
+    <Form
+        v-bind="send.form()"
+        class="space-y-6 text-center"
+        v-slot="{ processing }"
+    >
+        <Button
+            id="btn-resend-verification"
+            :disabled="processing"
+            variant="secondary"
+            class="w-full"
+        >
+            <Spinner v-if="processing" />
+            {{ t('Resend verification email') }}
+        </Button>
+    </Form>
+
+    <div class="mt-6 flex flex-col items-center gap-2 text-sm">
+        <TextLink :href="editProfile()">
+            {{ t('Wrong address? Change it') }}
+        </TextLink>
+        <TextLink :href="logout()" as="button">
+            {{ t('Log out') }}
+        </TextLink>
+    </div>
 </template>
