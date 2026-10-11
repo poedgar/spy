@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\GameController as AdminGameController;
 use App\Http\Controllers\Admin\UserController as AdminUserController;
 use App\Http\Controllers\ChatController;
 use App\Http\Controllers\DashboardController;
@@ -20,6 +21,7 @@ Route::post('locale', [LocaleController::class, 'update'])->name('locale.update'
 
 Route::middleware(['auth', 'can:admin'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('users', [AdminUserController::class, 'index'])->name('users.index');
+    Route::get('games', [AdminGameController::class, 'index'])->name('games.index');
 });
 
 // "Continue with Google" (Firebase) from the login and register pages.

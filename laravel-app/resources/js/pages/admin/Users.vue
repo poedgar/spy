@@ -1,5 +1,9 @@
 <script setup lang="ts">
 import { Head, Link, router } from '@inertiajs/vue3';
+import AdminPagination from '@/components/admin/AdminPagination.vue';
+import type { Paginated } from '@/components/admin/AdminPagination.vue';
+import AdminTabs from '@/components/admin/AdminTabs.vue';
+import StatCards from '@/components/admin/StatCards.vue';
 import { ref, watch } from 'vue';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
@@ -19,14 +23,6 @@ interface AdminUser {
     created_at: string | null;
     last_seen_at: string | null;
     online: boolean;
-}
-
-interface Paginated<T> {
-    data: T[];
-    links: { url: string | null; label: string; active: boolean }[];
-    from: number | null;
-    to: number | null;
-    total: number;
 }
 
 const props = defineProps<{
@@ -72,42 +68,22 @@ function date(iso: string | null): string {
           )
         : '—';
 }
-
-/** Laravel's pagination labels are HTML entities ("&laquo; Previous"). */
-function linkLabel(label: string): string {
-    if (label.includes('Previous')) {
-        return '‹';
-    }
-
-    if (label.includes('Next')) {
-        return '›';
-    }
-
-    return label;
-}
 </script>
 
 <template>
     <Head :title="t('Users')" />
 
     <div class="flex flex-1 flex-col gap-4 p-4">
-        <h1 class="text-xl font-bold">{{ t('Users') }}</h1>
+        <AdminTabs />
 
-        <div id="admin-stats" class="grid grid-cols-2 gap-3 sm:grid-cols-4">
-            <div
-                v-for="[label, value] in [
-                    [t('All users'), stats.total],
-                    [t('Verified'), stats.verified],
-                    [t('Online now'), stats.online],
-                    [t('New this week'), stats.new_this_week],
-                ]"
-                :key="String(label)"
-                class="rounded-xl border border-sidebar-border/70 p-3 dark:border-sidebar-border"
-            >
-                <div class="text-sm text-muted-foreground">{{ label }}</div>
-                <div class="text-2xl font-semibold">{{ value }}</div>
-            </div>
-        </div>
+        <StatCards
+            :items="[
+                { label: t('All users'), value: stats.total },
+                { label: t('Verified'), value: stats.verified },
+                { label: t('Online now'), value: stats.online },
+                { label: t('New this week'), value: stats.new_this_week },
+            ]"
+        />
 
         <Input
             id="input-admin-search"
@@ -188,7 +164,13 @@ function linkLabel(label: string): string {
                             </div>
                         </td>
                         <td class="px-3 py-2 text-right tabular-nums">
-                            {{ user.games_count }}
+                            <Link
+                                v-if="user.games_count > 0"
+                                :href="`/admin/games?user=${user.id}`"
+                                class="text-primary underline underline-offset-4"
+                                >{{ user.games_count }}</Link
+                            >
+                            <template v-else>0</template>
                         </td>
                         <td class="px-3 py-2 whitespace-nowrap">
                             {{ date(user.created_at) }}
@@ -212,40 +194,6 @@ function linkLabel(label: string): string {
             </table>
         </div>
 
-        <div
-            v-if="users.total > 0"
-            class="flex flex-wrap items-center justify-between gap-2 text-sm"
-        >
-            <span class="text-muted-foreground">
-                {{
-                    t(':from–:to of :total', {
-                        from: users.from ?? 0,
-                        to: users.to ?? 0,
-                        total: users.total,
-                    })
-                }}
-            </span>
-            <nav class="flex flex-wrap gap-1">
-                <template v-for="(link, index) in users.links" :key="index">
-                    <Link
-                        v-if="link.url"
-                        :href="link.url"
-                        preserve-scroll
-                        class="rounded-md border px-3 py-1"
-                        :class="
-                            link.active
-                                ? 'border-primary bg-primary text-primary-foreground'
-                                : 'hover:border-primary'
-                        "
-                        >{{ linkLabel(link.label) }}</Link
-                    >
-                    <span
-                        v-else
-                        class="rounded-md border px-3 py-1 text-muted-foreground opacity-50"
-                        >{{ linkLabel(link.label) }}</span
-                    >
-                </template>
-            </nav>
-        </div>
+        <AdminPagination :page="users" />
     </div>
 </template>

@@ -68,9 +68,14 @@ Once, on the server:
 ## Administration
 
 `php artisan app:make-admin you@example.com` (`--revoke` to undo) gives an
-account the **Admin** link in the sidebar: every user, how they sign in,
-whether they're verified, their games and when they were last seen. Admin
-access can only be granted from the command line.
+account the **Admin** link in the sidebar:
+
+- **Users:** every account, how they sign in, whether they're verified,
+  their games and when they were last seen.
+- **Games:** every game with its type, status, host, players, rounds and
+  last activity; search and filter by type, status or player.
+
+Admin access can only be granted from the command line.
 
 ## CI
 

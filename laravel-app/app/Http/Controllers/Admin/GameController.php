@@ -1,0 +1,83 @@
+<?php
+
+namespace App\Http\Controllers\Admin;
+
+use App\Enums\GameStatus;
+use App\Enums\GameType;
+use App\Http\Controllers\Controller;
+use App\Models\Game;
+use App\Models\GamePlayer;
+use App\Models\User;
+use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
+use Inertia\Response;
+
+/**
+ * Every game, for site administrators: what it is, who hosts and plays
+ * it, and how active it is. Read-only.
+ */
+class GameController extends Controller
+{
+    public const PER_PAGE = 25;
+
+    public function index(Request $request): Response
+    {
+        $filters = $request->validate([
+            'q' => ['nullable', 'string', 'max:100'],
+            'type' => ['nullable', Rule::enum(GameType::class)],
+            'status' => ['nullable', Rule::enum(GameStatus::class)],
+            'user' => ['nullable', 'integer'],
+        ]);
+        $search = trim((string) ($filters['q'] ?? ''));
+        $player = isset($filters['user']) ? User::whereKey((int) $filters['user'])->first() : null;
+
+        $games = Game::query()
+            ->with(['host:id,codename,name', 'players.user:id,codename'])
+            ->withCount(['players', 'rounds', 'phraseRounds'])
+            ->when(mb_strlen($search) >= 2, function ($query) use ($search) {
+                $like = '%'.addcslashes(mb_strtolower($search), '%_\\').'%';
+                $query->where(fn ($query) => $query
+                    ->whereRaw("lower(title) like ? escape '\\'", [$like])
+                    ->orWhereRaw("lower(code) like ? escape '\\'", [$like]));
+            })
+            ->when($filters['type'] ?? null, fn ($query, $type) => $query->where('game_type', $type))
+            ->when($filters['status'] ?? null, fn ($query, $status) => $query->where('status', $status))
+            ->when($player, fn ($query, User $player) => $query->whereIn('id', GamePlayer::where('user_id', $player->id)->select('game_id')))
+            ->latest('updated_at')
+            ->latest('id')
+            ->paginate(self::PER_PAGE)
+            ->withQueryString()
+            ->through(fn (Game $game) => [
+                'id' => $game->id,
+                'code' => $game->code,
+                'title' => $game->title,
+                'type' => $game->game_type->value,
+                'status' => $game->status->value,
+                'host' => $game->host ? ['id' => $game->host->id, 'codename' => $game->host->codename] : null,
+                'players' => $game->players->map(fn (GamePlayer $p) => $p->user?->codename)->filter()->values(),
+                'players_count' => (int) $game->getAttribute('players_count'),
+                'max_players' => $game->max_players,
+                'rounds_count' => (int) $game->getAttribute('rounds_count') + (int) $game->getAttribute('phrase_rounds_count'),
+                'is_listed' => $game->is_listed,
+                'requires_approval' => $game->requires_approval,
+                'created_at' => $game->created_at?->toIso8601String(),
+                'updated_at' => $game->updated_at?->toIso8601String(),
+            ]);
+
+        return inertia('admin/Games', [
+            'games' => $games,
+            'filters' => [
+                'q' => $search,
+                'type' => $filters['type'] ?? null,
+                'status' => $filters['status'] ?? null,
+                'user' => $player ? ['id' => $player->id, 'codename' => $player->codename] : null,
+            ],
+            'stats' => [
+                'total' => Game::count(),
+                'playing' => Game::whereIn('status', [GameStatus::Active, GameStatus::Voting])->count(),
+                'recruiting' => Game::where('status', GameStatus::Recruiting)->count(),
+                'new_this_week' => Game::where('created_at', '>=', now()->subWeek())->count(),
+            ],
+        ]);
+    }
+}
