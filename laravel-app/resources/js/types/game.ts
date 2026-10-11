@@ -94,6 +94,8 @@ export interface Game {
     is_listed: boolean;
     /** LiveKit is configured, so the lobby offers voice chat. */
     voice_enabled: boolean;
+    /** The viewer is the host and no round has started yet. */
+    can_rename?: boolean;
     /** Host only. */
     join_requests?: { id: number; user: Operative; created_at: string }[];
     /** Host only: invitations not (yet) accepted. */

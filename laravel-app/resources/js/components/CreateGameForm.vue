@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import GameNameInput from '@/components/GameNameInput.vue';
 import { useForm } from '@inertiajs/vue3';
 import RoundTimerSelect from '@/components/game/RoundTimerSelect.vue';
 import { computed, watch } from 'vue';
@@ -58,12 +59,11 @@ function submit() {
         <h2 class="font-semibold">{{ t('Create Operation') }}</h2>
 
         <div>
-            <input
+            <GameNameInput
                 id="input-game-title"
                 v-model="form.title"
-                type="text"
+                type="spy"
                 :placeholder="t('Operation title')"
-                class="w-full rounded border px-2 py-1"
             />
             <p v-if="form.errors.title" class="mt-1 text-sm text-red-600">
                 {{ form.errors.title }}

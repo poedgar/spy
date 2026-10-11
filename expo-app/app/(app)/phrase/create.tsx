@@ -8,6 +8,7 @@ import { AppText } from '@/components/AppText';
 import { Button } from '@/components/Button';
 import { FormError } from '@/components/FormError';
 import { FormTextField } from '@/components/FormTextField';
+import { useGameNameSuggestion } from '@/game/useGameNameSuggestion';
 import { Screen } from '@/components/Screen';
 import { applyServerErrors } from '@/forms/applyServerErrors';
 import { RoundTimerPicker } from '@/game/RoundTimerPicker';
@@ -29,9 +30,11 @@ export default function CreatePhraseGame() {
   const { colors, spacing, radius } = useTheme();
   const createGame = useCreatePhraseGame();
   const [formError, setFormError] = useState<string | null>(null);
-  const { control, handleSubmit, setError } = useForm<CreatePhraseGameInput>({
+  const { control, handleSubmit, setError, getValues, setValue } = useForm<CreatePhraseGameInput>({
     defaultValues: { title: '', phrase_language: locale, max_players: MIN_PLAYERS, round_seconds: 0 },
   });
+
+  const name = useGameNameSuggestion('phrase', () => getValues('title'), (title) => setValue('title', title));
 
   const onSubmit = handleSubmit(async (input) => {
     setFormError(null);
@@ -47,6 +50,13 @@ export default function CreatePhraseGame() {
     <Screen>
       <Stack.Screen options={{ title: t('New Phrase game') }} />
       <FormTextField control={control} name="title" label={t('Game title')} testID="input-phrase-title" />
+      <Button
+        testID="btn-roll-name"
+        label={`🎲 ${t('Suggest another name')}`}
+        variant="secondary"
+        loading={name.rolling}
+        onPress={name.roll}
+      />
 
       <Controller
         control={control}

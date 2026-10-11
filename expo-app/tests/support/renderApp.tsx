@@ -37,6 +37,10 @@ export async function renderApp(routes: Routes, options: { initialUrl: string; u
   if (jest.isMockFunction(gamesApi.voiceParticipants) && !jest.mocked(gamesApi.voiceParticipants).getMockImplementation()) {
     jest.mocked(gamesApi.voiceParticipants).mockResolvedValue([]);
   }
+  // Create screens suggest a name.
+  if (jest.isMockFunction(gamesApi.randomName) && !jest.mocked(gamesApi.randomName).getMockImplementation()) {
+    jest.mocked(gamesApi.randomName).mockResolvedValue({ title: 'Operation Silent Falcon' });
+  }
 
   const queryClient = createQueryClient();
   queryClient.setDefaultOptions({ queries: { retry: false } });

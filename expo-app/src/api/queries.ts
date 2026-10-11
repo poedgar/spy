@@ -122,6 +122,7 @@ type LobbyAction =
   | { type: 'ready' | 'start' | 'voting' | 'tally' | 'reset' | 'phrase-start' | 'phrase-turn' | 'phrase-reveal' }
   | { type: 'vote'; suspectId: number }
   | { type: 'approval'; requiresApproval: boolean }
+  | { type: 'rename'; title: string }
   | { type: 'listing'; isListed: boolean }
   | { type: 'remove-player' | 'make-host'; userId: number }
   | { type: 'answer-request'; requestId: number; approve: boolean }
@@ -153,6 +154,8 @@ export function useLobbyAction(code: string) {
           return gamesApi.revealPhrase(code);
         case 'approval':
           return gamesApi.updateSettings(code, { requires_approval: action.requiresApproval });
+        case 'rename':
+          return gamesApi.updateSettings(code, { title: action.title });
         case 'listing':
           return gamesApi.updateSettings(code, { is_listed: action.isListed });
         case 'remove-player':

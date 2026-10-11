@@ -5,7 +5,10 @@ describe('Round controls', () => {
 
         cy.registerAgent('Timer Host', host);
         cy.visit('/games/phrase');
-        cy.get('#input-phrase-title').type('Timed Words');
+        cy.get('#input-phrase-title')
+            .should('not.have.value', '')
+            .clear()
+            .type('Timed Words');
         cy.get('#input-round-seconds').select('5 minutes');
         cy.get('#btn-create-phrase').click();
         cy.get('#lobby-header', { timeout: 8000 }).should(

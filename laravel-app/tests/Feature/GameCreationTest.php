@@ -46,7 +46,9 @@ test('creating a game validates required fields', function () {
 
     $response = $this->actingAs($user)->post(route('games.store'), []);
 
-    $response->assertSessionHasErrors(['title', 'game_mode', 'max_players']);
+    $response->assertSessionHasErrors(['game_mode', 'max_players']);
+    // A missing name is fine: the app picks one.
+    $response->assertSessionDoesntHaveErrors('title');
     $response->assertSessionDoesntHaveErrors('mission_briefing');
 });
 

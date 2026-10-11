@@ -9,7 +9,10 @@ describe('A game of Phrase', () => {
 
         cy.registerAgent('Phrase Host', host);
         cy.get('#tile-phrase').click();
-        cy.get('#input-phrase-title').type('Word Play');
+        cy.get('#input-phrase-title')
+            .should('not.have.value', '')
+            .clear()
+            .type('Word Play');
         cy.get('[data-phrase-language="en"]').click();
         cy.get('#btn-create-phrase').click();
         cy.get('#lobby-header', { timeout: 8000 }).should(

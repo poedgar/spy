@@ -54,3 +54,46 @@ test('admins can list one player\'s games from the users page', function () {
             ->where('games.data.0.code', $mine->code)
             ->where('filters.user.codename', $player->codename));
 });
+
+// --- Abandoned games ------------------------------------------------------------
+
+test('a game recruiting for over a day without a round is abandoned', function () {
+    $admin = User::factory()->create(['is_admin' => true]);
+    $stale = Game::factory()->create(['title' => 'Stale', 'created_at' => now()->subHours(Game::ABANDONED_AFTER_HOURS + 1)]);
+    Game::factory()->create(['title' => 'Fresh']);
+    [$played, $host] = gameWithPlayers(3, ['title' => 'Played', 'created_at' => now()->subDays(3)]);
+    startedRound($played, $host);
+    // Back to recruiting, but it was played: not abandoned.
+    $this->postJson("/api/v1/games/{$played->code}/reset")->assertOk();
+    expect($played->fresh()->status)->toBe(GameStatus::Recruiting);
+
+    $this->actingAs($admin)->get(route('admin.games.index', ['status' => 'abandoned']))
+        ->assertInertia(fn ($page) => $page
+            ->where('stats.abandoned', 1)
+            ->has('games.data', 1)
+            ->where('games.data.0.code', $stale->code)
+            ->where('games.data.0.abandoned', true));
+});
+
+test('admins remove an abandoned game, but nothing that is still alive', function () {
+    $admin = User::factory()->create(['is_admin' => true]);
+    $stale = Game::factory()->create(['created_at' => now()->subDays(2)]);
+    $fresh = Game::factory()->create();
+
+    $this->actingAs($admin)->delete(route('admin.games.destroy', $stale))->assertRedirect();
+    $this->delete(route('admin.games.destroy', $fresh))->assertRedirect();
+
+    expect(Game::find($stale->id))->toBeNull()
+        ->and(Game::find($fresh->id))->not->toBeNull();
+});
+
+test('admins remove every abandoned game at once; players cannot', function () {
+    Game::factory()->count(3)->create(['created_at' => now()->subDays(2)]);
+    $alive = Game::factory()->create();
+
+    $this->actingAs(User::factory()->create())->delete(route('admin.games.destroy-abandoned'))->assertForbidden();
+    expect(Game::count())->toBe(4);
+
+    $this->actingAs(User::factory()->create(['is_admin' => true]))->delete(route('admin.games.destroy-abandoned'))->assertRedirect();
+    expect(Game::pluck('id')->all())->toBe([$alive->id]);
+});

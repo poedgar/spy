@@ -10,6 +10,7 @@ use App\Enums\Locale;
 use App\Exceptions\GameRuleException;
 use Database\Factories\GameFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -141,6 +142,32 @@ class Game extends Model
     public function freshLocked(): self
     {
         return self::whereKey($this->id)->lockForUpdate()->firstOrFail();
+    }
+
+    /** The host may rename a game until its first round starts. */
+    public function canRename(): bool
+    {
+        return $this->status === GameStatus::Recruiting
+            && ! $this->rounds()->exists()
+            && ! $this->phraseRounds()->exists();
+    }
+
+    /** A game still recruiting this long after creation, never started, is abandoned. */
+    public const ABANDONED_AFTER_HOURS = 24;
+
+    /**
+     * Recruiting for over a day without a single round: nobody is coming.
+     *
+     * @param  Builder<Game>  $query
+     * @return Builder<Game>
+     */
+    public function scopeAbandoned(Builder $query): Builder
+    {
+        return $query
+            ->where('status', GameStatus::Recruiting)
+            ->where('created_at', '<=', now()->subHours(self::ABANDONED_AFTER_HOURS))
+            ->whereDoesntHave('rounds')
+            ->whereDoesntHave('phraseRounds');
     }
 
     /**

@@ -17,7 +17,10 @@ describe('Live lobby', () => {
 
         cy.registerAgent('Live Host', `live_host_${stamp}@example.com`);
         cy.visit('/games/spy');
-        cy.get('#input-game-title').type('Live Op');
+        cy.get('#input-game-title')
+            .should('not.have.value', '')
+            .clear()
+            .type('Live Op');
         cy.get('#btn-create-game').click();
         cy.get('#game-invite-code')
             .invoke('text')

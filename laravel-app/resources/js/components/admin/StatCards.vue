@@ -3,7 +3,11 @@ defineProps<{ items: { label: string; value: number }[] }>();
 </script>
 
 <template>
-    <div id="admin-stats" class="grid grid-cols-2 gap-3 sm:grid-cols-4">
+    <div
+        id="admin-stats"
+        class="grid grid-cols-2 gap-3 sm:[grid-template-columns:repeat(var(--cards),minmax(0,1fr))]"
+        :style="{ '--cards': items.length }"
+    >
         <div
             v-for="item in items"
             :key="item.label"

@@ -24,6 +24,7 @@ class LobbyController extends Controller
         $updateSettings->handle($game, $request->user(), $request->validate([
             'requires_approval' => ['sometimes', 'boolean'],
             'is_listed' => ['sometimes', 'boolean'],
+            'title' => ['sometimes', 'required', 'string', 'max:255'],
         ]));
 
         return back();

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import GameNameInput from '@/components/GameNameInput.vue';
 import { useForm } from '@inertiajs/vue3';
 import RoundTimerSelect from '@/components/game/RoundTimerSelect.vue';
 import { useTrans, type Locale } from '@/composables/useTrans';
@@ -34,12 +35,11 @@ function submit() {
         <h2 class="font-semibold">{{ t('New Phrase game') }}</h2>
 
         <div>
-            <input
+            <GameNameInput
                 id="input-phrase-title"
                 v-model="form.title"
-                type="text"
+                type="phrase"
                 :placeholder="t('Game title')"
-                class="w-full rounded border px-2 py-1"
             />
             <p v-if="form.errors.title" class="mt-1 text-sm text-red-600">
                 {{ form.errors.title }}

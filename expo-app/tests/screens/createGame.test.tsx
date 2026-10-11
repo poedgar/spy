@@ -65,3 +65,18 @@ test('server field errors show on the form', async () => {
   expect(await screen.findByText('The title field is required.')).toBeOnTheScreen();
   expect(screen.getByText('The mission briefing field is required.')).toBeOnTheScreen();
 });
+
+test('the name comes pre-filled with a suggestion, and the dice rolls another', async () => {
+  jest.mocked(gamesApi.randomName)
+    .mockResolvedValueOnce({ title: 'Operation Silent Falcon' })
+    .mockResolvedValueOnce({ title: 'Operation Golden Owl' });
+  await renderApp(routes, { initialUrl: '/spy/create', user: fakeUser });
+
+  expect(await screen.findByDisplayValue('Operation Silent Falcon')).toBeOnTheScreen();
+  expect(gamesApi.randomName).toHaveBeenCalledWith('spy');
+
+  await act(async () => {
+    fireEvent.press(screen.getByTestId('btn-roll-name'));
+  });
+  expect(await screen.findByDisplayValue('Operation Golden Owl')).toBeOnTheScreen();
+});

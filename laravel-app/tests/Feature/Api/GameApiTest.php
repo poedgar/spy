@@ -44,7 +44,8 @@ test('creating a game validates input', function () {
 
     $this->postJson('/api/v1/games', ['max_players' => 99])
         ->assertUnprocessable()
-        ->assertJsonValidationErrors(['title', 'game_mode', 'max_players'])
+        ->assertJsonValidationErrors(['game_mode', 'max_players'])
+        ->assertJsonMissingValidationErrors(['title'])
         ->assertJsonMissingValidationErrors(['mission_briefing']);
 });
 

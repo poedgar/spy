@@ -31,6 +31,8 @@ appId: com.poedgar.marvelousgames
     id: btn-open-create-phrase
 - tapOn:
     id: input-phrase-title
+# The app suggests a name; replace it.
+- eraseText: 60
 - inputText: Maestro Words
 - hideKeyboard
 - tapOn:

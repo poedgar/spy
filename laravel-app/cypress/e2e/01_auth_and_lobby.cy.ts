@@ -4,7 +4,10 @@ describe('Phase 1: auth, game creation, and joining', () => {
         cy.registerAgent('Host Falcon', email);
         cy.visit('/games/spy');
 
-        cy.get('#input-game-title').type('Operation Nightfall');
+        cy.get('#input-game-title')
+            .should('not.have.value', '')
+            .clear()
+            .type('Operation Nightfall');
         cy.get('#input-mission-briefing')
             .clear()
             .type('Find the mole before time runs out.');
@@ -24,7 +27,10 @@ describe('Phase 1: auth, game creation, and joining', () => {
         // Host creates the game
         cy.registerAgent('Host Echo', hostEmail);
         cy.visit('/games/spy');
-        cy.get('#input-game-title').type('Operation Schoolyard');
+        cy.get('#input-game-title')
+            .should('not.have.value', '')
+            .clear()
+            .type('Operation Schoolyard');
         cy.get('#input-mission-briefing').clear().type('Find the mole.');
         cy.get('#btn-create-game').click();
         cy.get('#lobby-header', { timeout: 8000 }).should('be.visible');

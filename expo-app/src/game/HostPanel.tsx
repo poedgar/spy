@@ -1,11 +1,14 @@
+import { useState } from 'react';
 import { Switch, View } from 'react-native';
 import type { useLobbyAction } from '@/api/queries';
 import type { Game } from '@/api/types';
 import { AppText } from '@/components/AppText';
 import { Button } from '@/components/Button';
 import { Card } from '@/components/Card';
+import { TextField } from '@/components/TextField';
 import { useI18n } from '@/i18n/I18nProvider';
 import { useTheme } from '@/theme/useTheme';
+import { useGameNameSuggestion } from './useGameNameSuggestion';
 
 type Run = (action: Parameters<ReturnType<typeof useLobbyAction>['mutate']>[0]) => void;
 
@@ -19,6 +22,8 @@ export function HostPanel({ game, busy, run }: { game: Game; busy: boolean; run:
 
   return (
     <Card testID="host-panel">
+      {/* Keyed by the name, so a rename elsewhere resets the field. */}
+      {game.can_rename ? <RenameGame key={game.title} game={game} busy={busy} run={run} /> : null}
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md }}>
         <View style={{ flex: 1 }}>
           <AppText>{t('Approve new players')}</AppText>
@@ -117,5 +122,40 @@ export function HostPanel({ game, busy, run }: { game: Game; busy: boolean; run:
         </>
       ) : null}
     </Card>
+  );
+}
+
+/** Until the first round, the host can rename the game (or roll a new name). */
+function RenameGame({ game, busy, run }: { game: Game; busy: boolean; run: Run }) {
+  const { t } = useI18n();
+  const { spacing } = useTheme();
+  const [name, setName] = useState(game.title);
+  const suggestion = useGameNameSuggestion(game.game_type, () => name, setName);
+  const changed = name.trim() !== '' && name.trim() !== game.title;
+
+  return (
+    <View style={{ gap: spacing.sm }}>
+      <TextField testID="input-rename-game" label={t('Game name')} value={name} onChangeText={setName} maxLength={255} />
+      <AppText variant="muted">{t('You can change the name until the game starts.')}</AppText>
+      <View style={{ flexDirection: 'row', gap: spacing.sm }}>
+        <View style={{ flex: 1 }}>
+          <Button
+            testID="btn-roll-name"
+            label="🎲"
+            variant="secondary"
+            loading={suggestion.rolling}
+            onPress={suggestion.roll}
+          />
+        </View>
+        <View style={{ flex: 3 }}>
+          <Button
+            testID="btn-rename-game"
+            label={t('Save')}
+            disabled={busy || !changed}
+            onPress={() => run({ type: 'rename', title: name.trim() })}
+          />
+        </View>
+      </View>
+    </View>
   );
 }

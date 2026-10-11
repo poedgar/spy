@@ -50,6 +50,7 @@ class GameResource extends JsonResource
             'requires_approval' => $this->requires_approval,
             'is_listed' => $this->is_listed,
             'voice_enabled' => LiveKit::enabled(),
+            'can_rename' => $viewerIsHost && $this->resource->canRename(),
             'player_count' => $playerCount,
             'spy_count' => Game::spyCountFor($playerCount),
             'created_at' => $this->created_at?->toIso8601String(),

@@ -7,6 +7,7 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\EmailVerificationLinkController;
 use App\Http\Controllers\FirebaseSignInController;
 use App\Http\Controllers\GameController;
+use App\Http\Controllers\GameNameController;
 use App\Http\Controllers\InvitationController;
 use App\Http\Controllers\LobbyController;
 use App\Http\Controllers\LocaleController;
@@ -22,6 +23,8 @@ Route::post('locale', [LocaleController::class, 'update'])->name('locale.update'
 Route::middleware(['auth', 'can:admin'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('users', [AdminUserController::class, 'index'])->name('users.index');
     Route::get('games', [AdminGameController::class, 'index'])->name('games.index');
+    Route::delete('games/abandoned', [AdminGameController::class, 'destroyAbandoned'])->name('games.destroy-abandoned');
+    Route::delete('games/{game}', [AdminGameController::class, 'destroy'])->name('games.destroy');
 });
 
 // "Continue with Google" (Firebase) from the login and register pages.
@@ -39,6 +42,7 @@ Route::middleware(['auth', 'verified.play'])->group(function () {
     Route::post('notifications/read-all', [NotificationController::class, 'readAll'])->name('notifications.read-all');
     Route::post('notifications/{notification}/open', [NotificationController::class, 'open'])->name('notifications.open');
     Route::get('locations', [LocationController::class, 'index'])->name('locations.index');
+    Route::get('game-name', GameNameController::class)->name('game-name');
     Route::get('games/spy', [DashboardController::class, 'spy'])->name('games.spy');
     Route::get('games/phrase', [DashboardController::class, 'phrase'])->name('games.phrase');
     Route::post('games/phrase', [PhraseController::class, 'store'])->name('phrase.store');

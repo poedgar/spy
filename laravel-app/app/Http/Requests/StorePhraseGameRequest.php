@@ -5,6 +5,7 @@ namespace App\Http\Requests;
 use App\Enums\GameType;
 use App\Enums\Locale;
 use App\Models\Game;
+use App\Support\GameNameGenerator;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -28,6 +29,11 @@ class StorePhraseGameRequest extends FormRequest
             $validated['round_seconds'] = null;
         }
 
+        // No name given: the app picks one, as the create forms suggest.
+        if ($key === null && is_array($validated) && blank($validated['title'] ?? null)) {
+            $validated['title'] = GameNameGenerator::for(GameType::Phrase);
+        }
+
         return $validated;
     }
 
@@ -37,7 +43,7 @@ class StorePhraseGameRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'title' => ['required', 'string', 'max:255'],
+            'title' => ['nullable', 'string', 'max:255'],
             'phrase_language' => ['required', 'string', Rule::enum(Locale::class)],
             'max_players' => ['required', 'integer', 'min:'.GameType::Phrase->minPlayers(), 'max:'.GameType::Phrase->maxPlayers()],
             'requires_approval' => ['sometimes', 'boolean'],

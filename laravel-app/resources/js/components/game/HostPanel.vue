@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { router } from '@inertiajs/vue3';
 import { Check, RefreshCw, X } from '@lucide/vue';
-import { ref } from 'vue';
+import { ref, watch } from 'vue';
+import GameNameInput from '@/components/GameNameInput.vue';
 import { Button } from '@/components/ui/button';
 import { useTrans } from '@/composables/useTrans';
 import type { Game } from '@/types/game';
@@ -23,6 +24,18 @@ const setApproval = (requiresApproval: boolean) =>
     send('post', 'settings', { requires_approval: requiresApproval });
 const setListed = (isListed: boolean) =>
     send('post', 'settings', { is_listed: isListed });
+
+// Renaming is allowed until the first round (game.can_rename).
+const name = ref(props.game.title);
+watch(
+    () => props.game.title,
+    (title) => (name.value = title),
+);
+const rename = () => {
+    if (name.value.trim() && name.value.trim() !== props.game.title) {
+        send('post', 'settings', { title: name.value.trim() });
+    }
+};
 </script>
 
 <template>
@@ -30,6 +43,38 @@ const setListed = (isListed: boolean) =>
         id="host-panel"
         class="space-y-4 rounded-xl border border-sidebar-border/70 p-4 dark:border-sidebar-border"
     >
+        <form
+            v-if="game.can_rename"
+            id="rename-game-form"
+            class="space-y-1"
+            @submit.prevent="rename"
+        >
+            <label for="input-rename-game" class="block font-medium">{{
+                t('Game name')
+            }}</label>
+            <div class="flex gap-2">
+                <div class="flex-1">
+                    <GameNameInput
+                        id="input-rename-game"
+                        v-model="name"
+                        :type="game.game_type"
+                    />
+                </div>
+                <Button
+                    id="btn-rename-game"
+                    type="submit"
+                    :disabled="
+                        busy || !name.trim() || name.trim() === game.title
+                    "
+                >
+                    {{ t('Save') }}
+                </Button>
+            </div>
+            <p class="text-sm text-muted-foreground">
+                {{ t('You can change the name until the game starts.') }}
+            </p>
+        </form>
+
         <label class="flex items-start gap-3">
             <input
                 id="toggle-approval"

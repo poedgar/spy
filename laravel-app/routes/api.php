@@ -10,6 +10,7 @@ use App\Http\Controllers\Api\NotificationController;
 use App\Http\Controllers\Api\PhraseController;
 use App\Http\Controllers\Api\PushTokenController;
 use App\Http\Controllers\ChatController;
+use App\Http\Controllers\GameNameController;
 use App\Http\Controllers\VoiceController;
 use Illuminate\Support\Facades\Broadcast;
 use Illuminate\Support\Facades\Route;
@@ -37,6 +38,7 @@ Route::prefix('v1')->group(function () {
 
         // Playing needs a confirmed email address.
         Route::middleware('verified.play')->group(function () {
+            Route::get('game-name', GameNameController::class);
             Route::get('games/spy', [GameController::class, 'spy']);
             Route::get('games/phrase', [PhraseController::class, 'home']);
             Route::post('games/phrase', [PhraseController::class, 'store']);

@@ -1,5 +1,6 @@
 import { request } from './client';
 import type {
+  GameType,
   ChatMessage,
   AgeTier,
   AuthResult,
@@ -54,7 +55,9 @@ export const gamesApi = {
   join: (code: string) => request<Game | JoinRequested>('POST', `/games/${enc(code)}/join`),
   requestToJoin: (code: string) => request<JoinRequested>('POST', `/games/${enc(code)}/join-requests`),
   cancelJoinRequest: (code: string) => request<void>('DELETE', `/games/${enc(code)}/join-requests/mine`),
-  updateSettings: (code: string, settings: { requires_approval?: boolean; is_listed?: boolean }) =>
+  /** A random name for a new game, in the player's language. */
+  randomName: (type: GameType) => request<{ title: string }>('GET', `/game-name?type=${enc(type)}`),
+  updateSettings: (code: string, settings: { requires_approval?: boolean; is_listed?: boolean; title?: string }) =>
     request<Game>('POST', `/games/${enc(code)}/settings`, settings),
   removePlayer: (code: string, userId: number) => request<Game>('DELETE', `/games/${enc(code)}/players/${userId}`),
   transferHost: (code: string, userId: number) => request<Game>('POST', `/games/${enc(code)}/host`, { user_id: userId }),

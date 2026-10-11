@@ -11,7 +11,10 @@ describe('Notifications', () => {
         cy.clearCookies();
         cy.registerAgent('Bell Host', `bell_host_${stamp}@example.com`);
         cy.visit('/games/phrase');
-        cy.get('#input-phrase-title').type('Bell Game');
+        cy.get('#input-phrase-title')
+            .should('not.have.value', '')
+            .clear()
+            .type('Bell Game');
         cy.get('#btn-create-phrase').click();
         cy.get('#btn-invite-players', { timeout: 8000 }).click();
         cy.get('#input-invite-search').type(inviteeName);

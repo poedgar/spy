@@ -169,3 +169,24 @@ test('cancelling a confirmation does nothing and closes it', async () => {
   expect(gamesApi.leave).not.toHaveBeenCalled();
   expect(screen.queryByTestId('dialog')).toBeNull();
 });
+
+test('before the first round, the host renames the game', async () => {
+  jest.mocked(gamesApi.show).mockResolvedValue(hostView({ can_rename: true, title: 'Operation Nightfall' }));
+  jest.mocked(gamesApi.updateSettings).mockResolvedValue(hostView({ can_rename: true, title: 'Friday Spies' }));
+  await renderApp(routes, { initialUrl: '/games/SPY-AB3D', user: fakeUser });
+
+  fireEvent.changeText(await screen.findByTestId('input-rename-game'), 'Friday Spies');
+  await act(async () => {
+    fireEvent.press(screen.getByTestId('btn-rename-game'));
+  });
+
+  expect(gamesApi.updateSettings).toHaveBeenCalledWith('SPY-AB3D', { title: 'Friday Spies' });
+});
+
+test('once it has started, the name can no longer be changed', async () => {
+  jest.mocked(gamesApi.show).mockResolvedValue(hostView({ can_rename: false }));
+  await renderApp(routes, { initialUrl: '/games/SPY-AB3D', user: fakeUser });
+
+  await screen.findByTestId('host-panel');
+  expect(screen.queryByTestId('input-rename-game')).toBeNull();
+});

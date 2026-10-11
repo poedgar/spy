@@ -9,7 +9,10 @@ describe('A full round of Spy', () => {
 
         cy.registerAgent('Round Host', host);
         cy.visit('/games/spy');
-        cy.get('#input-game-title').type('Operation Roundtrip');
+        cy.get('#input-game-title')
+            .should('not.have.value', '')
+            .clear()
+            .type('Operation Roundtrip');
         cy.get('[data-tier="children"]').click();
         cy.get('#btn-create-game').click();
         cy.get('#lobby-header', { timeout: 8000 }).should('be.visible');

@@ -6,6 +6,7 @@ use App\Enums\AgeTier;
 use App\Enums\GameMode;
 use App\Enums\GameType;
 use App\Models\Game;
+use App\Support\GameNameGenerator;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -39,6 +40,11 @@ class StoreGameRequest extends FormRequest
             $validated['round_seconds'] = null;
         }
 
+        // No name given: the app picks one, as the create forms suggest.
+        if ($key === null && is_array($validated) && blank($validated['title'] ?? null)) {
+            $validated['title'] = GameNameGenerator::for(GameType::Spy);
+        }
+
         return $validated;
     }
 
@@ -48,7 +54,7 @@ class StoreGameRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'title' => ['required', 'string', 'max:255'],
+            'title' => ['nullable', 'string', 'max:255'],
             'game_mode' => ['required', 'string', Rule::enum(GameMode::class)],
             'age_tier' => ['required', 'string', Rule::enum(AgeTier::class)],
             'max_players' => ['required', 'integer', 'min:'.GameType::Spy->minPlayers(), 'max:'.GameType::Spy->maxPlayers()],

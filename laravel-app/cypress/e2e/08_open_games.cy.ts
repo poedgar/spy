@@ -7,7 +7,10 @@ describe('Open games', () => {
 
         cy.registerAgent('Open Host', host);
         cy.visit('/games/spy');
-        cy.get('#input-game-title').type(title);
+        cy.get('#input-game-title')
+            .should('not.have.value', '')
+            .clear()
+            .type(title);
         cy.get('#input-is-listed').should('be.checked');
         cy.get('#btn-create-game').click();
         cy.get('#game-invite-code', { timeout: 8000 })

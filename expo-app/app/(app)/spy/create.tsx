@@ -8,6 +8,7 @@ import { AppText } from '@/components/AppText';
 import { Button } from '@/components/Button';
 import { FormError } from '@/components/FormError';
 import { FormTextField } from '@/components/FormTextField';
+import { useGameNameSuggestion } from '@/game/useGameNameSuggestion';
 import { Screen } from '@/components/Screen';
 import { applyServerErrors } from '@/forms/applyServerErrors';
 import { modeLabels, spyCountFor, tierLabels } from '@/game/labels';
@@ -38,6 +39,8 @@ export default function CreateGame() {
     },
   });
 
+  const name = useGameNameSuggestion('spy', () => getValues('title'), (title) => setValue('title', title));
+
   const onSubmit = handleSubmit(async (input) => {
     setFormError(null);
     try {
@@ -57,6 +60,13 @@ export default function CreateGame() {
         label={t('Operation title')}
         placeholder={t('Operation title')}
         testID="input-game-title"
+      />
+      <Button
+        testID="btn-roll-name"
+        label={`🎲 ${t('Suggest another name')}`}
+        variant="secondary"
+        loading={name.rolling}
+        onPress={name.roll}
       />
 
       <Controller

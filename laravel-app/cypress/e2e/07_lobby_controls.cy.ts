@@ -6,7 +6,10 @@ describe('Lobby controls', () => {
 
         cy.registerAgent('Control Host', host);
         cy.visit('/games/spy');
-        cy.get('#input-game-title').type('Operation Gatekeeper');
+        cy.get('#input-game-title')
+            .should('not.have.value', '')
+            .clear()
+            .type('Operation Gatekeeper');
         cy.get('#input-requires-approval').check();
         cy.get('#btn-create-game').click();
         cy.get('#host-panel', { timeout: 8000 }).should('be.visible');

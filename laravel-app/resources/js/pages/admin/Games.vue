@@ -1,12 +1,16 @@
 <script setup lang="ts">
 import { Head, Link, router } from '@inertiajs/vue3';
+import { Trash2 } from '@lucide/vue';
 import { computed, reactive, watch } from 'vue';
 import AdminPagination from '@/components/admin/AdminPagination.vue';
 import type { Paginated } from '@/components/admin/AdminPagination.vue';
 import AdminTabs from '@/components/admin/AdminTabs.vue';
+import FilterSelect from '@/components/admin/FilterSelect.vue';
 import StatCards from '@/components/admin/StatCards.vue';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { confirmAction } from '@/composables/useConfirm';
 import { useTrans } from '@/composables/useTrans';
 
 interface AdminGame {
@@ -20,6 +24,7 @@ interface AdminGame {
     players_count: number;
     max_players: number;
     rounds_count: number;
+    abandoned: boolean;
     is_listed: boolean;
     requires_approval: boolean;
     created_at: string | null;
@@ -39,7 +44,9 @@ const props = defineProps<{
         playing: number;
         recruiting: number;
         new_this_week: number;
+        abandoned: number;
     };
+    abandonedAfterHours: number;
 }>();
 
 defineOptions({
@@ -110,8 +117,27 @@ function date(iso: string | null): string {
         : '—';
 }
 
-const selectClass =
-    'h-9 rounded-md border border-input bg-transparent px-3 text-sm shadow-xs';
+async function removeGame(game: AdminGame) {
+    if (
+        await confirmAction(
+            t('Remove ":title" for good?', { title: game.title }),
+        )
+    ) {
+        router.delete(`/admin/games/${game.code}`, { preserveScroll: true });
+    }
+}
+
+async function removeAllAbandoned() {
+    if (
+        await confirmAction(
+            t('Remove all :count abandoned games for good?', {
+                count: props.stats.abandoned,
+            }),
+        )
+    ) {
+        router.delete('/admin/games/abandoned', { preserveScroll: true });
+    }
+}
 </script>
 
 <template>
@@ -126,6 +152,7 @@ const selectClass =
                 { label: t('Being played'), value: stats.playing },
                 { label: t('Recruiting'), value: stats.recruiting },
                 { label: t('New this week'), value: stats.new_this_week },
+                { label: t('Abandoned'), value: stats.abandoned },
             ]"
         />
 
@@ -146,20 +173,12 @@ const selectClass =
                 class="min-w-48 flex-1"
                 :placeholder="t('Search by title or invite code')"
             />
-            <select
-                id="select-admin-game-type"
-                v-model="form.type"
-                :class="selectClass"
-            >
+            <FilterSelect id="select-admin-game-type" v-model="form.type">
                 <option value="">{{ t('All types') }}</option>
                 <option value="spy">{{ t('Spy') }}</option>
                 <option value="phrase">{{ t('Phrase') }}</option>
-            </select>
-            <select
-                id="select-admin-game-status"
-                v-model="form.status"
-                :class="selectClass"
-            >
+            </FilterSelect>
+            <FilterSelect id="select-admin-game-status" v-model="form.status">
                 <option value="">{{ t('Any status') }}</option>
                 <option
                     v-for="(label, value) in statusLabels"
@@ -168,7 +187,36 @@ const selectClass =
                 >
                     {{ label }}
                 </option>
-            </select>
+                <option value="abandoned">{{ t('Abandoned') }}</option>
+            </FilterSelect>
+        </div>
+
+        <div
+            v-if="stats.abandoned > 0"
+            id="admin-abandoned"
+            class="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-dashed border-sidebar-border/70 p-3 text-sm dark:border-sidebar-border"
+        >
+            <span class="text-muted-foreground">
+                {{
+                    t(
+                        'Abandoned: still recruiting :hours hours after creation, never started.',
+                        { hours: abandonedAfterHours },
+                    )
+                }}
+            </span>
+            <Button
+                id="btn-remove-abandoned"
+                variant="destructive"
+                size="sm"
+                @click="removeAllAbandoned"
+            >
+                <Trash2 />
+                {{
+                    t('Remove all abandoned (:count)', {
+                        count: stats.abandoned,
+                    })
+                }}
+            </Button>
         </div>
 
         <div
@@ -192,12 +240,15 @@ const selectClass =
                         <th class="px-3 py-2 font-medium">
                             {{ t('Last activity') }}
                         </th>
+                        <th class="px-3 py-2">
+                            <span class="sr-only">{{ t('Actions') }}</span>
+                        </th>
                     </tr>
                 </thead>
                 <tbody>
                     <tr v-if="games.data.length === 0">
                         <td
-                            colspan="7"
+                            colspan="8"
                             class="px-3 py-6 text-center text-muted-foreground"
                         >
                             {{ t('No games match.') }}
@@ -242,6 +293,12 @@ const selectClass =
                             >
                                 {{ statusLabels[game.status] }}
                             </Badge>
+                            <Badge
+                                v-if="game.abandoned"
+                                variant="destructive"
+                                class="ml-1"
+                                >{{ t('Abandoned') }}</Badge
+                            >
                         </td>
                         <td class="px-3 py-2">
                             {{ game.host?.codename ?? '—' }}
@@ -263,6 +320,20 @@ const selectClass =
                         </td>
                         <td class="px-3 py-2 whitespace-nowrap">
                             {{ date(game.updated_at) }}
+                        </td>
+                        <td class="px-3 py-2 text-right">
+                            <Button
+                                v-if="game.abandoned"
+                                variant="ghost"
+                                size="icon-sm"
+                                class="text-red-600"
+                                data-action="remove-game"
+                                :title="t('Remove')"
+                                :aria-label="t('Remove')"
+                                @click="removeGame(game)"
+                            >
+                                <Trash2 />
+                            </Button>
                         </td>
                     </tr>
                 </tbody>

@@ -123,6 +123,8 @@ export interface Game {
   is_listed?: boolean;
   /** LiveKit is configured on the server, so lobbies offer voice chat. */
   voice_enabled?: boolean;
+  /** The viewer is the host and no round has started yet. */
+  can_rename?: boolean;
   player_count: number;
   spy_count?: number;
   created_at: string | null;
