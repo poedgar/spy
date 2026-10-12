@@ -9,13 +9,17 @@ export function isInviteCode(value: string): boolean {
 }
 
 /** The game's home screen, where its pending invitations are listed. */
-export function homePathFor(gameType: unknown): '/spy' | '/phrase' {
-  return gameType === 'phrase' ? '/phrase' : '/spy';
+export type HomePath = '/spy' | '/phrase' | '/song';
+
+export function homePathFor(gameType: unknown): HomePath {
+  if (gameType === 'phrase') return '/phrase';
+  if (gameType === 'song') return '/song';
+  return '/spy';
 }
 
 export function invitationHrefFrom(
   data: unknown,
-): { pathname: '/spy' | '/phrase'; params: { highlight: string } } | null {
+): { pathname: HomePath; params: { highlight: string } } | null {
   if (typeof data !== 'object' || data === null) return null;
   const { type, invitation_id: invitationId, game_type: gameType } = data as {
     type?: unknown;
@@ -38,7 +42,7 @@ export function roundHrefFrom(data: unknown): `/games/${string}` | null {
 }
 
 /** Pushes about leaving a game (removed, request declined) open its home. */
-export function homeHrefFrom(data: unknown): '/spy' | '/phrase' | null {
+export function homeHrefFrom(data: unknown): HomePath | null {
   if (typeof data !== 'object' || data === null) return null;
   const { type, game_type: gameType } = data as { type?: unknown; game_type?: unknown };
   return type === 'home' ? homePathFor(gameType) : null;
@@ -49,9 +53,10 @@ export function pushHrefFrom(data: unknown) {
   return invitationHrefFrom(data) ?? roundHrefFrom(data) ?? homeHrefFrom(data);
 }
 
-/** The app screen for a notification's web link (/games/spy, /games/phrase, /games/SPY-XXXX). */
-export function notificationHref(link: string): '/spy' | '/phrase' | `/games/${string}` {
+/** The app screen for a notification's web link (/games/spy, /games/phrase, /games/song, /games/SPY-XXXX). */
+export function notificationHref(link: string): HomePath | `/games/${string}` {
   if (link === '/games/phrase') return '/phrase';
+  if (link === '/games/song') return '/song';
   const code = link.replace(/^\/games\//, '');
   return isInviteCode(code) ? `/games/${code}` : '/spy';
 }

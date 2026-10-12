@@ -17,6 +17,20 @@ function spyOutcome(entry: NonNullable<Game['history']>[number]): string {
     return entry.winning_team === 'spies' ? t('Spies won') : t('Loyalists won');
 }
 
+function songOutcome(entry: NonNullable<Game['history']>[number]): string {
+    const winners = entry.winner_user_ids ?? [];
+
+    if (entry.ending === 'abandoned') {
+        return t('Abandoned');
+    }
+
+    return winners.length
+        ? t('Best: :names', {
+              names: winners.map((id) => playerName(id)).join(', '),
+          })
+        : t('No votes');
+}
+
 function phraseOutcome(entry: NonNullable<Game['history']>[number]): string {
     if (entry.ending === 'guessed') {
         return t(':player guessed it', {
@@ -46,7 +60,10 @@ function phraseOutcome(entry: NonNullable<Game['history']>[number]): string {
                     t('Round :number', { number: entry.number })
                 }}</span>
                 ·
-                <template v-if="game.game_type === 'phrase'">
+                <template v-if="game.game_type === 'song'">
+                    “{{ entry.song }}” · {{ songOutcome(entry) }}
+                </template>
+                <template v-else-if="game.game_type === 'phrase'">
                     “{{ entry.phrase }}” · {{ phraseOutcome(entry) }}
                 </template>
                 <template v-else>

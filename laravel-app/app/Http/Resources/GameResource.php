@@ -10,6 +10,7 @@ use App\Models\GameRound;
 use App\Models\Invitation;
 use App\Models\JoinRequest;
 use App\Models\PhraseRound;
+use App\Models\SongRound;
 use App\Support\LiveKit;
 use App\Support\LocationCatalog;
 use Illuminate\Http\Request;
@@ -90,7 +91,7 @@ class GameResource extends JsonResource
             // Earlier rounds, newest first. The one shown as the current
             // result is left out so it isn't listed twice.
             'history' => $this->when(
-                $this->relationLoaded('pastRounds') || $this->relationLoaded('pastPhraseRounds'),
+                $this->relationLoaded('pastRounds') || $this->relationLoaded('pastPhraseRounds') || $this->relationLoaded('pastSongRounds'),
                 fn () => $this->history(),
             ),
             'phrase' => $this->when(
@@ -98,6 +99,12 @@ class GameResource extends JsonResource
                 fn () => $this->status === GameStatus::Recruiting || $this->currentPhraseRound === null
                     ? null
                     : PhraseRoundResource::make($this->currentPhraseRound),
+            ),
+            'song' => $this->when(
+                $this->game_type === GameType::Song && $this->relationLoaded('currentSongRound'),
+                fn () => $this->status === GameStatus::Recruiting || $this->currentSongRound === null
+                    ? null
+                    : SongRoundResource::make($this->currentSongRound),
             ),
         ];
     }
@@ -108,6 +115,19 @@ class GameResource extends JsonResource
     private function history(): array
     {
         $shown = $this->status === GameStatus::Completed ? $this->currentRoundNumber() : null;
+
+        if ($this->game_type === GameType::Song) {
+            return array_values($this->pastSongRounds
+                ->reject(fn (SongRound $round) => $round->number === $shown)
+                ->map(fn (SongRound $round) => [
+                    'number' => $round->number,
+                    'ending' => $round->ending,
+                    'song' => $round->song?->title,
+                    'artist' => $round->song?->artist,
+                    'winner_user_ids' => $round->winner_user_ids ?? [],
+                    'ended_at' => $round->ended_at?->toIso8601String(),
+                ])->all());
+        }
 
         if ($this->game_type === GameType::Phrase) {
             return array_values($this->pastPhraseRounds
@@ -135,9 +155,11 @@ class GameResource extends JsonResource
 
     private function currentRoundNumber(): ?int
     {
-        $current = $this->game_type === GameType::Phrase
-            ? $this->resource->currentPhraseRound
-            : $this->resource->currentRound;
+        $current = match ($this->game_type) {
+            GameType::Phrase => $this->resource->currentPhraseRound,
+            GameType::Song => $this->resource->currentSongRound,
+            default => $this->resource->currentRound,
+        };
 
         return $current?->number;
     }

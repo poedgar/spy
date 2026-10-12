@@ -17,6 +17,10 @@ export function RoundHistory({ game }: { game: Game }) {
 
   const outcome = (entry: HistoryEntry) => {
     if (entry.ending === 'abandoned') return t('Abandoned');
+    if (game.game_type === 'song') {
+      const winners = entry.winner_user_ids ?? [];
+      return winners.length ? t('Best: :names', { names: winners.map((id) => name(id)).join(', ') }) : t('No votes');
+    }
     if (game.game_type === 'phrase') {
       return entry.ending === 'guessed' ? t(':player guessed it', { player: name(entry.winner_user_id) }) : t('Nobody guessed it');
     }
@@ -34,7 +38,12 @@ export function RoundHistory({ game }: { game: Game }) {
         ? history.map((entry) => (
             <AppText key={entry.number} testID={`history-${entry.number}`}>
               {t('Round :number', { number: entry.number })} ·{' '}
-              {game.game_type === 'phrase' ? `“${entry.phrase}”` : place(entry.location)} · {outcome(entry)}
+              {game.game_type === 'song'
+                ? `“${entry.song ?? '?'}”`
+                : game.game_type === 'phrase'
+                  ? `“${entry.phrase}”`
+                  : place(entry.location)}{' '}
+              · {outcome(entry)}
               {game.game_type === 'spy' && entry.spy_user_ids?.length
                 ? ` · ${t('Spies')}: ${entry.spy_user_ids.map((id) => name(id)).join(', ')}`
                 : ''}

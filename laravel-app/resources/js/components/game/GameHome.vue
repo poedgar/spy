@@ -4,7 +4,7 @@ import JoinGameForm from '@/components/JoinGameForm.vue';
 import OpenGamesList from '@/components/game/OpenGamesList.vue';
 import { Badge } from '@/components/ui/badge';
 import { useTrans } from '@/composables/useTrans';
-import type { Game, OpenGame } from '@/types/game';
+import type { Game, OpenGame, GameType } from '@/types/game';
 
 export interface PendingInvitationRow {
     id: number;
@@ -18,7 +18,7 @@ export interface PendingInvitationRow {
  * slot) and join, open games to ask into, and the player's own games.
  */
 defineProps<{
-    gameType: 'spy' | 'phrase';
+    gameType: GameType;
     games: Omit<Game, 'host' | 'players' | 'round'>[];
     pendingInvitations: PendingInvitationRow[];
     openGames: OpenGame[];
@@ -100,9 +100,11 @@ const statusLabel = (status: Game['status']) =>
         >
             <h2 class="mb-2 font-semibold">
                 {{
-                    gameType === 'phrase'
-                        ? t('Your Phrase games')
-                        : t('Your Operations')
+                    {
+                        spy: t('Your Operations'),
+                        phrase: t('Your Phrase games'),
+                        song: t('Your Sing It Out games'),
+                    }[gameType]
                 }}
             </h2>
             <p v-if="games.length === 0" class="text-sm text-muted-foreground">

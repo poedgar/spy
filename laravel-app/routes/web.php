@@ -1,12 +1,15 @@
 <?php
 
+use App\Http\Controllers\Admin\FeedbackController as AdminFeedbackController;
 use App\Http\Controllers\Admin\GameController as AdminGameController;
 use App\Http\Controllers\Admin\LocationController as AdminLocationController;
 use App\Http\Controllers\Admin\PhraseController as AdminPhraseController;
+use App\Http\Controllers\Admin\SongController as AdminSongController;
 use App\Http\Controllers\Admin\UserController as AdminUserController;
 use App\Http\Controllers\ChatController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\EmailVerificationLinkController;
+use App\Http\Controllers\FeedbackController;
 use App\Http\Controllers\FirebaseSignInController;
 use App\Http\Controllers\GameController;
 use App\Http\Controllers\GameNameController;
@@ -15,6 +18,7 @@ use App\Http\Controllers\LobbyController;
 use App\Http\Controllers\LocaleController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\PhraseController;
+use App\Http\Controllers\SongController;
 use App\Http\Controllers\VoiceController;
 use Illuminate\Support\Facades\Route;
 
@@ -34,7 +38,17 @@ Route::middleware(['auth', 'can:admin'])->prefix('admin')->name('admin.')->group
     Route::post('phrases', [AdminPhraseController::class, 'store'])->name('phrases.store');
     Route::put('phrases/{phrase}', [AdminPhraseController::class, 'update'])->name('phrases.update');
     Route::delete('phrases/{phrase}', [AdminPhraseController::class, 'destroy'])->name('phrases.destroy');
+    Route::get('songs', [AdminSongController::class, 'index'])->name('songs.index');
+    Route::post('songs', [AdminSongController::class, 'store'])->name('songs.store');
+    Route::put('songs/{song}', [AdminSongController::class, 'update'])->name('songs.update');
+    Route::delete('songs/{song}', [AdminSongController::class, 'destroy'])->name('songs.destroy');
+    Route::get('feedback', [AdminFeedbackController::class, 'index'])->name('feedback.index');
+    Route::put('feedback/{feedback}', [AdminFeedbackController::class, 'update'])->name('feedback.update');
+    Route::delete('feedback/{feedback}', [AdminFeedbackController::class, 'destroy'])->name('feedback.destroy');
 });
+
+// The home page's idea / bug report form, open to guests too.
+Route::post('feedback', [FeedbackController::class, 'store'])->name('feedback.store');
 
 // "Continue with Google" (Firebase) from the login and register pages.
 Route::post('auth/firebase', FirebaseSignInController::class)
@@ -53,6 +67,8 @@ Route::middleware(['auth', 'verified.play'])->group(function () {
     Route::get('game-name', GameNameController::class)->name('game-name');
     Route::get('games/spy', [DashboardController::class, 'spy'])->name('games.spy');
     Route::get('games/phrase', [DashboardController::class, 'phrase'])->name('games.phrase');
+    Route::get('games/song', [DashboardController::class, 'song'])->name('games.song');
+    Route::post('games/song', [SongController::class, 'store'])->name('song.store');
     Route::post('games/phrase', [PhraseController::class, 'store'])->name('phrase.store');
     Route::get('games/{code}', [GameController::class, 'show'])->name('games.show');
     Route::delete('games/{game}', [LobbyController::class, 'close'])->name('games.close');
@@ -70,6 +86,10 @@ Route::middleware(['auth', 'verified.play'])->group(function () {
     Route::post('games/{game}/phrase/turn', [PhraseController::class, 'turn'])->name('phrase.turn');
     Route::post('games/{game}/phrase/reveal', [PhraseController::class, 'reveal'])->name('phrase.reveal');
     Route::post('games/{game}/phrase/guess', [PhraseController::class, 'guess'])->name('phrase.guess');
+    Route::post('games/{game}/song/start', [SongController::class, 'start'])->name('song.start');
+    Route::post('games/{game}/song/turn', [SongController::class, 'turn'])->name('song.turn');
+    Route::post('games/{game}/song/vote', [SongController::class, 'vote'])->name('song.vote');
+    Route::post('games/{game}/song/close', [SongController::class, 'close'])->name('song.close');
     Route::post('games/{game}/settings', [LobbyController::class, 'settings'])->name('games.settings');
     Route::delete('games/{game}/players/{user}', [LobbyController::class, 'removePlayer'])->name('games.players.remove');
     Route::post('games/{game}/host', [LobbyController::class, 'transferHost'])->name('games.host');

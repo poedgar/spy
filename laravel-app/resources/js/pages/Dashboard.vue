@@ -22,6 +22,12 @@ const phraseRules = [
     'Anyone can guess the whole phrase at any time. The first right guess wins 3 points; a wrong guess costs 1 point.',
 ];
 
+const songRules = [
+    'The host deals a short music clip; everyone hears the same one.',
+    'Players take turns singing how it goes on, live at the table or in the lobby voice chat.',
+    'After the last singer, everyone votes for the best performance (not their own). The most votes win a point.',
+];
+
 const rules = [
     'The host creates an operation and shares the invite code; 3 to 12 operatives can play.',
     'When the round starts, everyone secretly reveals their role. Loyal operatives see the location; spies do not.',
@@ -69,14 +75,20 @@ const rules = [
                 </p>
             </Link>
 
-            <div
-                v-for="n in 1"
-                :key="n"
-                class="tile-coming-soon rounded-xl border border-dashed border-sidebar-border/70 p-4 opacity-50 dark:border-sidebar-border"
-                aria-disabled="true"
+            <Link
+                id="tile-song"
+                href="/games/song"
+                class="rounded-xl border border-sidebar-border/70 p-4 hover:border-primary dark:border-sidebar-border"
             >
-                <h2 class="font-semibold">{{ t('Coming Soon') }}</h2>
-            </div>
+                <h2 class="font-semibold">{{ t('Sing It Out') }}</h2>
+                <p class="mt-1 text-sm text-muted-foreground">
+                    {{
+                        t(
+                            'Everyone hears the same music clip and sings how it goes on. Then vote for the best.',
+                        )
+                    }}
+                </p>
+            </Link>
         </div>
 
         <section
@@ -90,6 +102,12 @@ const rules = [
             <h2 class="mt-4 font-semibold">{{ t('How to play Phrase') }}</h2>
             <ol class="mt-2 list-decimal space-y-1 pl-5 text-sm">
                 <li v-for="rule in phraseRules" :key="rule">{{ t(rule) }}</li>
+            </ol>
+            <h2 class="mt-4 font-semibold">
+                {{ t('How to play Sing It Out') }}
+            </h2>
+            <ol class="mt-2 list-decimal space-y-1 pl-5 text-sm">
+                <li v-for="rule in songRules" :key="rule">{{ t(rule) }}</li>
             </ol>
         </section>
     </div>

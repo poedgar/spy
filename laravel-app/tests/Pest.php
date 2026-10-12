@@ -5,6 +5,7 @@ use App\Models\Game;
 use App\Models\GamePlayer;
 use App\Models\GameRound;
 use App\Models\PhraseRound;
+use App\Models\Song;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Laravel\Sanctum\Sanctum;
@@ -123,4 +124,26 @@ function dealPhrase(Game $game, User $host): PhraseRound
     test()->postJson("/api/v1/games/{$game->code}/phrase/start")->assertOk();
 
     return $game->currentPhraseRound()->firstOrFail();
+}
+
+/**
+ * A Sing It Out game: the host plus $count - 1 players.
+ *
+ * @return array{0: Game, 1: User, 2: list<User>}
+ */
+function songGame(int $count): array
+{
+    return gameWithPlayers($count, ['game_type' => GameType::Song, 'game_mode' => null, 'mission_briefing' => null, 'max_players' => 10]);
+}
+
+/** A clip: a stretch of a YouTube video. */
+function songClip(string $title = 'Bohemian Rhapsody', ?string $artist = 'Queen'): Song
+{
+    return Song::create([
+        'title' => $title,
+        'artist' => $artist,
+        'youtube_id' => 'fJ9rUzIMcZQ',
+        'start_seconds' => 60,
+        'end_seconds' => 75,
+    ]);
 }

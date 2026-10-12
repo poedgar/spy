@@ -1,8 +1,10 @@
 # Marvelous Games
 
 Party games for friends, on the web and on phones: **Spy** (everyone knows
-the location except the spies) and **Phrase** (everyone holds one word of a
-famous phrase). English and Ukrainian.
+the location except the spies), **Phrase** (everyone holds one word of a
+famous phrase) and **Sing It Out** / Доспівай (everyone hears the same clip,
+sings how it goes on in turns, then votes for the best). English and
+Ukrainian.
 
 | Folder         | What it is                                                                 |
 | -------------- | -------------------------------------------------------------------------- |
@@ -39,47 +41,22 @@ Every deploy:
 
 Once, on the server:
 
-- **Queue:** live notifications, pushes and emails are queued, so either
-  run a worker (`php artisan queue:work`, or a Laravel Cloud managed queue)
-  or set `QUEUE_CONNECTION=sync` to send them during the request (no worker;
-  push and mail failures are logged, never shown to players). The in-app
-  bell works either way.
+- **Queue worker** (`php artisan queue:work`): live notifications, pushes and
+  emails are queued. The in-app bell works without it.
 - **Scheduler** (`php artisan schedule:work`, or cron running
   `php artisan schedule:run` every minute): prunes old notifications, stale
   games and expired mobile sign-ins daily.
-- **Realtime:** `BROADCAST_CONNECTION=pusher` and Pusher credentials
-  (`PUSHER_APP_*`), or a self-hosted Pusher-compatible server via
-  `PUSHER_HOST/PORT/SCHEME`. Without it the apps still work, refreshing
-  every few seconds instead of instantly. `php artisan app:check-realtime`
-  shows what is set and sends a test broadcast.
-- **Mail** (`MAIL_*`): required — players must confirm their email before
-  playing. Also invitation emails and password resets. Without a working
-  mailer nobody new can play; `REQUIRE_EMAIL_VERIFICATION=false` turns the
-  requirement off.
+- **Realtime:** Pusher credentials (`PUSHER_APP_*`), or a self-hosted
+  Pusher-compatible server via `PUSHER_HOST/PORT/SCHEME`. Without it the apps
+  still work, refreshing every few seconds instead of instantly.
+- **Mail** (`MAIL_*`): invitation emails, password resets, email
+  verification.
+- **Sing It Out clips** are YouTube videos: add them under Admin → Songs
+  (a link, plus where the clip starts and ends). Players see the video's
+  YouTube title, so upload clips as Unlisted with titles that don't name the
+  song.
 - `APP_NAME="Marvelous Games"`, and `SANCTUM_TOKEN_EXPIRATION` if mobile sign-ins
   should last other than 90 days.
-- **Google sign-in** (optional): `FIREBASE_PROJECT_ID` and the
-  `VITE_FIREBASE_*` web keys (before building the front end); add the site's
-  domain to Firebase Authentication → Settings → Authorized domains.
-- **Voice chat** (optional): `LIVEKIT_URL`, `LIVEKIT_API_KEY`,
-  `LIVEKIT_API_SECRET` from a LiveKit Cloud project (free plan is fine).
-  Without them, lobbies simply don't offer voice.
-
-## Administration
-
-`php artisan app:make-admin you@example.com` (`--revoke` to undo) gives an
-account the **Admin** link in the sidebar:
-
-- **Users:** every account, how they sign in, whether they're verified,
-  their games and when they were last seen.
-- **Games:** every game with its type, status, host, players, rounds and
-  last activity; search and filter by type, status or player. Games still
-  recruiting a day after creation, never started, can be removed.
-- **Locations** and **Phrases:** add, edit and remove what the games deal.
-  Removing only hides an entry from new rounds; a round keeps the phrase
-  it was dealt even if it is edited later.
-
-Admin access can only be granted from the command line.
 
 ## CI
 

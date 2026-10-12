@@ -41,8 +41,8 @@ class Game extends Model
 
     /** Everything a lobby shows, for eager loading. */
     public const LOBBY_RELATIONS = [
-        'host', 'players.user', 'currentRound.votes', 'currentPhraseRound.guesses',
-        'joinRequests.user', 'invitations.toUser', 'pastRounds', 'pastPhraseRounds',
+        'host', 'players.user', 'currentRound.votes', 'currentPhraseRound.guesses', 'currentSongRound.song',
+        'joinRequests.user', 'invitations.toUser', 'pastRounds', 'pastPhraseRounds', 'pastSongRounds.song',
     ];
 
     /** Round lengths a host can pick, in seconds (0 = no timer). */
@@ -149,7 +149,8 @@ class Game extends Model
     {
         return $this->status === GameStatus::Recruiting
             && ! $this->rounds()->exists()
-            && ! $this->phraseRounds()->exists();
+            && ! $this->phraseRounds()->exists()
+            && ! $this->songRounds()->exists();
     }
 
     /** A game still recruiting this long after creation, never started, is abandoned. */
@@ -167,7 +168,8 @@ class Game extends Model
             ->where('status', GameStatus::Recruiting)
             ->where('created_at', '<=', now()->subHours(self::ABANDONED_AFTER_HOURS))
             ->whereDoesntHave('rounds')
-            ->whereDoesntHave('phraseRounds');
+            ->whereDoesntHave('phraseRounds')
+            ->whereDoesntHave('songRounds');
     }
 
     /**
@@ -252,5 +254,33 @@ class Game extends Model
     public function currentPhraseRound(): HasOne
     {
         return $this->hasOne(PhraseRound::class)->latestOfMany('number');
+    }
+
+    /**
+     * @return HasMany<SongRound, $this>
+     */
+    public function songRounds(): HasMany
+    {
+        return $this->hasMany(SongRound::class);
+    }
+
+    /**
+     * The latest Sing It Out round, finished or not.
+     *
+     * @return HasOne<SongRound, $this>
+     */
+    public function currentSongRound(): HasOne
+    {
+        return $this->hasOne(SongRound::class)->latestOfMany('number');
+    }
+
+    /**
+     * Finished Sing It Out rounds, newest first, for the lobby's history.
+     *
+     * @return HasMany<SongRound, $this>
+     */
+    public function pastSongRounds(): HasMany
+    {
+        return $this->hasMany(SongRound::class)->whereNotNull('ended_at')->latest('number')->limit(10);
     }
 }

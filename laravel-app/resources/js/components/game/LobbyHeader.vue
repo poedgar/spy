@@ -22,7 +22,7 @@ const { t, isHost, canStart, errors, busy, statusLabels, act } = useLobby(
     () => props.game,
 );
 const copied = ref(false);
-const home = () => (props.game.game_type === 'phrase' ? 'phrase' : 'spy');
+const home = () => props.game.game_type;
 
 async function copyInvite() {
     const link = `${window.location.origin}/games/${home()}?join=${props.game.code}`;

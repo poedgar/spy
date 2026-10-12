@@ -25,6 +25,10 @@ function send(method: 'post' | 'delete', game: OpenGame) {
 }
 
 function details(game: OpenGame): string {
+    if (game.game_type === 'song') {
+        return t('Sing It Out');
+    }
+
     if (game.game_type === 'phrase') {
         return game.phrase_language === 'uk'
             ? t('Ukrainian phrases')

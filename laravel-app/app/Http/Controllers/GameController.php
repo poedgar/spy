@@ -54,6 +54,12 @@ class GameController extends Controller
             ]);
         }
 
+        if ($game->game_type === GameType::Song) {
+            return inertia('games/SongLobby', [
+                'game' => GameResource::make($game)->resolve($request),
+            ]);
+        }
+
         return inertia('games/Lobby', [
             'game' => GameResource::make($game)->resolve($request),
             // The guide and the spy's guess list; it never changes for a
@@ -90,7 +96,11 @@ class GameController extends Controller
 
     public static function homeRoute(Game $game): string
     {
-        return $game->game_type === GameType::Phrase ? 'games.phrase' : 'games.spy';
+        return match ($game->game_type) {
+            GameType::Phrase => 'games.phrase',
+            GameType::Song => 'games.song',
+            default => 'games.spy',
+        };
     }
 
     public function leave(Request $request, Game $game, LeaveGame $leaveGame): RedirectResponse

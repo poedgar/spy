@@ -113,7 +113,6 @@ Shared by both games (`app/Actions/Lobby`):
   30, and games untouched for 90 days. Recruiting games with no activity for
   12 hours drop out of open games.
 
-
 ### Email verification
 
 Players confirm their email before playing (`REQUIRE_EMAIL_VERIFICATION`,
@@ -122,6 +121,7 @@ mobile app a "Check your email" screen; profile, password and log out stay
 available so a mistyped address can be fixed. The emailed link is signed
 and needs no login, so it works from a phone's mail app. Turn the setting
 off for local development without mail, and for the Cypress suite (CI does).
+
 ## Languages
 
 English and Ukrainian. The language is saved on the account

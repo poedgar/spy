@@ -9,6 +9,8 @@ const tabs = [
     { label: 'Games', href: '/admin/games' },
     { label: 'Locations', href: '/admin/locations' },
     { label: 'Phrases', href: '/admin/phrases' },
+    { label: 'Songs', href: '/admin/songs' },
+    { label: 'Feedback', href: '/admin/feedback' },
 ];
 </script>
 

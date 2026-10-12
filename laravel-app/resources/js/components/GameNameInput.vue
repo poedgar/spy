@@ -4,6 +4,7 @@ import { onMounted, ref } from 'vue';
 import { Button } from '@/components/ui/button';
 import { useTrans } from '@/composables/useTrans';
 import { jsonFetch } from '@/lib/jsonFetch';
+import type { GameType } from '@/types/game';
 
 /**
  * A game's name: suggested by the app (and re-rolled with the dice),
@@ -11,7 +12,7 @@ import { jsonFetch } from '@/lib/jsonFetch';
  */
 const model = defineModel<string>({ required: true });
 const props = defineProps<{
-    type: 'spy' | 'phrase';
+    type: GameType;
     id: string;
     placeholder?: string;
 }>();

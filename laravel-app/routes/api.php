@@ -9,6 +9,7 @@ use App\Http\Controllers\Api\MeController;
 use App\Http\Controllers\Api\NotificationController;
 use App\Http\Controllers\Api\PhraseController;
 use App\Http\Controllers\Api\PushTokenController;
+use App\Http\Controllers\Api\SongController;
 use App\Http\Controllers\ChatController;
 use App\Http\Controllers\GameNameController;
 use App\Http\Controllers\VoiceController;
@@ -42,6 +43,8 @@ Route::prefix('v1')->group(function () {
             Route::get('games/spy', [GameController::class, 'spy']);
             Route::get('games/phrase', [PhraseController::class, 'home']);
             Route::post('games/phrase', [PhraseController::class, 'store']);
+            Route::get('games/song', [SongController::class, 'home']);
+            Route::post('games/song', [SongController::class, 'store']);
             Route::post('games', [GameController::class, 'store']);
             Route::get('games/{code}', [GameController::class, 'show']);
             Route::get('games/{code}/voice', [VoiceController::class, 'showByCode'])->middleware('throttle:30,1');
@@ -61,6 +64,10 @@ Route::prefix('v1')->group(function () {
             Route::post('games/{code}/phrase/turn', [PhraseController::class, 'turn']);
             Route::post('games/{code}/phrase/reveal', [PhraseController::class, 'reveal']);
             Route::post('games/{code}/phrase/guess', [PhraseController::class, 'guess']);
+            Route::post('games/{code}/song/start', [SongController::class, 'start']);
+            Route::post('games/{code}/song/turn', [SongController::class, 'turn']);
+            Route::post('games/{code}/song/vote', [SongController::class, 'vote']);
+            Route::post('games/{code}/song/close', [SongController::class, 'close']);
 
             Route::get('locations', [LocationController::class, 'index']);
 

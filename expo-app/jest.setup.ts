@@ -67,3 +67,9 @@ jest.mock('@/auth/googleSignIn', () => ({
   googleSignInEnabled: true,
   googleFirebaseIdToken: jest.fn(async () => null),
 }));
+
+// The clip player is a native web view; tests get a plain stand-in.
+jest.mock('react-native-webview', () => {
+  const { View } = jest.requireActual('react-native');
+  return { WebView: View };
+});

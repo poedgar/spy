@@ -6,6 +6,7 @@ enum GameType: string
 {
     case Spy = 'spy';
     case Phrase = 'phrase';
+    case Song = 'song';
 
     /**
      * The fewest players a round can start with, and the size a new game's
@@ -14,7 +15,7 @@ enum GameType: string
     public function minPlayers(): int
     {
         return match ($this) {
-            self::Spy, self::Phrase => 3,
+            self::Spy, self::Phrase, self::Song => 3,
         };
     }
 
@@ -26,7 +27,7 @@ enum GameType: string
     {
         return match ($this) {
             self::Spy => 12,
-            self::Phrase => 10,
+            self::Phrase, self::Song => 10,
         };
     }
 }

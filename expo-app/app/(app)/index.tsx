@@ -39,11 +39,14 @@ export default function GamePicker() {
           </AppText>
         </Card>
       </Pressable>
-      {[0].map((i) => (
-        <Card key={i} testID={`tile-coming-soon-${i}`} style={{ opacity: 0.5, borderStyle: 'dashed' }}>
-          <AppText variant="heading">{t('Coming Soon')}</AppText>
+      <Pressable testID="tile-song" accessibilityRole="button" onPress={() => router.push('/song')}>
+        <Card>
+          <AppText variant="heading">{t('Sing It Out')}</AppText>
+          <AppText variant="muted">
+            {t('Everyone hears the same music clip and sings how it goes on. Then vote for the best.')}
+          </AppText>
         </Card>
-      ))}
+      </Pressable>
     </Screen>
   );
 }

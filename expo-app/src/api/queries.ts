@@ -2,11 +2,12 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useFocusEffect } from 'expo-router';
 import { useCallback, useRef } from 'react';
 import { gamesApi, notificationsApi } from './endpoints';
-import { type AgeTier, type CreateGameInput, type CreatePhraseGameInput, type Game, isJoinRequested } from './types';
+import { type AgeTier, type CreateGameInput, type CreatePhraseGameInput, type CreateSongGameInput, type Game, isJoinRequested } from './types';
 
 export const queryKeys = {
   spyHome: ['spyHome'] as const,
   phraseHome: ['phraseHome'] as const,
+  songHome: ['songHome'] as const,
   notifications: ['notifications'] as const,
   game: (code: string) => ['game', code] as const,
   invitable: (code: string, search = '') => ['invitable', code, search] as const,
@@ -15,6 +16,10 @@ export const queryKeys = {
 
 export function useSpyHome() {
   return useQuery({ queryKey: queryKeys.spyHome, queryFn: gamesApi.spyHome });
+}
+
+export function useSongHome() {
+  return useQuery({ queryKey: queryKeys.songHome, queryFn: gamesApi.songHome });
 }
 
 export function usePhraseHome() {
@@ -58,11 +63,19 @@ function useCacheLobby() {
     queryClient.setQueryData(queryKeys.game(game.code), game);
     void queryClient.invalidateQueries({ queryKey: queryKeys.spyHome });
     void queryClient.invalidateQueries({ queryKey: queryKeys.phraseHome });
+    void queryClient.invalidateQueries({ queryKey: queryKeys.songHome });
   };
 }
 
 export function useCreateGame() {
   return useMutation({ mutationFn: (input: CreateGameInput) => gamesApi.create(input), onSuccess: useCacheLobby() });
+}
+
+export function useCreateSongGame() {
+  return useMutation({
+    mutationFn: (input: CreateSongGameInput) => gamesApi.createSong(input),
+    onSuccess: useCacheLobby(),
+  });
 }
 
 export function useCreatePhraseGame() {
@@ -106,6 +119,8 @@ export function useJoinRequest() {
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: queryKeys.spyHome });
       void queryClient.invalidateQueries({ queryKey: queryKeys.phraseHome });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.songHome });
+    void queryClient.invalidateQueries({ queryKey: queryKeys.songHome });
     },
   });
 }
@@ -120,6 +135,8 @@ export function useInvite(code: string) {
 
 type LobbyAction =
   | { type: 'ready' | 'start' | 'voting' | 'tally' | 'reset' | 'phrase-start' | 'phrase-turn' | 'phrase-reveal' }
+  | { type: 'song-start' | 'song-turn' | 'song-close' }
+  | { type: 'song-vote'; singerId: number }
   | { type: 'vote'; suspectId: number }
   | { type: 'approval'; requiresApproval: boolean }
   | { type: 'rename'; title: string }
@@ -152,6 +169,14 @@ export function useLobbyAction(code: string) {
           return gamesApi.passTurn(code);
         case 'phrase-reveal':
           return gamesApi.revealPhrase(code);
+        case 'song-start':
+          return gamesApi.startSong(code);
+        case 'song-turn':
+          return gamesApi.passSingTurn(code);
+        case 'song-vote':
+          return gamesApi.voteForSinger(code, action.singerId);
+        case 'song-close':
+          return gamesApi.closeSongVoting(code);
         case 'approval':
           return gamesApi.updateSettings(code, { requires_approval: action.requiresApproval });
         case 'rename':
@@ -200,6 +225,8 @@ export function useLeaveGame(code: string, options: { close?: boolean } = {}) {
       queryClient.removeQueries({ queryKey: queryKeys.game(code) });
       void queryClient.invalidateQueries({ queryKey: queryKeys.spyHome });
       void queryClient.invalidateQueries({ queryKey: queryKeys.phraseHome });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.songHome });
+    void queryClient.invalidateQueries({ queryKey: queryKeys.songHome });
     },
   });
 }

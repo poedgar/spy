@@ -22,7 +22,11 @@ class NotificationPresenter
         $code = isset($data['game_code']) ? (string) $data['game_code'] : null;
         $type = isset($data['game_type']) ? (string) $data['game_type'] : null;
         $title = (string) ($data['game_title'] ?? '');
-        $home = $type === 'phrase' ? '/games/phrase' : '/games/spy';
+        $home = match ($type) {
+            'phrase' => '/games/phrase',
+            'song' => '/games/song',
+            default => '/games/spy',
+        };
         $lobby = $code ? "/games/{$code}" : $home;
         $t = fn (string $key, array $replace = []) => __($key, $replace, $locale);
 
@@ -67,12 +71,20 @@ class NotificationPresenter
             'round_ended' => [
                 $t('Round :number is over', ['number' => $data['number'] ?? 1]),
                 match (true) {
+                    $type === 'song' && filled($data['song_winners'] ?? null) => $t(':names sang best in :title!', ['names' => $data['song_winners'], 'title' => $title]),
+                    $type === 'song' => $t('Nobody got a vote in :title.', ['title' => $title]),
                     ($data['winning_team'] ?? null) === 'spies' => $t('The spies won in :title.', ['title' => $title]),
                     ($data['winning_team'] ?? null) === 'loyalists' => $t('The loyalists won in :title.', ['title' => $title]),
                     ($data['phrase_ending'] ?? null) === 'guessed' => $t(':codename guessed the phrase in :title!', ['codename' => $data['winner_codename'] ?? '', 'title' => $title]),
                     ($data['phrase_ending'] ?? null) === 'time_up' => $t("Time's up in :title. Nobody guessed the phrase.", ['title' => $title]),
                     default => $t('The host revealed the phrase in :title.', ['title' => $title]),
                 },
+                $lobby,
+                ['type' => 'game', 'code' => $code],
+            ],
+            'your_turn_sing' => [
+                $t('Your turn to sing'),
+                $t('Sing how the clip goes on in :title.', ['title' => $title]),
                 $lobby,
                 ['type' => 'game', 'code' => $code],
             ],
@@ -90,9 +102,11 @@ class NotificationPresenter
             ],
             'round_started' => [
                 $t('Round :number has begun', ['number' => $data['number'] ?? 1]),
-                $type === 'phrase'
-                    ? $t('Open :title to see your word.', ['title' => $title])
-                    : $t('Open :title to see your role.', ['title' => $title]),
+                match ($type) {
+                    'phrase' => $t('Open :title to see your word.', ['title' => $title]),
+                    'song' => $t('Open :title to hear the clip.', ['title' => $title]),
+                    default => $t('Open :title to see your role.', ['title' => $title]),
+                },
                 $lobby,
                 ['type' => 'round', 'code' => $code],
             ],

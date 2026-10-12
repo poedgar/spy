@@ -34,6 +34,8 @@ class GameNameGenerator
             [GameType::Spy, 'uk'] => "Операція «{$name}»",
             [GameType::Phrase, 'en'] => "Phrase Club: {$name}",
             [GameType::Phrase, 'uk'] => "Клуб фраз «{$name}»",
+            [GameType::Song, 'en'] => "Song Night: {$name}",
+            [GameType::Song, 'uk'] => "Пісенний вечір «{$name}»",
         };
     }
 }

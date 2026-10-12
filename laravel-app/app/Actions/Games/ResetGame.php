@@ -7,6 +7,7 @@ use App\Enums\GameType;
 use App\Enums\PhraseEnding;
 use App\Enums\RoundEnding;
 use App\Models\Game;
+use App\Models\SongRound;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 
@@ -29,6 +30,13 @@ class ResetGame
                 $this->endRound->handle($game, $game->currentRound()->firstOrFail(), RoundEnding::Abandoned);
 
                 return;
+            }
+
+            if ($game->game_type === GameType::Song && $game->status->inRound()) {
+                $game->currentSongRound()->firstOrFail()->update([
+                    'ended_at' => now(),
+                    'ending' => SongRound::ENDING_ABANDONED,
+                ]);
             }
 
             if ($game->game_type === GameType::Phrase && $game->status === GameStatus::Active) {

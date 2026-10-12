@@ -61,7 +61,7 @@ export interface Round {
   result: RoundResult | null;
 }
 
-export type GameType = 'spy' | 'phrase';
+export type GameType = 'spy' | 'phrase' | 'song';
 
 export interface HistoryEntry {
   number: number;
@@ -74,6 +74,33 @@ export interface HistoryEntry {
   // Phrase deals
   phrase?: string;
   winner_user_id?: number | null;
+  // Sing It Out rounds
+  song?: string | null;
+  artist?: string | null;
+  winner_user_ids?: number[];
+}
+
+/** The signed-in player's view of a Sing It Out round; the song's name stays hidden until it ends. */
+export interface SongRound {
+  number: number;
+  /** YouTube's player for the clip's stretch of the video. */
+  clip_url: string | null;
+  turn_order: number[];
+  singer_user_id: number | null;
+  sung_count: number;
+  voted_user_ids: number[];
+  my_vote: number | null;
+  scoring: { win: number };
+  started_at: string;
+  voting_started_at: string | null;
+  ended_at: string | null;
+  result: {
+    ending: 'voted' | 'abandoned';
+    title: string | null;
+    artist: string | null;
+    winner_user_ids: number[];
+    votes: { user_id: number; votes: number }[];
+  } | null;
 }
 
 /** The signed-in player's view of a Phrase deal: only their own word, until it ends. */
@@ -132,6 +159,7 @@ export interface Game {
   players?: Player[];
   round?: Round | null;
   phrase?: PhraseRound | null;
+  song?: SongRound | null;
   /** Seconds per round, or null for no timer. */
   round_seconds?: number | null;
   /** Earlier rounds, newest first (the one on show is left out). */
@@ -236,6 +264,11 @@ export interface CreatePhraseGameInput {
   max_players: number;
 }
 
+export interface CreateSongGameInput {
+  title: string;
+  max_players: number;
+}
+
 export interface InvitationSentPayload {
   invitation_id: number;
   game_type?: GameType;
@@ -256,7 +289,8 @@ export type NotificationKind =
   | 'your_turn'
   | 'round_ended'
   | 'ready_to_start'
-  | 'player_left';
+  | 'player_left'
+  | 'your_turn_sing';
 
 /** A notification as the server presents it, in the reader's language. */
 export interface AppNotification {

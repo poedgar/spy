@@ -9,6 +9,7 @@ use App\Enums\PhraseEnding;
 use App\Enums\RoundEnding;
 use App\Events\GameUpdated;
 use App\Models\Game;
+use App\Models\SongRound;
 use App\Models\User;
 use App\Notifications\BecameHost;
 use App\Support\BestEffortBroadcast;
@@ -58,6 +59,10 @@ class DeleteUser
     {
         if ($game->game_type === GameType::Spy && $game->status->inRound()) {
             $game->currentRound()->firstOrFail()->update(['ending' => RoundEnding::Abandoned, 'ended_at' => now()]);
+        }
+
+        if ($game->game_type === GameType::Song && $game->status->inRound()) {
+            $game->currentSongRound()->firstOrFail()->update(['ending' => SongRound::ENDING_ABANDONED, 'ended_at' => now()]);
         }
 
         if ($game->game_type === GameType::Phrase && $game->status === GameStatus::Active) {

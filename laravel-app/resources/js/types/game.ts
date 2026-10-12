@@ -72,11 +72,39 @@ export interface PhraseRound {
     } | null;
 }
 
+/** The games on offer. */
+export type GameType = 'spy' | 'phrase' | 'song';
+
+/** One player's view of a Sing It Out round. */
+export interface SongRound {
+    number: number;
+    /** A short-lived link to the clip. */
+    /** The YouTube player for the clip's stretch of the video. */
+    clip_url: string | null;
+    turn_order: number[];
+    singer_user_id: number | null;
+    sung_count: number;
+    voted_user_ids: number[];
+    my_vote: number | null;
+    scoring: { win: number };
+    started_at: string;
+    voting_started_at: string | null;
+    ended_at: string | null;
+    /** The song's name stays hidden until the round ends. */
+    result: {
+        ending: 'voted' | 'abandoned';
+        title: string | null;
+        artist: string | null;
+        winner_user_ids: number[];
+        votes: { user_id: number; votes: number }[];
+    } | null;
+}
+
 export interface Game {
     id: number;
     code: string;
     title: string;
-    game_type: 'spy' | 'phrase';
+    game_type: GameType;
     game_mode: GameMode;
     phrase_language: 'en' | 'uk' | null;
     max_allowed_players: number;
@@ -107,6 +135,7 @@ export interface Game {
     }[];
     round: Round | null;
     phrase?: PhraseRound | null;
+    song?: SongRound | null;
     /** Seconds per round, or null for no timer. */
     round_seconds: number | null;
     /** Earlier rounds, newest first (the one on show is left out). */
@@ -121,6 +150,10 @@ export interface Game {
         // Phrase
         phrase?: string;
         winner_user_id?: number | null;
+        // Sing It Out
+        song?: string | null;
+        artist?: string | null;
+        winner_user_ids?: number[];
     }[];
 }
 
@@ -131,7 +164,7 @@ export interface OpenGame {
     id: number;
     code: string;
     title: string;
-    game_type: 'spy' | 'phrase';
+    game_type: GameType;
     game_mode: GameMode | null;
     age_tier: AgeTier;
     phrase_language: 'en' | 'uk' | null;
