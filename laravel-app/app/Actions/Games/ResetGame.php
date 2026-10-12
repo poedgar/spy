@@ -6,6 +6,7 @@ use App\Enums\GameStatus;
 use App\Enums\GameType;
 use App\Enums\PhraseEnding;
 use App\Enums\RoundEnding;
+use App\Models\FinishRound;
 use App\Models\Game;
 use App\Models\SongRound;
 use App\Models\User;
@@ -36,6 +37,13 @@ class ResetGame
                 $game->currentSongRound()->firstOrFail()->update([
                     'ended_at' => now(),
                     'ending' => SongRound::ENDING_ABANDONED,
+                ]);
+            }
+
+            if ($game->game_type === GameType::Finish && $game->status->inRound()) {
+                $game->currentFinishRound()->firstOrFail()->update([
+                    'ended_at' => now(),
+                    'ending' => FinishRound::ENDING_ABANDONED,
                 ]);
             }
 

@@ -73,12 +73,11 @@ export interface PhraseRound {
 }
 
 /** The games on offer. */
-export type GameType = 'spy' | 'phrase' | 'song';
+export type GameType = 'spy' | 'phrase' | 'song' | 'finish';
 
 /** One player's view of a Sing It Out round. */
 export interface SongRound {
     number: number;
-    /** A short-lived link to the clip. */
     /** The YouTube player for the clip's stretch of the video. */
     clip_url: string | null;
     turn_order: number[];
@@ -97,6 +96,38 @@ export interface SongRound {
         artist: string | null;
         winner_user_ids: number[];
         votes: { user_id: number; votes: number }[];
+    } | null;
+}
+
+/** An ending in the vote: nameless until the round ends. */
+export interface FinishAnswer {
+    position: number;
+    text: string;
+    mine: boolean;
+    user_id: number | null;
+    votes: number | null;
+}
+
+/** One player's view of a Finish the Phrase round. */
+export interface FinishRound {
+    number: number;
+    prompt: string;
+    max_length: number;
+    min_answers: number;
+    answered_user_ids: number[];
+    my_answer: string | null;
+    /** Shuffled, once the vote opens. */
+    answers: FinishAnswer[] | null;
+    voted_user_ids: number[];
+    /** The position of the ending I voted for. */
+    my_vote: number | null;
+    scoring: { win: number };
+    started_at: string;
+    voting_started_at: string | null;
+    ended_at: string | null;
+    result: {
+        ending: 'voted' | 'abandoned';
+        winner_user_ids: number[];
     } | null;
 }
 
@@ -136,6 +167,7 @@ export interface Game {
     round: Round | null;
     phrase?: PhraseRound | null;
     song?: SongRound | null;
+    finish?: FinishRound | null;
     /** Seconds per round, or null for no timer. */
     round_seconds: number | null;
     /** Earlier rounds, newest first (the one on show is left out). */
@@ -154,6 +186,9 @@ export interface Game {
         song?: string | null;
         artist?: string | null;
         winner_user_ids?: number[];
+        // Finish the Phrase
+        prompt?: string;
+        best_answer?: string | null;
     }[];
 }
 

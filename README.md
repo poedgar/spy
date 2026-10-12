@@ -1,10 +1,14 @@
+Next games:
+interprete a phrase, continue a phrase
+
 # Marvelous Games
 
 Party games for friends, on the web and on phones: **Spy** (everyone knows
 the location except the spies), **Phrase** (everyone holds one word of a
-famous phrase) and **Sing It Out** / Доспівай (everyone hears the same clip,
-sings how it goes on in turns, then votes for the best). English and
-Ukrainian.
+famous phrase), **Sing It Out** / Доспівай (everyone hears the same clip,
+sings how it goes on in turns, then votes for the best) and **Finish the
+Phrase** / Продовж фразу (everyone writes an ending to the same beginning,
+then votes for the best without names). English and Ukrainian.
 
 | Folder         | What it is                                                                 |
 | -------------- | -------------------------------------------------------------------------- |

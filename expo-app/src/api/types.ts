@@ -61,7 +61,7 @@ export interface Round {
   result: RoundResult | null;
 }
 
-export type GameType = 'spy' | 'phrase' | 'song';
+export type GameType = 'spy' | 'phrase' | 'song' | 'finish';
 
 export interface HistoryEntry {
   number: number;
@@ -78,6 +78,9 @@ export interface HistoryEntry {
   song?: string | null;
   artist?: string | null;
   winner_user_ids?: number[];
+  // Finish the Phrase rounds
+  prompt?: string;
+  best_answer?: string | null;
 }
 
 /** The signed-in player's view of a Sing It Out round; the song's name stays hidden until it ends. */
@@ -101,6 +104,35 @@ export interface SongRound {
     winner_user_ids: number[];
     votes: { user_id: number; votes: number }[];
   } | null;
+}
+
+/** An ending in the vote: nameless until the round ends. */
+export interface FinishAnswer {
+  position: number;
+  text: string;
+  mine: boolean;
+  user_id: number | null;
+  votes: number | null;
+}
+
+/** The signed-in player's view of a Finish the Phrase round. */
+export interface FinishRound {
+  number: number;
+  prompt: string;
+  max_length: number;
+  min_answers: number;
+  answered_user_ids: number[];
+  my_answer: string | null;
+  /** Shuffled, once the vote opens. */
+  answers: FinishAnswer[] | null;
+  voted_user_ids: number[];
+  /** The position of the ending I voted for. */
+  my_vote: number | null;
+  scoring: { win: number };
+  started_at: string;
+  voting_started_at: string | null;
+  ended_at: string | null;
+  result: { ending: 'voted' | 'abandoned'; winner_user_ids: number[] } | null;
 }
 
 /** The signed-in player's view of a Phrase deal: only their own word, until it ends. */
@@ -160,6 +192,7 @@ export interface Game {
   round?: Round | null;
   phrase?: PhraseRound | null;
   song?: SongRound | null;
+  finish?: FinishRound | null;
   /** Seconds per round, or null for no timer. */
   round_seconds?: number | null;
   /** Earlier rounds, newest first (the one on show is left out). */
@@ -266,6 +299,12 @@ export interface CreatePhraseGameInput {
 
 export interface CreateSongGameInput {
   title: string;
+  max_players: number;
+}
+
+export interface CreateFinishGameInput {
+  title: string;
+  phrase_language: Locale;
   max_players: number;
 }
 

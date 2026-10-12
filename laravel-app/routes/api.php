@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\FinishController;
 use App\Http\Controllers\Api\GameController;
 use App\Http\Controllers\Api\InvitationController;
 use App\Http\Controllers\Api\LobbyController;
@@ -45,6 +46,8 @@ Route::prefix('v1')->group(function () {
             Route::post('games/phrase', [PhraseController::class, 'store']);
             Route::get('games/song', [SongController::class, 'home']);
             Route::post('games/song', [SongController::class, 'store']);
+            Route::get('games/finish', [FinishController::class, 'home']);
+            Route::post('games/finish', [FinishController::class, 'store']);
             Route::post('games', [GameController::class, 'store']);
             Route::get('games/{code}', [GameController::class, 'show']);
             Route::get('games/{code}/voice', [VoiceController::class, 'showByCode'])->middleware('throttle:30,1');
@@ -68,6 +71,11 @@ Route::prefix('v1')->group(function () {
             Route::post('games/{code}/song/turn', [SongController::class, 'turn']);
             Route::post('games/{code}/song/vote', [SongController::class, 'vote']);
             Route::post('games/{code}/song/close', [SongController::class, 'close']);
+            Route::post('games/{code}/finish/start', [FinishController::class, 'start']);
+            Route::post('games/{code}/finish/answer', [FinishController::class, 'answer']);
+            Route::post('games/{code}/finish/voting', [FinishController::class, 'voting']);
+            Route::post('games/{code}/finish/vote', [FinishController::class, 'vote']);
+            Route::post('games/{code}/finish/close', [FinishController::class, 'close']);
 
             Route::get('locations', [LocationController::class, 'index']);
 

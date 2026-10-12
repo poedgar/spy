@@ -104,6 +104,7 @@ const statusLabel = (status: Game['status']) =>
                         spy: t('Your Operations'),
                         phrase: t('Your Phrase games'),
                         song: t('Your Sing It Out games'),
+                        finish: t('Your Finish the Phrase games'),
                     }[gameType]
                 }}
             </h2>

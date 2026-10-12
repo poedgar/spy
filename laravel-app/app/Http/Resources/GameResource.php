@@ -5,6 +5,7 @@ namespace App\Http\Resources;
 use App\Enums\GameStatus;
 use App\Enums\GameType;
 use App\Enums\InvitationStatus;
+use App\Models\FinishRound;
 use App\Models\Game;
 use App\Models\GameRound;
 use App\Models\Invitation;
@@ -91,7 +92,7 @@ class GameResource extends JsonResource
             // Earlier rounds, newest first. The one shown as the current
             // result is left out so it isn't listed twice.
             'history' => $this->when(
-                $this->relationLoaded('pastRounds') || $this->relationLoaded('pastPhraseRounds') || $this->relationLoaded('pastSongRounds'),
+                $this->relationLoaded('pastRounds') || $this->relationLoaded('pastPhraseRounds') || $this->relationLoaded('pastSongRounds') || $this->relationLoaded('pastFinishRounds'),
                 fn () => $this->history(),
             ),
             'phrase' => $this->when(
@@ -106,6 +107,12 @@ class GameResource extends JsonResource
                     ? null
                     : SongRoundResource::make($this->currentSongRound),
             ),
+            'finish' => $this->when(
+                $this->game_type === GameType::Finish && $this->relationLoaded('currentFinishRound'),
+                fn () => $this->status === GameStatus::Recruiting || $this->currentFinishRound === null
+                    ? null
+                    : FinishRoundResource::make($this->currentFinishRound),
+            ),
         ];
     }
 
@@ -115,6 +122,23 @@ class GameResource extends JsonResource
     private function history(): array
     {
         $shown = $this->status === GameStatus::Completed ? $this->currentRoundNumber() : null;
+
+        if ($this->game_type === GameType::Finish) {
+            return array_values($this->pastFinishRounds
+                ->reject(fn (FinishRound $round) => $round->number === $shown)
+                ->map(function (FinishRound $round) {
+                    $winner = ($round->winner_user_ids ?? [])[0] ?? null;
+
+                    return [
+                        'number' => $round->number,
+                        'ending' => $round->ending,
+                        'prompt' => $round->text,
+                        'best_answer' => $winner === null ? null : ($round->answers[$winner] ?? null),
+                        'winner_user_ids' => $round->winner_user_ids ?? [],
+                        'ended_at' => $round->ended_at?->toIso8601String(),
+                    ];
+                })->all());
+        }
 
         if ($this->game_type === GameType::Song) {
             return array_values($this->pastSongRounds
@@ -158,6 +182,7 @@ class GameResource extends JsonResource
         $current = match ($this->game_type) {
             GameType::Phrase => $this->resource->currentPhraseRound,
             GameType::Song => $this->resource->currentSongRound,
+            GameType::Finish => $this->resource->currentFinishRound,
             default => $this->resource->currentRound,
         };
 

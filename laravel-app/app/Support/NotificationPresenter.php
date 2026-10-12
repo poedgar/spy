@@ -25,6 +25,7 @@ class NotificationPresenter
         $home = match ($type) {
             'phrase' => '/games/phrase',
             'song' => '/games/song',
+            'finish' => '/games/finish',
             default => '/games/spy',
         };
         $lobby = $code ? "/games/{$code}" : $home;
@@ -73,6 +74,8 @@ class NotificationPresenter
                 match (true) {
                     $type === 'song' && filled($data['song_winners'] ?? null) => $t(':names sang best in :title!', ['names' => $data['song_winners'], 'title' => $title]),
                     $type === 'song' => $t('Nobody got a vote in :title.', ['title' => $title]),
+                    $type === 'finish' && filled($data['finish_winners'] ?? null) => $t(':names wrote the best ending in :title!', ['names' => $data['finish_winners'], 'title' => $title]),
+                    $type === 'finish' => $t('Nobody got a vote in :title.', ['title' => $title]),
                     ($data['winning_team'] ?? null) === 'spies' => $t('The spies won in :title.', ['title' => $title]),
                     ($data['winning_team'] ?? null) === 'loyalists' => $t('The loyalists won in :title.', ['title' => $title]),
                     ($data['phrase_ending'] ?? null) === 'guessed' => $t(':codename guessed the phrase in :title!', ['codename' => $data['winner_codename'] ?? '', 'title' => $title]),
@@ -105,6 +108,7 @@ class NotificationPresenter
                 match ($type) {
                     'phrase' => $t('Open :title to see your word.', ['title' => $title]),
                     'song' => $t('Open :title to hear the clip.', ['title' => $title]),
+                    'finish' => $t('Open :title and finish the phrase.', ['title' => $title]),
                     default => $t('Open :title to see your role.', ['title' => $title]),
                 },
                 $lobby,

@@ -9,6 +9,7 @@ describe('Game picker', () => {
             .and('have.attr', 'href', '/games/spy');
         cy.get('#tile-phrase').should('have.attr', 'href', '/games/phrase');
         cy.get('#tile-song').should('have.attr', 'href', '/games/song');
+        cy.get('#tile-finish').should('have.attr', 'href', '/games/finish');
 
         cy.get('#tile-spy').click();
         cy.url().should('include', '/games/spy');

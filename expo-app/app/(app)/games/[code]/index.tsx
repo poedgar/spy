@@ -10,6 +10,7 @@ import { Screen } from '@/components/Screen';
 import { applyServerErrors } from '@/forms/applyServerErrors';
 import { PhraseLobby } from '@/game/PhraseLobby';
 import { SpyLobby } from '@/game/SpyLobby';
+import { FinishLobby } from '@/finish/FinishLobby';
 import { SongLobby } from '@/song/SongLobby';
 import { useI18n } from '@/i18n/I18nProvider';
 import { useGameChannel, useRealtimeConnected } from '@/realtime/RealtimeProvider';
@@ -78,7 +79,9 @@ export default function Lobby() {
   return (
     <>
       <Stack.Screen options={{ title: game.data.title }} />
-      {game.data.game_type === 'song' ? (
+      {game.data.game_type === 'finish' ? (
+        <FinishLobby game={game.data} refreshing={game.isRefetching} onRefresh={refresh} />
+      ) : game.data.game_type === 'song' ? (
         <SongLobby game={game.data} refreshing={game.isRefetching} onRefresh={refresh} />
       ) : game.data.game_type === 'phrase' ? (
         <PhraseLobby game={game.data} refreshing={game.isRefetching} onRefresh={refresh} />

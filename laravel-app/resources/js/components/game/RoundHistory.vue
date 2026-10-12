@@ -17,7 +17,7 @@ function spyOutcome(entry: NonNullable<Game['history']>[number]): string {
     return entry.winning_team === 'spies' ? t('Spies won') : t('Loyalists won');
 }
 
-function songOutcome(entry: NonNullable<Game['history']>[number]): string {
+function votedOutcome(entry: NonNullable<Game['history']>[number]): string {
     const winners = entry.winner_user_ids ?? [];
 
     if (entry.ending === 'abandoned') {
@@ -60,8 +60,15 @@ function phraseOutcome(entry: NonNullable<Game['history']>[number]): string {
                     t('Round :number', { number: entry.number })
                 }}</span>
                 ·
-                <template v-if="game.game_type === 'song'">
-                    “{{ entry.song }}” · {{ songOutcome(entry) }}
+                <template v-if="game.game_type === 'finish'">
+                    {{ entry.prompt }}
+                    <span v-if="entry.best_answer" class="italic">{{
+                        entry.best_answer
+                    }}</span>
+                    · {{ votedOutcome(entry) }}
+                </template>
+                <template v-else-if="game.game_type === 'song'">
+                    “{{ entry.song }}” · {{ votedOutcome(entry) }}
                 </template>
                 <template v-else-if="game.game_type === 'phrase'">
                     “{{ entry.phrase }}” · {{ phraseOutcome(entry) }}

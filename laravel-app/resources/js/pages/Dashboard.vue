@@ -28,6 +28,12 @@ const songRules = [
     'After the last singer, everyone votes for the best performance (not their own). The most votes win a point.',
 ];
 
+const finishRules = [
+    'The host deals the beginning of a phrase; everyone gets the same one.',
+    'Everyone writes their own ending: witty, absurd or wise. Nobody sees the others yet.',
+    'The endings are shown without names, and everyone votes for the best (not their own). The most votes win a point.',
+];
+
 const rules = [
     'The host creates an operation and shares the invite code; 3 to 12 operatives can play.',
     'When the round starts, everyone secretly reveals their role. Loyal operatives see the location; spies do not.',
@@ -89,6 +95,21 @@ const rules = [
                     }}
                 </p>
             </Link>
+
+            <Link
+                id="tile-finish"
+                href="/games/finish"
+                class="rounded-xl border border-sidebar-border/70 p-4 hover:border-primary dark:border-sidebar-border"
+            >
+                <h2 class="font-semibold">{{ t('Finish the Phrase') }}</h2>
+                <p class="mt-1 text-sm text-muted-foreground">
+                    {{
+                        t(
+                            'Everyone gets the same beginning of a phrase and writes an ending. Then vote for the best, without knowing whose it is.',
+                        )
+                    }}
+                </p>
+            </Link>
         </div>
 
         <section
@@ -108,6 +129,12 @@ const rules = [
             </h2>
             <ol class="mt-2 list-decimal space-y-1 pl-5 text-sm">
                 <li v-for="rule in songRules" :key="rule">{{ t(rule) }}</li>
+            </ol>
+            <h2 class="mt-4 font-semibold">
+                {{ t('How to play Finish the Phrase') }}
+            </h2>
+            <ol class="mt-2 list-decimal space-y-1 pl-5 text-sm">
+                <li v-for="rule in finishRules" :key="rule">{{ t(rule) }}</li>
             </ol>
         </section>
     </div>

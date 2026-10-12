@@ -47,6 +47,16 @@ export default function GamePicker() {
           </AppText>
         </Card>
       </Pressable>
+      <Pressable testID="tile-finish" accessibilityRole="button" onPress={() => router.push('/finish')}>
+        <Card>
+          <AppText variant="heading">{t('Finish the Phrase')}</AppText>
+          <AppText variant="muted">
+            {t(
+              'Everyone gets the same beginning of a phrase and writes an ending. Then vote for the best, without knowing whose it is.',
+            )}
+          </AppText>
+        </Card>
+      </Pressable>
     </Screen>
   );
 }

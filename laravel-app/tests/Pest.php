@@ -136,6 +136,16 @@ function songGame(int $count): array
     return gameWithPlayers($count, ['game_type' => GameType::Song, 'game_mode' => null, 'mission_briefing' => null, 'max_players' => 10]);
 }
 
+/**
+ * A Finish the Phrase game: the host plus $count - 1 players.
+ *
+ * @return array{0: Game, 1: User, 2: list<User>}
+ */
+function finishGame(int $count, string $language = 'en'): array
+{
+    return gameWithPlayers($count, ['game_type' => GameType::Finish, 'game_mode' => null, 'mission_briefing' => null, 'max_players' => 10, 'phrase_language' => $language]);
+}
+
 /** A clip: a stretch of a YouTube video. */
 function songClip(string $title = 'Bohemian Rhapsody', ?string $artist = 'Queen'): Song
 {

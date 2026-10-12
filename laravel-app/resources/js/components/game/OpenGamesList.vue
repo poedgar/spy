@@ -29,6 +29,12 @@ function details(game: OpenGame): string {
         return t('Sing It Out');
     }
 
+    if (game.game_type === 'finish') {
+        return game.phrase_language === 'uk'
+            ? t('Finish the Phrase · Українська')
+            : t('Finish the Phrase · English');
+    }
+
     if (game.game_type === 'phrase') {
         return game.phrase_language === 'uk'
             ? t('Ukrainian phrases')

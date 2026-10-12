@@ -7,6 +7,7 @@ import type {
   CreateGameInput,
   CreatePhraseGameInput,
   CreateSongGameInput,
+  CreateFinishGameInput,
   Game,
   InvitableUser,
   Invitation,
@@ -84,6 +85,14 @@ export const gamesApi = {
   voteForSinger: (code: string, singerId: number) =>
     request<Game>('POST', `/games/${enc(code)}/song/vote`, { singer_id: singerId }),
   closeSongVoting: (code: string) => request<Game>('POST', `/games/${enc(code)}/song/close`),
+  finishHome: () => request<SpyHome>('GET', '/games/finish'),
+  createFinish: (input: CreateFinishGameInput) => request<Game>('POST', '/games/finish', input),
+  startFinish: (code: string) => request<Game>('POST', `/games/${enc(code)}/finish/start`),
+  submitEnding: (code: string, ending: string) => request<Game>('POST', `/games/${enc(code)}/finish/answer`, { ending }),
+  startFinishVoting: (code: string) => request<Game>('POST', `/games/${enc(code)}/finish/voting`),
+  voteForEnding: (code: string, position: number) =>
+    request<Game>('POST', `/games/${enc(code)}/finish/vote`, { answer: position }),
+  closeFinishVoting: (code: string) => request<Game>('POST', `/games/${enc(code)}/finish/close`),
   startPhrase: (code: string) => request<Game>('POST', `/games/${enc(code)}/phrase/start`),
   passTurn: (code: string) => request<Game>('POST', `/games/${enc(code)}/phrase/turn`),
   revealPhrase: (code: string) => request<Game>('POST', `/games/${enc(code)}/phrase/reveal`),

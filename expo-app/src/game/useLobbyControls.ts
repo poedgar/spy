@@ -37,7 +37,9 @@ export function useLobbyControls(game: Game) {
     const params = { title: game.title, code: game.code, link: `marvelousgames://join/${game.code}` };
     return Share.share({
       message:
-        game.game_type === 'song'
+        game.game_type === 'finish'
+          ? t('Join my Finish the Phrase game ":title" with invite code :code: :link', params)
+          : game.game_type === 'song'
           ? t('Join my Sing It Out game ":title" with invite code :code: :link', params)
           : game.game_type === 'phrase'
             ? t('Join my Phrase game ":title" with invite code :code: :link', params)

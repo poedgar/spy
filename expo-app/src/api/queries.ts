@@ -2,12 +2,21 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useFocusEffect } from 'expo-router';
 import { useCallback, useRef } from 'react';
 import { gamesApi, notificationsApi } from './endpoints';
-import { type AgeTier, type CreateGameInput, type CreatePhraseGameInput, type CreateSongGameInput, type Game, isJoinRequested } from './types';
+import {
+  type AgeTier,
+  type CreateFinishGameInput,
+  type CreateGameInput,
+  type CreatePhraseGameInput,
+  type CreateSongGameInput,
+  type Game,
+  isJoinRequested,
+} from './types';
 
 export const queryKeys = {
   spyHome: ['spyHome'] as const,
   phraseHome: ['phraseHome'] as const,
   songHome: ['songHome'] as const,
+  finishHome: ['finishHome'] as const,
   notifications: ['notifications'] as const,
   game: (code: string) => ['game', code] as const,
   invitable: (code: string, search = '') => ['invitable', code, search] as const,
@@ -16,6 +25,10 @@ export const queryKeys = {
 
 export function useSpyHome() {
   return useQuery({ queryKey: queryKeys.spyHome, queryFn: gamesApi.spyHome });
+}
+
+export function useFinishHome() {
+  return useQuery({ queryKey: queryKeys.finishHome, queryFn: gamesApi.finishHome });
 }
 
 export function useSongHome() {
@@ -64,6 +77,7 @@ function useCacheLobby() {
     void queryClient.invalidateQueries({ queryKey: queryKeys.spyHome });
     void queryClient.invalidateQueries({ queryKey: queryKeys.phraseHome });
     void queryClient.invalidateQueries({ queryKey: queryKeys.songHome });
+    void queryClient.invalidateQueries({ queryKey: queryKeys.finishHome });
   };
 }
 
@@ -74,6 +88,13 @@ export function useCreateGame() {
 export function useCreateSongGame() {
   return useMutation({
     mutationFn: (input: CreateSongGameInput) => gamesApi.createSong(input),
+    onSuccess: useCacheLobby(),
+  });
+}
+
+export function useCreateFinishGame() {
+  return useMutation({
+    mutationFn: (input: CreateFinishGameInput) => gamesApi.createFinish(input),
     onSuccess: useCacheLobby(),
   });
 }
@@ -120,7 +141,7 @@ export function useJoinRequest() {
       void queryClient.invalidateQueries({ queryKey: queryKeys.spyHome });
       void queryClient.invalidateQueries({ queryKey: queryKeys.phraseHome });
       void queryClient.invalidateQueries({ queryKey: queryKeys.songHome });
-    void queryClient.invalidateQueries({ queryKey: queryKeys.songHome });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.finishHome });
     },
   });
 }
@@ -137,6 +158,9 @@ type LobbyAction =
   | { type: 'ready' | 'start' | 'voting' | 'tally' | 'reset' | 'phrase-start' | 'phrase-turn' | 'phrase-reveal' }
   | { type: 'song-start' | 'song-turn' | 'song-close' }
   | { type: 'song-vote'; singerId: number }
+  | { type: 'finish-start' | 'finish-voting' | 'finish-close' }
+  | { type: 'finish-answer'; ending: string }
+  | { type: 'finish-vote'; position: number }
   | { type: 'vote'; suspectId: number }
   | { type: 'approval'; requiresApproval: boolean }
   | { type: 'rename'; title: string }
@@ -177,6 +201,16 @@ export function useLobbyAction(code: string) {
           return gamesApi.voteForSinger(code, action.singerId);
         case 'song-close':
           return gamesApi.closeSongVoting(code);
+        case 'finish-start':
+          return gamesApi.startFinish(code);
+        case 'finish-answer':
+          return gamesApi.submitEnding(code, action.ending);
+        case 'finish-voting':
+          return gamesApi.startFinishVoting(code);
+        case 'finish-vote':
+          return gamesApi.voteForEnding(code, action.position);
+        case 'finish-close':
+          return gamesApi.closeFinishVoting(code);
         case 'approval':
           return gamesApi.updateSettings(code, { requires_approval: action.requiresApproval });
         case 'rename':
@@ -226,7 +260,7 @@ export function useLeaveGame(code: string, options: { close?: boolean } = {}) {
       void queryClient.invalidateQueries({ queryKey: queryKeys.spyHome });
       void queryClient.invalidateQueries({ queryKey: queryKeys.phraseHome });
       void queryClient.invalidateQueries({ queryKey: queryKeys.songHome });
-    void queryClient.invalidateQueries({ queryKey: queryKeys.songHome });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.finishHome });
     },
   });
 }

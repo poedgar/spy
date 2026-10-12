@@ -36,6 +36,8 @@ class GameNameGenerator
             [GameType::Phrase, 'uk'] => "Клуб фраз «{$name}»",
             [GameType::Song, 'en'] => "Song Night: {$name}",
             [GameType::Song, 'uk'] => "Пісенний вечір «{$name}»",
+            [GameType::Finish, 'en'] => "Wit Night: {$name}",
+            [GameType::Finish, 'uk'] => "Вечір дотепів «{$name}»",
         };
     }
 }

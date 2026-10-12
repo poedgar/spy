@@ -31,6 +31,11 @@ class DashboardController extends Controller
         return inertia('games/Song', $this->homeProps($request, $home, GameType::Song));
     }
 
+    public function finish(Request $request, GameHomeQuery $home): Response
+    {
+        return inertia('games/Finish', $this->homeProps($request, $home, GameType::Finish));
+    }
+
     /**
      * @return array<string, mixed>
      */

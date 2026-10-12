@@ -54,6 +54,12 @@ class GameController extends Controller
             ]);
         }
 
+        if ($game->game_type === GameType::Finish) {
+            return inertia('games/FinishLobby', [
+                'game' => GameResource::make($game)->resolve($request),
+            ]);
+        }
+
         if ($game->game_type === GameType::Song) {
             return inertia('games/SongLobby', [
                 'game' => GameResource::make($game)->resolve($request),
@@ -99,6 +105,7 @@ class GameController extends Controller
         return match ($game->game_type) {
             GameType::Phrase => 'games.phrase',
             GameType::Song => 'games.song',
+            GameType::Finish => 'games.finish',
             default => 'games.spy',
         };
     }

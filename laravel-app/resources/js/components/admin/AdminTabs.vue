@@ -10,6 +10,7 @@ const tabs = [
     { label: 'Locations', href: '/admin/locations' },
     { label: 'Phrases', href: '/admin/phrases' },
     { label: 'Songs', href: '/admin/songs' },
+    { label: 'Beginnings', href: '/admin/prompts' },
     { label: 'Feedback', href: '/admin/feedback' },
 ];
 </script>

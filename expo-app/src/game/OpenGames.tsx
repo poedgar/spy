@@ -20,7 +20,11 @@ export function OpenGames({ games, loading }: { games: OpenGame[] | undefined; l
   const joinRequest = useJoinRequest();
 
   const details = (game: OpenGame) =>
-    game.game_type === 'song'
+    game.game_type === 'finish'
+      ? game.phrase_language === 'uk'
+        ? t('Finish the Phrase · Українська')
+        : t('Finish the Phrase · English')
+      : game.game_type === 'song'
       ? t('Sing It Out')
       : game.game_type === 'phrase'
       ? game.phrase_language === 'uk'

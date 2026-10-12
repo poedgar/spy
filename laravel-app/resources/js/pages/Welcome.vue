@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Head, Link } from '@inertiajs/vue3';
-import { MessageSquareQuote, Mic, VenetianMask } from '@lucide/vue';
+import { MessageSquareQuote, Mic, PenLine, VenetianMask } from '@lucide/vue';
 import FeedbackForm from '@/components/FeedbackForm.vue';
 import LanguageSwitcher from '@/components/LanguageSwitcher.vue';
 import { useTrans } from '@/composables/useTrans';
@@ -47,6 +47,19 @@ const games = [
         ],
         play: 'Play Sing It Out',
         path: '/games/song',
+    },
+    {
+        id: 'finish',
+        icon: PenLine,
+        name: 'Finish the Phrase',
+        intro: 'Everyone gets the same beginning of a phrase and writes an ending. Then vote for the best, without knowing whose it is.',
+        steps: [
+            'The host deals the beginning of a phrase; everyone gets the same one.',
+            'Everyone writes their own ending: witty, absurd or wise. Nobody sees the others yet.',
+            'The endings are shown without names, and everyone votes for the best (not their own). The most votes win a point.',
+        ],
+        play: 'Play Finish the Phrase',
+        path: '/games/finish',
     },
 ];
 </script>
@@ -101,7 +114,7 @@ const games = [
                 </p>
             </div>
 
-            <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            <div class="grid gap-4 md:grid-cols-2">
                 <section
                     v-for="game in games"
                     :id="`welcome-${game.id}`"

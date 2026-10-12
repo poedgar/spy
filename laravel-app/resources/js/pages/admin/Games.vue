@@ -12,12 +12,13 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { confirmAction } from '@/composables/useConfirm';
 import { useTrans } from '@/composables/useTrans';
+import type { GameType } from '@/types/game';
 
 interface AdminGame {
     id: number;
     code: string;
     title: string;
-    type: 'spy' | 'phrase';
+    type: GameType;
     status: 'recruiting' | 'active' | 'voting' | 'completed';
     host: { id: number; codename: string } | null;
     players: string[];
@@ -98,6 +99,13 @@ watch(
 );
 watch(() => [form.type, form.status], apply);
 
+const typeLabels = computed<Record<GameType, string>>(() => ({
+    spy: t('Spy'),
+    phrase: t('Phrase'),
+    song: t('Sing It Out'),
+    finish: t('Finish the Phrase'),
+}));
+
 const statusLabels = computed<Record<AdminGame['status'], string>>(() => ({
     recruiting: t('Recruiting'),
     active: t('Round in progress'),
@@ -177,6 +185,8 @@ async function removeAllAbandoned() {
                 <option value="">{{ t('All types') }}</option>
                 <option value="spy">{{ t('Spy') }}</option>
                 <option value="phrase">{{ t('Phrase') }}</option>
+                <option value="song">{{ t('Sing It Out') }}</option>
+                <option value="finish">{{ t('Finish the Phrase') }}</option>
             </FilterSelect>
             <FilterSelect id="select-admin-game-status" v-model="form.status">
                 <option value="">{{ t('Any status') }}</option>
@@ -267,9 +277,7 @@ async function removeAllAbandoned() {
                             >
                                 <span class="font-mono">{{ game.code }}</span>
                                 <Badge variant="outline">{{
-                                    game.type === 'phrase'
-                                        ? t('Phrase')
-                                        : t('Spy')
+                                    typeLabels[game.type]
                                 }}</Badge>
                                 <Badge
                                     v-if="game.is_listed"
