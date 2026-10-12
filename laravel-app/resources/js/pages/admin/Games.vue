@@ -104,6 +104,7 @@ const typeLabels = computed<Record<GameType, string>>(() => ({
     phrase: t('Phrase'),
     song: t('Sing It Out'),
     finish: t('Finish the Phrase'),
+    meaning: t('Interpret the Phrase'),
 }));
 
 const statusLabels = computed<Record<AdminGame['status'], string>>(() => ({
@@ -187,6 +188,7 @@ async function removeAllAbandoned() {
                 <option value="phrase">{{ t('Phrase') }}</option>
                 <option value="song">{{ t('Sing It Out') }}</option>
                 <option value="finish">{{ t('Finish the Phrase') }}</option>
+                <option value="meaning">{{ t('Interpret the Phrase') }}</option>
             </FilterSelect>
             <FilterSelect id="select-admin-game-status" v-model="form.status">
                 <option value="">{{ t('Any status') }}</option>

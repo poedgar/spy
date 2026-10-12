@@ -11,6 +11,7 @@ use App\Actions\Finish\VoteForEnding;
 use App\Enums\GameType;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreFinishGameRequest;
+use App\Http\Requests\StoreMeaningGameRequest;
 use App\Http\Resources\GameResource;
 use App\Http\Resources\InvitationResource;
 use App\Models\FinishRound;
@@ -20,20 +21,33 @@ use Illuminate\Http\Request;
 
 class FinishController extends Controller
 {
-    public function home(Request $request, GameHomeQuery $home): JsonResponse
+    /**
+     * Finish the Phrase and Interpret the Phrase share these actions.
+     */
+    public function home(Request $request, GameHomeQuery $home, GameType $type = GameType::Finish): JsonResponse
     {
         return response()->json([
-            'games' => GameResource::collection($home->games($request->user(), GameType::Finish)),
-            'open_games' => $home->openGames($request->user(), GameType::Finish),
-            'pending_invitations' => InvitationResource::collection($home->pendingInvitations($request->user(), GameType::Finish)),
+            'games' => GameResource::collection($home->games($request->user(), $type)),
+            'open_games' => $home->openGames($request->user(), $type),
+            'pending_invitations' => InvitationResource::collection($home->pendingInvitations($request->user(), $type)),
         ]);
+    }
+
+    public function meaningHome(Request $request, GameHomeQuery $home): JsonResponse
+    {
+        return $this->home($request, $home, GameType::Meaning);
     }
 
     public function store(StoreFinishGameRequest $request, CreateFinishGame $createGame): JsonResponse
     {
-        $game = $createGame->handle($request->user(), $request->validated());
+        $game = $createGame->handle($request->user(), $request->validated(), $request->gameType());
 
         return GameController::lobby($game)->response()->setStatusCode(201);
+    }
+
+    public function storeMeaning(StoreMeaningGameRequest $request, CreateFinishGame $createGame): JsonResponse
+    {
+        return $this->store($request, $createGame);
     }
 
     public function start(Request $request, string $code, StartFinishRound $startRound): GameResource

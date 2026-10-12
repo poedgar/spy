@@ -3,7 +3,6 @@
 namespace App\Actions\Finish;
 
 use App\Enums\GameStatus;
-use App\Enums\GameType;
 use App\Events\GameUpdated;
 use App\Exceptions\GameRuleException;
 use App\Models\FinishRound;
@@ -16,12 +15,12 @@ use App\Support\GameNews;
 use Illuminate\Support\Facades\DB;
 
 /**
- * Counts the votes: the most-voted ending wins its author a point, and a tie
+ * Counts the votes: the most-voted answer wins its author a point, and a tie
  * rewards everyone tied. With no votes at all, nobody scores.
  */
 class CloseFinishVoting
 {
-    /** Points for the best ending. */
+    /** Points for the best answer. */
     public const WIN_POINTS = 1;
 
     /**
@@ -31,7 +30,7 @@ class CloseFinishVoting
      */
     public function handle(Game $game, User $actor, bool $byHost = true): void
     {
-        $game->ensureType(GameType::Finish);
+        $game->ensureWritten();
 
         if ($byHost) {
             abort_unless($game->isHost($actor), 403);

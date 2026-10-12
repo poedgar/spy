@@ -40,7 +40,7 @@ class ResetGame
                 ]);
             }
 
-            if ($game->game_type === GameType::Finish && $game->status->inRound()) {
+            if ($game->game_type->isWritten() && $game->status->inRound()) {
                 $game->currentFinishRound()->firstOrFail()->update([
                     'ended_at' => now(),
                     'ending' => FinishRound::ENDING_ABANDONED,

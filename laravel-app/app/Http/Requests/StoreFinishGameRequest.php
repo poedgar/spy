@@ -8,8 +8,17 @@ use App\Support\GameNameGenerator;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
+/**
+ * A new written game: Finish the Phrase here, Interpret the Phrase in the
+ * subclass.
+ */
 class StoreFinishGameRequest extends FormRequest
 {
+    public function gameType(): GameType
+    {
+        return GameType::Finish;
+    }
+
     public function authorize(): bool
     {
         return true;
@@ -25,7 +34,7 @@ class StoreFinishGameRequest extends FormRequest
         $validated = parent::validated($key, $default);
 
         if ($key === null && is_array($validated) && blank($validated['title'] ?? null)) {
-            $validated['title'] = GameNameGenerator::for(GameType::Finish);
+            $validated['title'] = GameNameGenerator::for($this->gameType());
         }
 
         return $validated;
@@ -38,9 +47,9 @@ class StoreFinishGameRequest extends FormRequest
     {
         return [
             'title' => ['nullable', 'string', 'max:255'],
-            // The language of the beginnings dealt.
+            // The language of the phrases dealt.
             'phrase_language' => ['required', 'string', Rule::enum(Locale::class)],
-            'max_players' => ['required', 'integer', 'min:'.GameType::Finish->minPlayers(), 'max:'.GameType::Finish->maxPlayers()],
+            'max_players' => ['required', 'integer', 'min:'.$this->gameType()->minPlayers(), 'max:'.$this->gameType()->maxPlayers()],
             'requires_approval' => ['sometimes', 'boolean'],
             'is_listed' => ['sometimes', 'boolean'],
         ];

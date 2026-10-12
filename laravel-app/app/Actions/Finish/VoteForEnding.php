@@ -3,7 +3,6 @@
 namespace App\Actions\Finish;
 
 use App\Enums\GameStatus;
-use App\Enums\GameType;
 use App\Events\GameUpdated;
 use App\Exceptions\GameRuleException;
 use App\Models\Game;
@@ -12,8 +11,8 @@ use App\Support\BestEffortBroadcast;
 use Illuminate\Support\Facades\DB;
 
 /**
- * A player picks the best ending (not their own) by its place in the list:
- * endings stay nameless until the vote closes. Votes can change until then;
+ * A player picks the best answer (not their own) by its place in the list:
+ * answers stay nameless until the vote closes. Votes can change until then;
  * it closes once everyone has voted.
  */
 class VoteForEnding
@@ -26,7 +25,7 @@ class VoteForEnding
     public function handle(Game $game, User $voter, int $position): void
     {
         abort_unless($game->hasPlayer($voter), 403);
-        $game->ensureType(GameType::Finish);
+        $game->ensureWritten();
 
         $everyoneVoted = DB::transaction(function () use ($game, $voter, $position): bool {
             $game = $game->freshLocked();
@@ -39,11 +38,11 @@ class VoteForEnding
             $authorId = $round->authorAt($position);
 
             if ($authorId === null) {
-                throw new GameRuleException('answer', __('There is no such ending.'));
+                throw new GameRuleException('answer', __('There is no such answer.'));
             }
 
             if ($authorId === $voter->id) {
-                throw new GameRuleException('answer', __('Vote for someone else’s ending.'));
+                throw new GameRuleException('answer', __('Vote for someone else’s answer.'));
             }
 
             $votes = $round->votes ?? [];

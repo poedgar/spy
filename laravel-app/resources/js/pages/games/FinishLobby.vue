@@ -22,6 +22,46 @@ const { t, isHost, canStart, busy, playerName, act, me } = useLobby(
 );
 
 const finish = computed(() => props.game.finish ?? null);
+// Interpret the Phrase plays on the same lobby: answers explain the phrase
+// instead of finishing it.
+const interpreting = computed(() => props.game.game_type === 'meaning');
+const copy = computed(() =>
+    interpreting.value
+        ? {
+              game: t('Interpret the Phrase'),
+              write: t('Write your interpretation'),
+              progress: t(
+                  ':done of :total wrote. Nobody sees the interpretations until the vote, and then without names.',
+                  {
+                      done: answeredCount.value,
+                      total: props.game.players.length,
+                  },
+              ),
+              placeholder: t('It means…'),
+              send: t('Send my interpretation'),
+              update: t('Update my interpretation'),
+              which: t('Which interpretation is the best?'),
+              winners: (names: string) =>
+                  t(':names gave the best interpretation!', { names }),
+          }
+        : {
+              game: t('Finish the Phrase'),
+              write: t('Write your ending'),
+              progress: t(
+                  ':done of :total wrote. Nobody sees the endings until the vote, and then without names.',
+                  {
+                      done: answeredCount.value,
+                      total: props.game.players.length,
+                  },
+              ),
+              placeholder: t('…and here is how it ends'),
+              send: t('Send my ending'),
+              update: t('Update my ending'),
+              which: t('Which ending is the best?'),
+              winners: (names: string) =>
+                  t(':names wrote the best ending!', { names }),
+          },
+);
 const writing = computed(() => props.game.status === 'active');
 const voting = computed(() => props.game.status === 'voting');
 const inRound = computed(() => writing.value || voting.value);
@@ -76,7 +116,7 @@ function vote(position: number) {
                             max: game.max_players,
                         })
                     }}
-                    · {{ t('Finish the Phrase') }} ·
+                    · {{ copy.game }} ·
                     {{
                         game.phrase_language === 'uk' ? 'Українська' : 'English'
                     }}
@@ -160,15 +200,10 @@ function vote(position: number) {
         >
             <h2 class="flex items-center gap-2 font-semibold">
                 <PenLine class="size-5" />
-                {{ t('Write your ending') }}
+                {{ copy.write }}
             </h2>
             <p class="mt-1 text-sm text-muted-foreground">
-                {{
-                    t(
-                        ':done of :total wrote. Nobody sees the endings until the vote, and then without names.',
-                        { done: answeredCount, total: game.players.length },
-                    )
-                }}
+                {{ copy.progress }}
             </p>
             <form
                 v-if="me"
@@ -181,7 +216,7 @@ function vote(position: number) {
                     v-model="form.ending"
                     rows="2"
                     :maxlength="finish.max_length"
-                    :placeholder="t('…and here is how it ends')"
+                    :placeholder="copy.placeholder"
                     class="rounded-md border border-input bg-transparent px-3 py-2 shadow-xs"
                 />
                 <InputError :message="form.errors.ending" />
@@ -191,11 +226,7 @@ function vote(position: number) {
                         type="submit"
                         :disabled="form.processing || !form.ending.trim()"
                     >
-                        {{
-                            finish.my_answer
-                                ? t('Update my ending')
-                                : t('Send my ending')
-                        }}
+                        {{ finish.my_answer ? copy.update : copy.send }}
                     </Button>
                     <span
                         v-if="finish.my_answer"
@@ -215,7 +246,7 @@ function vote(position: number) {
         >
             <h2 class="flex items-center gap-2 font-semibold">
                 <Vote class="size-5" />
-                {{ t('Which ending is the best?') }}
+                {{ copy.which }}
             </h2>
             <p class="mt-1 text-sm text-muted-foreground">
                 {{
@@ -244,10 +275,10 @@ function vote(position: number) {
                     :disabled="busy || answer.mine || !me"
                     @click="vote(answer.position)"
                 >
-                    <span class="text-muted-foreground">{{
-                        finish.prompt
-                    }}</span>
-                    <span class="font-medium"> {{ answer.text }}</span>
+                    <span v-if="!interpreting" class="text-muted-foreground"
+                        >{{ finish.prompt }}
+                    </span>
+                    <span class="font-medium">{{ answer.text }}</span>
                     <span
                         v-if="answer.mine"
                         class="ml-2 text-xs text-muted-foreground"
@@ -271,14 +302,22 @@ function vote(position: number) {
                 <Trophy class="size-5" />
                 {{
                     winners.length
-                        ? t(':names wrote the best ending!', {
-                              names: winners
-                                  .map((id) => playerName(id))
-                                  .join(', '),
-                          })
+                        ? copy.winners(
+                              winners.map((id) => playerName(id)).join(', '),
+                          )
                         : t('Nobody got a vote this time.')
                 }}
             </h2>
+            <p
+                v-if="finish.result.meaning"
+                id="real-meaning"
+                class="mt-2 rounded-lg bg-muted/50 p-3 text-sm"
+            >
+                <span class="font-semibold">{{
+                    t('What it really means:')
+                }}</span>
+                {{ finish.result.meaning }}
+            </p>
             <ul class="mt-3 space-y-2 text-sm">
                 <li
                     v-for="answer in results"
@@ -292,7 +331,7 @@ function vote(position: number) {
                     "
                 >
                     <span>
-                        <span class="text-muted-foreground"
+                        <span v-if="!interpreting" class="text-muted-foreground"
                             >{{ finish.prompt }}
                         </span>
                         {{ answer.text }}

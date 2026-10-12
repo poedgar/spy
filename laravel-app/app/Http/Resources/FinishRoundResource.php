@@ -9,9 +9,10 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
 /**
- * One player's view of a Finish the Phrase round. While players write, only
- * who has written shows (and your own ending). The vote lists the endings
- * without names, in a shuffled order; names and totals come with the result.
+ * One player's view of a written round (Finish or Interpret the Phrase).
+ * While players write, only who has written shows (and your own answer).
+ * The vote lists the answers without names, in a shuffled order; names,
+ * totals and the phrase's real meaning come with the result.
  *
  * @mixin FinishRound
  */
@@ -53,6 +54,7 @@ class FinishRoundResource extends JsonResource
             'ended_at' => $this->ended_at?->toIso8601String(),
             'result' => $ended ? [
                 'ending' => $this->ending,
+                'meaning' => $this->meaning,
                 'winner_user_ids' => $this->winner_user_ids ?? [],
             ] : null,
         ];

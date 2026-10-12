@@ -8,13 +8,16 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
 
 /**
- * One Finish the Phrase round: a beginning, everyone's ending, then the vote.
+ * One round of a written game: a phrase, everyone's answer (an ending in
+ * Finish the Phrase, an interpretation in Interpret the Phrase), then the
+ * vote. The `answers` naming follows Finish the Phrase.
  *
  * @property int $id
  * @property int $game_id
  * @property int $number
  * @property int $prompt_id
  * @property string $text
+ * @property string|null $meaning what an interpreted phrase really means
  * @property array<int|string, string>|null $answers author id => ending
  * @property list<int>|null $answer_order authors, in the order shown for voting
  * @property array<int|string, int>|null $votes voter id => chosen author id
@@ -24,7 +27,7 @@ use Illuminate\Support\Carbon;
  * @property Carbon|null $voting_started_at
  * @property Carbon|null $ended_at
  */
-#[Fillable(['game_id', 'number', 'prompt_id', 'text', 'answers', 'answer_order', 'votes', 'winner_user_ids', 'ending', 'started_at', 'voting_started_at', 'ended_at'])]
+#[Fillable(['game_id', 'number', 'prompt_id', 'text', 'meaning', 'answers', 'answer_order', 'votes', 'winner_user_ids', 'ending', 'started_at', 'voting_started_at', 'ended_at'])]
 class FinishRound extends Model
 {
     public const ENDING_VOTED = 'voted';

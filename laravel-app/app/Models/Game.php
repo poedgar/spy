@@ -121,6 +121,16 @@ class Game extends Model
         }
     }
 
+    /**
+     * @throws GameRuleException
+     */
+    public function ensureWritten(): void
+    {
+        if (! $this->game_type->isWritten()) {
+            throw new GameRuleException('game', __('That action is not part of this game.'));
+        }
+    }
+
     public function isHost(User $user): bool
     {
         return $this->host_id === $user->id;
@@ -287,6 +297,8 @@ class Game extends Model
     }
 
     /**
+     * Rounds of a written game: Finish the Phrase or Interpret the Phrase.
+     *
      * @return HasMany<FinishRound, $this>
      */
     public function finishRounds(): HasMany
@@ -295,7 +307,7 @@ class Game extends Model
     }
 
     /**
-     * The latest Finish the Phrase round, finished or not.
+     * The latest round of a written game (Finish or Interpret the Phrase), finished or not.
      *
      * @return HasOne<FinishRound, $this>
      */
@@ -305,7 +317,7 @@ class Game extends Model
     }
 
     /**
-     * Finished Finish the Phrase rounds, newest first, for the lobby's history.
+     * Finished rounds of a written game, newest first, for the lobby's history.
      *
      * @return HasMany<FinishRound, $this>
      */

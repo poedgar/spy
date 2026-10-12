@@ -92,7 +92,7 @@ test('the vote lists endings without names; your own cannot be chosen; results n
           { ...answers[1], user_id: 1, votes: 1 },
           { ...answers[2], user_id: 2, votes: 2 },
         ],
-        result: { ending: 'voted', winner_user_ids: [2] },
+        result: { ending: 'voted', meaning: null, winner_user_ids: [2] },
       }),
     }),
   );

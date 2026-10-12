@@ -7,13 +7,13 @@ use App\Models\FinishRound;
 use App\Models\Game;
 
 /**
- * Moves a round from writing to voting: the endings are shuffled so the
+ * Moves a round from writing to voting: the answers are shuffled so the
  * order gives nobody away. Runs inside the caller's transaction, on a game
  * the caller has locked.
  */
 class OpenFinishVoting
 {
-    /** Voting needs a choice: at least two endings. */
+    /** Voting needs a choice: at least two answers. */
     public const MIN_ANSWERS = 2;
 
     public function handle(Game $game, FinishRound $round): void

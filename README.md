@@ -6,9 +6,11 @@ interprete a phrase, continue a phrase
 Party games for friends, on the web and on phones: **Spy** (everyone knows
 the location except the spies), **Phrase** (everyone holds one word of a
 famous phrase), **Sing It Out** / Доспівай (everyone hears the same clip,
-sings how it goes on in turns, then votes for the best) and **Finish the
+sings how it goes on in turns, then votes for the best), **Finish the
 Phrase** / Продовж фразу (everyone writes an ending to the same beginning,
-then votes for the best without names). English and Ukrainian.
+then votes for the best without names) and **Interpret the Phrase** /
+Розтлумач фразу (everyone explains the same idiom, votes for the best
+explanation, then sees the real meaning). English and Ukrainian.
 
 | Folder         | What it is                                                                 |
 | -------------- | -------------------------------------------------------------------------- |

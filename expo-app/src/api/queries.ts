@@ -10,6 +10,7 @@ import {
   type CreateSongGameInput,
   type Game,
   isJoinRequested,
+  type WrittenGameType,
 } from './types';
 
 export const queryKeys = {
@@ -17,6 +18,7 @@ export const queryKeys = {
   phraseHome: ['phraseHome'] as const,
   songHome: ['songHome'] as const,
   finishHome: ['finishHome'] as const,
+  meaningHome: ['meaningHome'] as const,
   notifications: ['notifications'] as const,
   game: (code: string) => ['game', code] as const,
   invitable: (code: string, search = '') => ['invitable', code, search] as const,
@@ -29,6 +31,10 @@ export function useSpyHome() {
 
 export function useFinishHome() {
   return useQuery({ queryKey: queryKeys.finishHome, queryFn: gamesApi.finishHome });
+}
+
+export function useMeaningHome() {
+  return useQuery({ queryKey: queryKeys.meaningHome, queryFn: gamesApi.meaningHome });
 }
 
 export function useSongHome() {
@@ -78,6 +84,7 @@ function useCacheLobby() {
     void queryClient.invalidateQueries({ queryKey: queryKeys.phraseHome });
     void queryClient.invalidateQueries({ queryKey: queryKeys.songHome });
     void queryClient.invalidateQueries({ queryKey: queryKeys.finishHome });
+    void queryClient.invalidateQueries({ queryKey: queryKeys.meaningHome });
   };
 }
 
@@ -92,9 +99,10 @@ export function useCreateSongGame() {
   });
 }
 
-export function useCreateFinishGame() {
+/** Creates a Finish the Phrase or an Interpret the Phrase game. */
+export function useCreateFinishGame(type: WrittenGameType) {
   return useMutation({
-    mutationFn: (input: CreateFinishGameInput) => gamesApi.createFinish(input),
+    mutationFn: (input: CreateFinishGameInput) => gamesApi.createWritten(type, input),
     onSuccess: useCacheLobby(),
   });
 }
@@ -142,6 +150,7 @@ export function useJoinRequest() {
       void queryClient.invalidateQueries({ queryKey: queryKeys.phraseHome });
       void queryClient.invalidateQueries({ queryKey: queryKeys.songHome });
       void queryClient.invalidateQueries({ queryKey: queryKeys.finishHome });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.meaningHome });
     },
   });
 }
@@ -261,6 +270,7 @@ export function useLeaveGame(code: string, options: { close?: boolean } = {}) {
       void queryClient.invalidateQueries({ queryKey: queryKeys.phraseHome });
       void queryClient.invalidateQueries({ queryKey: queryKeys.songHome });
       void queryClient.invalidateQueries({ queryKey: queryKeys.finishHome });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.meaningHome });
     },
   });
 }

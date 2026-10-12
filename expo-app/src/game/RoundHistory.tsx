@@ -17,7 +17,7 @@ export function RoundHistory({ game }: { game: Game }) {
 
   const outcome = (entry: HistoryEntry) => {
     if (entry.ending === 'abandoned') return t('Abandoned');
-    if (game.game_type === 'song' || game.game_type === 'finish') {
+    if (game.game_type === 'song' || game.game_type === 'finish' || game.game_type === 'meaning') {
       const winners = entry.winner_user_ids ?? [];
       return winners.length ? t('Best: :names', { names: winners.map((id) => name(id)).join(', ') }) : t('No votes');
     }
@@ -38,7 +38,9 @@ export function RoundHistory({ game }: { game: Game }) {
         ? history.map((entry) => (
             <AppText key={entry.number} testID={`history-${entry.number}`}>
               {t('Round :number', { number: entry.number })} ·{' '}
-              {game.game_type === 'finish'
+              {game.game_type === 'meaning'
+                ? `“${entry.prompt ?? ''}”${entry.best_answer ? ` — ${entry.best_answer}` : ''}`
+                : game.game_type === 'finish'
                 ? `${entry.prompt ?? ''}${entry.best_answer ? ` ${entry.best_answer}` : ''}`
                 : game.game_type === 'song'
                 ? `“${entry.song ?? '?'}”`

@@ -9,6 +9,7 @@ use App\Actions\Finish\StartFinishVoting;
 use App\Actions\Finish\SubmitEnding;
 use App\Actions\Finish\VoteForEnding;
 use App\Http\Requests\StoreFinishGameRequest;
+use App\Http\Requests\StoreMeaningGameRequest;
 use App\Models\FinishRound;
 use App\Models\Game;
 use Illuminate\Http\RedirectResponse;
@@ -16,11 +17,19 @@ use Illuminate\Http\Request;
 
 class FinishController extends Controller
 {
+    /**
+     * Finish the Phrase and Interpret the Phrase share these actions.
+     */
     public function store(StoreFinishGameRequest $request, CreateFinishGame $createGame): RedirectResponse
     {
-        $game = $createGame->handle($request->user(), $request->validated());
+        $game = $createGame->handle($request->user(), $request->validated(), $request->gameType());
 
         return to_route('games.show', $game);
+    }
+
+    public function storeMeaning(StoreMeaningGameRequest $request, CreateFinishGame $createGame): RedirectResponse
+    {
+        return $this->store($request, $createGame);
     }
 
     public function start(Request $request, Game $game, StartFinishRound $startRound): RedirectResponse

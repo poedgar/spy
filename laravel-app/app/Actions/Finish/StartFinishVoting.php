@@ -3,7 +3,6 @@
 namespace App\Actions\Finish;
 
 use App\Enums\GameStatus;
-use App\Enums\GameType;
 use App\Events\GameUpdated;
 use App\Exceptions\GameRuleException;
 use App\Models\Game;
@@ -24,7 +23,7 @@ class StartFinishVoting
     public function handle(Game $game, User $host): void
     {
         abort_unless($game->isHost($host), 403);
-        $game->ensureType(GameType::Finish);
+        $game->ensureWritten();
 
         DB::transaction(function () use ($game): void {
             $game = $game->freshLocked();
@@ -36,7 +35,7 @@ class StartFinishVoting
             $round = $game->currentFinishRound()->firstOrFail();
 
             if (count($round->authorIds()) < OpenFinishVoting::MIN_ANSWERS) {
-                throw new GameRuleException('game', __('Voting needs at least :count endings.', ['count' => OpenFinishVoting::MIN_ANSWERS]));
+                throw new GameRuleException('game', __('Voting needs at least :count answers.', ['count' => OpenFinishVoting::MIN_ANSWERS]));
             }
 
             $this->openVoting->handle($game, $round);

@@ -79,7 +79,7 @@ export default function Lobby() {
   return (
     <>
       <Stack.Screen options={{ title: game.data.title }} />
-      {game.data.game_type === 'finish' ? (
+      {game.data.game_type === 'finish' || game.data.game_type === 'meaning' ? (
         <FinishLobby game={game.data} refreshing={game.isRefetching} onRefresh={refresh} />
       ) : game.data.game_type === 'song' ? (
         <SongLobby game={game.data} refreshing={game.isRefetching} onRefresh={refresh} />

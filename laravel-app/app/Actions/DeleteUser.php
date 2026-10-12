@@ -66,7 +66,7 @@ class DeleteUser
             $game->currentSongRound()->firstOrFail()->update(['ending' => SongRound::ENDING_ABANDONED, 'ended_at' => now()]);
         }
 
-        if ($game->game_type === GameType::Finish && $game->status->inRound()) {
+        if ($game->game_type->isWritten() && $game->status->inRound()) {
             $game->currentFinishRound()->firstOrFail()->update(['ending' => FinishRound::ENDING_ABANDONED, 'ended_at' => now()]);
         }
 

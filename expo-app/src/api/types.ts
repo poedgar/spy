@@ -61,7 +61,9 @@ export interface Round {
   result: RoundResult | null;
 }
 
-export type GameType = 'spy' | 'phrase' | 'song' | 'finish';
+export type GameType = 'spy' | 'phrase' | 'song' | 'finish' | 'meaning';
+/** Games where everyone writes an answer to the same phrase, then votes. */
+export type WrittenGameType = 'finish' | 'meaning';
 
 export interface HistoryEntry {
   number: number;
@@ -115,7 +117,7 @@ export interface FinishAnswer {
   votes: number | null;
 }
 
-/** The signed-in player's view of a Finish the Phrase round. */
+/** The signed-in player's view of a written round (Finish or Interpret the Phrase). */
 export interface FinishRound {
   number: number;
   prompt: string;
@@ -132,7 +134,8 @@ export interface FinishRound {
   started_at: string;
   voting_started_at: string | null;
   ended_at: string | null;
-  result: { ending: 'voted' | 'abandoned'; winner_user_ids: number[] } | null;
+  /** `meaning`: what an interpreted phrase really means, when known. */
+  result: { ending: 'voted' | 'abandoned'; meaning: string | null; winner_user_ids: number[] } | null;
 }
 
 /** The signed-in player's view of a Phrase deal: only their own word, until it ends. */

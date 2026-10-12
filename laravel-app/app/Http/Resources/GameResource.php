@@ -108,7 +108,7 @@ class GameResource extends JsonResource
                     : SongRoundResource::make($this->currentSongRound),
             ),
             'finish' => $this->when(
-                $this->game_type === GameType::Finish && $this->relationLoaded('currentFinishRound'),
+                $this->game_type->isWritten() && $this->relationLoaded('currentFinishRound'),
                 fn () => $this->status === GameStatus::Recruiting || $this->currentFinishRound === null
                     ? null
                     : FinishRoundResource::make($this->currentFinishRound),
@@ -123,7 +123,7 @@ class GameResource extends JsonResource
     {
         $shown = $this->status === GameStatus::Completed ? $this->currentRoundNumber() : null;
 
-        if ($this->game_type === GameType::Finish) {
+        if ($this->game_type->isWritten()) {
             return array_values($this->pastFinishRounds
                 ->reject(fn (FinishRound $round) => $round->number === $shown)
                 ->map(function (FinishRound $round) {
@@ -182,7 +182,7 @@ class GameResource extends JsonResource
         $current = match ($this->game_type) {
             GameType::Phrase => $this->resource->currentPhraseRound,
             GameType::Song => $this->resource->currentSongRound,
-            GameType::Finish => $this->resource->currentFinishRound,
+            GameType::Finish, GameType::Meaning => $this->resource->currentFinishRound,
             default => $this->resource->currentRound,
         };
 

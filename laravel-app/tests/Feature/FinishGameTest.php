@@ -49,8 +49,8 @@ test('a round needs three players and deals a beginning in the game\'s language 
     $this->postJson("/api/v1/games/{$game[0]->code}/finish/start")->assertUnprocessable();
 
     GamePlayer::factory()->create(['game_id' => $game[0]->id, 'user_id' => User::factory()]);
-    [$used, $fresh] = Prompt::where('language', 'uk')->take(2)->get();
-    Prompt::where('language', 'uk')->whereNotIn('id', [$used->id, $fresh->id])->delete();
+    [$used, $fresh] = Prompt::where('game_type', 'finish')->where('language', 'uk')->take(2)->get();
+    Prompt::where('game_type', 'finish')->where('language', 'uk')->whereNotIn('id', [$used->id, $fresh->id])->delete();
     $game[0]->finishRounds()->create(['number' => 1, 'prompt_id' => $used->id, 'text' => $used->text, 'started_at' => now(), 'ended_at' => now()]);
 
     $this->postJson("/api/v1/games/{$game[0]->code}/finish/start")
@@ -63,12 +63,12 @@ test('a round needs three players and deals a beginning in the game\'s language 
 
 test('with no beginnings in the language, the host is told', function () {
     $game = finishGame(3);
-    Prompt::where('language', 'en')->delete();
+    Prompt::where('game_type', 'finish')->where('language', 'en')->delete();
     Sanctum::actingAs($game[1]);
 
     $this->postJson("/api/v1/games/{$game[0]->code}/finish/start")
         ->assertUnprocessable()
-        ->assertJsonPath('errors.game.0', 'There are no phrase beginnings in this language yet. An admin needs to add some.');
+        ->assertJsonPath('errors.game.0', 'There are no phrases for this game in this language yet. An admin needs to add some.');
 });
 
 test('endings stay private while players write, and the vote opens when everyone has one', function () {

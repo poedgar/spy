@@ -3,6 +3,11 @@ import { useForm } from '@inertiajs/vue3';
 import GameNameInput from '@/components/GameNameInput.vue';
 import { useTrans, type Locale } from '@/composables/useTrans';
 
+/** Finish the Phrase and Interpret the Phrase create games the same way. */
+const props = withDefaults(defineProps<{ type?: 'finish' | 'meaning' }>(), {
+    type: 'finish',
+});
+
 const { t, locale } = useTrans();
 
 const MAX_PLAYERS = 10;
@@ -19,23 +24,29 @@ const form = useForm({
 });
 
 function submit() {
-    form.post('/games/finish');
+    form.post(`/games/${props.type}`);
 }
 </script>
 
 <template>
     <form
-        id="create-finish-form"
+        :id="`create-${type}-form`"
         class="space-y-3 rounded-xl border border-sidebar-border/70 p-4 dark:border-sidebar-border"
         @submit.prevent="submit"
     >
-        <h2 class="font-semibold">{{ t('New Finish the Phrase game') }}</h2>
+        <h2 class="font-semibold">
+            {{
+                type === 'meaning'
+                    ? t('New Interpret the Phrase game')
+                    : t('New Finish the Phrase game')
+            }}
+        </h2>
 
         <div>
             <GameNameInput
-                id="input-finish-title"
+                :id="`input-${type}-title`"
                 v-model="form.title"
-                type="finish"
+                :type="type"
                 :placeholder="t('Game title')"
             />
             <p v-if="form.errors.title" class="mt-1 text-sm text-red-600">
@@ -71,12 +82,12 @@ function submit() {
 
         <div>
             <label
-                for="input-finish-max-players"
+                :for="`input-${type}-max-players`"
                 class="mb-1 block text-sm font-medium"
                 >{{ t('Players') }}: {{ form.max_players }}</label
             >
             <input
-                id="input-finish-max-players"
+                :id="`input-${type}-max-players`"
                 v-model.number="form.max_players"
                 type="number"
                 :min="MIN_PLAYERS"
@@ -107,7 +118,7 @@ function submit() {
         </label>
 
         <button
-            id="btn-create-finish"
+            :id="`btn-create-${type}`"
             type="submit"
             :disabled="form.processing"
             class="rounded bg-primary px-3 py-1.5 text-primary-foreground"

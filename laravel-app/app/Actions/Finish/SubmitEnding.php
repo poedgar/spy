@@ -3,7 +3,6 @@
 namespace App\Actions\Finish;
 
 use App\Enums\GameStatus;
-use App\Enums\GameType;
 use App\Events\GameUpdated;
 use App\Exceptions\GameRuleException;
 use App\Models\FinishRound;
@@ -13,8 +12,8 @@ use App\Support\BestEffortBroadcast;
 use Illuminate\Support\Facades\DB;
 
 /**
- * A player writes (or rewrites) their ending. Once everyone has one, the
- * vote opens by itself.
+ * A player writes (or rewrites) their answer: an ending, or an
+ * interpretation. Once everyone has one, the vote opens by itself.
  */
 class SubmitEnding
 {
@@ -26,19 +25,19 @@ class SubmitEnding
     public function handle(Game $game, User $author, string $ending): void
     {
         abort_unless($game->hasPlayer($author), 403);
-        $game->ensureType(GameType::Finish);
+        $game->ensureWritten();
 
         $ending = trim(preg_replace('/\s+/u', ' ', $ending) ?? '');
 
         if ($ending === '') {
-            throw new GameRuleException('ending', __('Write an ending first.'));
+            throw new GameRuleException('ending', __('Write your answer first.'));
         }
 
         DB::transaction(function () use ($game, $author, $ending): void {
             $game = $game->freshLocked();
 
             if ($game->status !== GameStatus::Active) {
-                throw new GameRuleException('ending', __('Endings can only be written before the vote.'));
+                throw new GameRuleException('ending', __('Answers can only be written before the vote.'));
             }
 
             $round = $game->currentFinishRound()->firstOrFail();

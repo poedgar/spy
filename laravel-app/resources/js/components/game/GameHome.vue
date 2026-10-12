@@ -105,6 +105,7 @@ const statusLabel = (status: Game['status']) =>
                         phrase: t('Your Phrase games'),
                         song: t('Your Sing It Out games'),
                         finish: t('Your Finish the Phrase games'),
+                        meaning: t('Your Interpret the Phrase games'),
                     }[gameType]
                 }}
             </h2>

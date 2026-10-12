@@ -23,8 +23,9 @@ interface Props {
 }
 
 /**
- * The lobby of a Finish the Phrase game: one beginning, everyone writes an
- * ending, then a vote on the endings without names.
+ * The lobby of a written game: one phrase, everyone writes an answer (an
+ * ending in Finish the Phrase, an interpretation in Interpret the Phrase),
+ * then a vote on the answers without names.
  */
 export function FinishLobby({ game, refreshing, onRefresh }: Props) {
   const { me, t, isHost, canStart, busy, pending, run, confirm, name } = useLobbyControls(game);
@@ -43,6 +44,37 @@ export function FinishLobby({ game, refreshing, onRefresh }: Props) {
   const ending = draft && draft.round === finish?.number ? draft.text : (finish?.my_answer ?? '');
   const setEnding = (text: string) => finish && setDraft({ round: finish.number, text });
 
+  const interpreting = game.game_type === 'meaning';
+  const copy = interpreting
+    ? {
+        game: t('Interpret the Phrase'),
+        write: t('Write your interpretation'),
+        progress: t(':done of :total wrote. Nobody sees the interpretations until the vote, and then without names.', {
+          done: answered,
+          total: game.player_count,
+        }),
+        placeholder: t('It means…'),
+        send: t('Send my interpretation'),
+        update: t('Update my interpretation'),
+        which: t('Which interpretation is the best?'),
+        winners: (names: string) => t(':names gave the best interpretation!', { names }),
+      }
+    : {
+        game: t('Finish the Phrase'),
+        write: t('Write your ending'),
+        progress: t(':done of :total wrote. Nobody sees the endings until the vote, and then without names.', {
+          done: answered,
+          total: game.player_count,
+        }),
+        placeholder: t('…and here is how it ends'),
+        send: t('Send my ending'),
+        update: t('Update my ending'),
+        which: t('Which ending is the best?'),
+        winners: (names: string) => t(':names wrote the best ending!', { names }),
+      };
+  // Endings read on from the beginning; interpretations stand alone.
+  const lead = interpreting ? '' : `${finish?.prompt ?? ''} `;
+
   const ranked = [...(finish?.answers ?? [])].sort((a, b) => (b.votes ?? 0) - (a.votes ?? 0));
 
   return (
@@ -52,7 +84,7 @@ export function FinishLobby({ game, refreshing, onRefresh }: Props) {
         inRound={inRound}
         meta={
           <AppText variant="muted" testID="lobby-meta">
-            {t(':count / :max players', { count: game.player_count, max: game.max_players })} · {t('Finish the Phrase')}{' '}
+            {t(':count / :max players', { count: game.player_count, max: game.max_players })} · {copy.game}{' '}
             · {game.phrase_language === 'uk' ? 'Українська' : 'English'}
           </AppText>
         }
@@ -105,18 +137,13 @@ export function FinishLobby({ game, refreshing, onRefresh }: Props) {
 
       {writing && finish ? (
         <Card testID="writing-card">
-          <AppText variant="heading">{t('Write your ending')}</AppText>
-          <AppText variant="muted">
-            {t(':done of :total wrote. Nobody sees the endings until the vote, and then without names.', {
-              done: answered,
-              total: game.player_count,
-            })}
-          </AppText>
+          <AppText variant="heading">{copy.write}</AppText>
+          <AppText variant="muted">{copy.progress}</AppText>
           {isPlayer ? (
             <>
               <TextField
                 testID="input-ending"
-                label={t('…and here is how it ends')}
+                label={copy.placeholder}
                 value={ending}
                 onChangeText={setEnding}
                 maxLength={finish.max_length}
@@ -124,7 +151,7 @@ export function FinishLobby({ game, refreshing, onRefresh }: Props) {
               />
               <Button
                 testID="btn-send-ending"
-                label={finish.my_answer ? t('Update my ending') : t('Send my ending')}
+                label={finish.my_answer ? copy.update : copy.send}
                 loading={busy && pending?.type === 'finish-answer'}
                 disabled={busy || !ending.trim()}
                 onPress={() => run({ type: 'finish-answer', ending: ending.trim() })}
@@ -141,7 +168,7 @@ export function FinishLobby({ game, refreshing, onRefresh }: Props) {
 
       {voting && finish?.answers ? (
         <Card testID="voting-card">
-          <AppText variant="heading">{t('Which ending is the best?')}</AppText>
+          <AppText variant="heading">{copy.which}</AppText>
           <AppText variant="muted">
             {t(':voted of :total voted. Votes are secret; you can change yours until the vote closes.', {
               voted: finish.voted_user_ids.length,
@@ -169,7 +196,7 @@ export function FinishLobby({ game, refreshing, onRefresh }: Props) {
                 >
                   <AppText>
                     {chosen ? '✓ ' : ''}
-                    <AppText variant="muted">{finish.prompt} </AppText>
+                    {lead ? <AppText variant="muted">{lead}</AppText> : null}
                     {answer.text}
                     {answer.mine ? ` (${t('yours')})` : ''}
                   </AppText>
@@ -187,15 +214,21 @@ export function FinishLobby({ game, refreshing, onRefresh }: Props) {
         >
           <AppText variant="heading">
             {result.winner_user_ids.length
-              ? t(':names wrote the best ending!', { names: result.winner_user_ids.map((id) => name(id)).join(', ') })
+              ? copy.winners(result.winner_user_ids.map((id) => name(id)).join(', '))
               : t('Nobody got a vote this time.')}
           </AppText>
+          {result.meaning ? (
+            <AppText testID="real-meaning">
+              <AppText style={{ fontWeight: '600' }}>{t('What it really means:')}</AppText> {result.meaning}
+            </AppText>
+          ) : null}
           {ranked.map((answer) => (
             <AppText
               key={answer.position}
               variant={answer.user_id !== null && result.winner_user_ids.includes(answer.user_id) ? 'body' : 'muted'}
             >
-              {finish.prompt} {answer.text} — {name(answer.user_id)} ·{' '}
+              {lead}
+              {answer.text} — {name(answer.user_id)} ·{' '}
               {t(':count votes', { count: answer.votes ?? 0 })}
             </AppText>
           ))}

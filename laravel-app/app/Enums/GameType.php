@@ -8,6 +8,7 @@ enum GameType: string
     case Phrase = 'phrase';
     case Song = 'song';
     case Finish = 'finish';
+    case Meaning = 'meaning';
 
     /**
      * The fewest players a round can start with, and the size a new game's
@@ -16,7 +17,7 @@ enum GameType: string
     public function minPlayers(): int
     {
         return match ($this) {
-            self::Spy, self::Phrase, self::Song, self::Finish => 3,
+            self::Spy, self::Phrase, self::Song, self::Finish, self::Meaning => 3,
         };
     }
 
@@ -28,7 +29,16 @@ enum GameType: string
     {
         return match ($this) {
             self::Spy => 12,
-            self::Phrase, self::Song, self::Finish => 10,
+            self::Phrase, self::Song, self::Finish, self::Meaning => 10,
         };
+    }
+
+    /**
+     * Games where everyone writes an answer to the same phrase and votes on
+     * the answers without names. They share one engine and rounds table.
+     */
+    public function isWritten(): bool
+    {
+        return $this === self::Finish || $this === self::Meaning;
     }
 }

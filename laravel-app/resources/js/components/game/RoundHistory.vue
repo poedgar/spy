@@ -60,7 +60,14 @@ function phraseOutcome(entry: NonNullable<Game['history']>[number]): string {
                     t('Round :number', { number: entry.number })
                 }}</span>
                 ·
-                <template v-if="game.game_type === 'finish'">
+                <template v-if="game.game_type === 'meaning'">
+                    “{{ entry.prompt }}”
+                    <span v-if="entry.best_answer" class="italic"
+                        >— {{ entry.best_answer }}</span
+                    >
+                    · {{ votedOutcome(entry) }}
+                </template>
+                <template v-else-if="game.game_type === 'finish'">
                     {{ entry.prompt }}
                     <span v-if="entry.best_answer" class="italic">{{
                         entry.best_answer

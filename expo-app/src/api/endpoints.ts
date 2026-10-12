@@ -21,6 +21,7 @@ import type {
   User,
   VoiceAccess,
   VoiceParticipant,
+  WrittenGameType,
 } from './types';
 
 const enc = encodeURIComponent;
@@ -86,7 +87,9 @@ export const gamesApi = {
     request<Game>('POST', `/games/${enc(code)}/song/vote`, { singer_id: singerId }),
   closeSongVoting: (code: string) => request<Game>('POST', `/games/${enc(code)}/song/close`),
   finishHome: () => request<SpyHome>('GET', '/games/finish'),
-  createFinish: (input: CreateFinishGameInput) => request<Game>('POST', '/games/finish', input),
+  meaningHome: () => request<SpyHome>('GET', '/games/meaning'),
+  /** Creates a Finish the Phrase or an Interpret the Phrase game. */
+  createWritten: (type: WrittenGameType, input: CreateFinishGameInput) => request<Game>('POST', `/games/${type}`, input),
   startFinish: (code: string) => request<Game>('POST', `/games/${enc(code)}/finish/start`),
   submitEnding: (code: string, ending: string) => request<Game>('POST', `/games/${enc(code)}/finish/answer`, { ending }),
   startFinishVoting: (code: string) => request<Game>('POST', `/games/${enc(code)}/finish/voting`),

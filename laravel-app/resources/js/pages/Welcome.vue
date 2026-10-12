@@ -1,6 +1,12 @@
 <script setup lang="ts">
 import { Head, Link } from '@inertiajs/vue3';
-import { MessageSquareQuote, Mic, PenLine, VenetianMask } from '@lucide/vue';
+import {
+    BookOpen,
+    MessageSquareQuote,
+    Mic,
+    PenLine,
+    VenetianMask,
+} from '@lucide/vue';
 import FeedbackForm from '@/components/FeedbackForm.vue';
 import LanguageSwitcher from '@/components/LanguageSwitcher.vue';
 import { useTrans } from '@/composables/useTrans';
@@ -61,6 +67,19 @@ const games = [
         play: 'Play Finish the Phrase',
         path: '/games/finish',
     },
+    {
+        id: 'meaning',
+        icon: BookOpen,
+        name: 'Interpret the Phrase',
+        intro: 'Everyone gets the same idiom and writes what it means. Vote for the best interpretation, then learn the real meaning.',
+        steps: [
+            'The host deals an idiom or a saying; everyone gets the same one.',
+            'Everyone writes what they think it means: serious, funny or creative.',
+            'The interpretations are shown without names, and everyone votes for the best (not their own). The most votes win a point, and then you see what the phrase really means.',
+        ],
+        play: 'Play Interpret the Phrase',
+        path: '/games/meaning',
+    },
 ];
 </script>
 
@@ -114,7 +133,7 @@ const games = [
                 </p>
             </div>
 
-            <div class="grid gap-4 md:grid-cols-2">
+            <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                 <section
                     v-for="game in games"
                     :id="`welcome-${game.id}`"

@@ -34,6 +34,12 @@ const finishRules = [
     'The endings are shown without names, and everyone votes for the best (not their own). The most votes win a point.',
 ];
 
+const meaningRules = [
+    'The host deals an idiom or a saying; everyone gets the same one.',
+    'Everyone writes what they think it means: serious, funny or creative.',
+    'The interpretations are shown without names, and everyone votes for the best (not their own). The most votes win a point, and then you see what the phrase really means.',
+];
+
 const rules = [
     'The host creates an operation and shares the invite code; 3 to 12 operatives can play.',
     'When the round starts, everyone secretly reveals their role. Loyal operatives see the location; spies do not.',
@@ -110,6 +116,21 @@ const rules = [
                     }}
                 </p>
             </Link>
+
+            <Link
+                id="tile-meaning"
+                href="/games/meaning"
+                class="rounded-xl border border-sidebar-border/70 p-4 hover:border-primary dark:border-sidebar-border"
+            >
+                <h2 class="font-semibold">{{ t('Interpret the Phrase') }}</h2>
+                <p class="mt-1 text-sm text-muted-foreground">
+                    {{
+                        t(
+                            'Everyone gets the same idiom and writes what it means. Vote for the best interpretation, then learn the real meaning.',
+                        )
+                    }}
+                </p>
+            </Link>
         </div>
 
         <section
@@ -135,6 +156,12 @@ const rules = [
             </h2>
             <ol class="mt-2 list-decimal space-y-1 pl-5 text-sm">
                 <li v-for="rule in finishRules" :key="rule">{{ t(rule) }}</li>
+            </ol>
+            <h2 class="mt-4 font-semibold">
+                {{ t('How to play Interpret the Phrase') }}
+            </h2>
+            <ol class="mt-2 list-decimal space-y-1 pl-5 text-sm">
+                <li v-for="rule in meaningRules" :key="rule">{{ t(rule) }}</li>
             </ol>
         </section>
     </div>

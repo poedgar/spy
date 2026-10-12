@@ -57,6 +57,16 @@ export default function GamePicker() {
           </AppText>
         </Card>
       </Pressable>
+      <Pressable testID="tile-meaning" accessibilityRole="button" onPress={() => router.push('/meaning')}>
+        <Card>
+          <AppText variant="heading">{t('Interpret the Phrase')}</AppText>
+          <AppText variant="muted">
+            {t(
+              'Everyone gets the same idiom and writes what it means. Vote for the best interpretation, then learn the real meaning.',
+            )}
+          </AppText>
+        </Card>
+      </Pressable>
     </Screen>
   );
 }

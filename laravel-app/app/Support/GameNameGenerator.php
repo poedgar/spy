@@ -38,6 +38,8 @@ class GameNameGenerator
             [GameType::Song, 'uk'] => "Пісенний вечір «{$name}»",
             [GameType::Finish, 'en'] => "Wit Night: {$name}",
             [GameType::Finish, 'uk'] => "Вечір дотепів «{$name}»",
+            [GameType::Meaning, 'en'] => "Riddle Club: {$name}",
+            [GameType::Meaning, 'uk'] => "Клуб тлумачів «{$name}»",
         };
     }
 }

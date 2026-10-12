@@ -73,7 +73,7 @@ export interface PhraseRound {
 }
 
 /** The games on offer. */
-export type GameType = 'spy' | 'phrase' | 'song' | 'finish';
+export type GameType = 'spy' | 'phrase' | 'song' | 'finish' | 'meaning';
 
 /** One player's view of a Sing It Out round. */
 export interface SongRound {
@@ -108,7 +108,7 @@ export interface FinishAnswer {
     votes: number | null;
 }
 
-/** One player's view of a Finish the Phrase round. */
+/** One player's view of a written round (Finish or Interpret the Phrase). */
 export interface FinishRound {
     number: number;
     prompt: string;
@@ -127,6 +127,8 @@ export interface FinishRound {
     ended_at: string | null;
     result: {
         ending: 'voted' | 'abandoned';
+        /** What an interpreted phrase really means, when known. */
+        meaning: string | null;
         winner_user_ids: number[];
     } | null;
 }

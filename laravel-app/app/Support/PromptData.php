@@ -3,9 +3,12 @@
 namespace App\Support;
 
 /**
- * The Finish the Phrase beginnings the game started with: halves of sayings
- * to give a new ending, and open prompts. They live in the `prompts` table
- * (editable on the admin pages); this list only seeds it.
+ * The phrases the written games started with. They live in the `prompts`
+ * table (editable on the admin pages); these lists only seed it.
+ *
+ * PROMPTS: Finish the Phrase beginnings, halves of sayings to give a new
+ * ending, and open prompts. MEANINGS: Interpret the Phrase idioms and
+ * sayings, each with what it really means, shown after the vote.
  */
 class PromptData
 {
@@ -81,6 +84,63 @@ class PromptData
             'Ідеальне імʼя для золотої рибки —…',
             'Учителі здивувалися б, якби дізналися, що…',
             'У 3000 році люди будуть…',
+        ],
+    ];
+
+    public const MEANINGS = [
+        'en' => [
+            ['text' => 'Break the ice', 'meaning' => 'To make people feel relaxed when they first meet.'],
+            ['text' => 'Bite the bullet', 'meaning' => 'To make yourself do something unpleasant that you have been avoiding.'],
+            ['text' => 'Spill the beans', 'meaning' => 'To tell a secret, often by accident.'],
+            ['text' => 'Once in a blue moon', 'meaning' => 'Very rarely.'],
+            ['text' => 'Under the weather', 'meaning' => 'Feeling a little ill.'],
+            ['text' => 'The ball is in your court', 'meaning' => 'It is your turn to decide or act.'],
+            ['text' => 'Hit the sack', 'meaning' => 'To go to bed.'],
+            ['text' => 'Cost an arm and a leg', 'meaning' => 'To be very expensive.'],
+            ['text' => 'Let the cat out of the bag', 'meaning' => 'To reveal a secret by mistake.'],
+            ['text' => 'Pull someone’s leg', 'meaning' => 'To joke with someone by telling them something untrue.'],
+            ['text' => 'Piece of cake', 'meaning' => 'Something very easy to do.'],
+            ['text' => 'Barking up the wrong tree', 'meaning' => 'Looking for something, or blaming someone, in the wrong place.'],
+            ['text' => 'Kill two birds with one stone', 'meaning' => 'To achieve two things with one action.'],
+            ['text' => 'Every cloud has a silver lining', 'meaning' => 'Something good can come out of a bad situation.'],
+            ['text' => 'Don’t judge a book by its cover', 'meaning' => 'Don’t decide what someone or something is like from how they look.'],
+            ['text' => 'When pigs fly', 'meaning' => 'Something that will never happen.'],
+            ['text' => 'Burn the midnight oil', 'meaning' => 'To work or study late into the night.'],
+            ['text' => 'Raining cats and dogs', 'meaning' => 'Raining very heavily.'],
+            ['text' => 'Hold your horses', 'meaning' => 'Wait; don’t rush.'],
+            ['text' => 'A blessing in disguise', 'meaning' => 'Something that seems bad at first but turns out to be good.'],
+            ['text' => 'Beat around the bush', 'meaning' => 'To avoid talking about what matters.'],
+            ['text' => 'Get cold feet', 'meaning' => 'To become nervous and want to back out of something.'],
+            ['text' => 'Cut corners', 'meaning' => 'To do something cheaply or quickly, skipping important parts.'],
+            ['text' => 'Add fuel to the fire', 'meaning' => 'To make a bad situation worse.'],
+            ['text' => 'The early bird catches the worm', 'meaning' => 'People who start early have the best chance of success.'],
+        ],
+        'uk' => [
+            ['text' => 'Бити байдики', 'meaning' => 'Ледарювати, нічого не робити.'],
+            ['text' => 'Пекти раків', 'meaning' => 'Червоніти від сорому чи ніяковості.'],
+            ['text' => 'Водити за ніс', 'meaning' => 'Обманювати, обіцяти й не виконувати.'],
+            ['text' => 'Накивати п’ятами', 'meaning' => 'Швидко втекти.'],
+            ['text' => 'Ловити ґав', 'meaning' => 'Бути неуважним, проґавити нагоду.'],
+            ['text' => 'Вилами по воді писано', 'meaning' => 'Невідомо, чи станеться; дуже сумнівно.'],
+            ['text' => 'Дати гарбуза', 'meaning' => 'Відмовити тому, хто сватається.'],
+            ['text' => 'Зарубати на носі', 'meaning' => 'Добре запам’ятати.'],
+            ['text' => 'Як з гуски вода', 'meaning' => 'Байдуже; нічого не діє.'],
+            ['text' => 'Тримати язик за зубами', 'meaning' => 'Мовчати, не розповідати зайвого.'],
+            ['text' => 'Ні пуху ні пера', 'meaning' => 'Побажання успіху перед важливою справою.'],
+            ['text' => 'Камінь спав з душі', 'meaning' => 'Стало легше, зникла тривога.'],
+            ['text' => 'Собаку з’їсти', 'meaning' => 'Добре знатися на чомусь, мати великий досвід.'],
+            ['text' => 'Через пень-колоду', 'meaning' => 'Абияк, недбало.'],
+            ['text' => 'Як сніг на голову', 'meaning' => 'Раптово, несподівано.'],
+            ['text' => 'Згори видніше', 'meaning' => 'Начальству чи тим, хто вище, краще знати (часто з іронією).'],
+            ['text' => 'Ведмежа послуга', 'meaning' => 'Допомога, яка зашкодила.'],
+            ['text' => 'Мокра курка', 'meaning' => 'Безвольна, нерішуча людина.'],
+            ['text' => 'Хоч греблю гати', 'meaning' => 'Дуже багато.'],
+            ['text' => 'Пасти задніх', 'meaning' => 'Відставати від інших.'],
+            ['text' => 'Не в своїй тарілці', 'meaning' => 'Незатишно, ніяково.'],
+            ['text' => 'Ні риба ні м’ясо', 'meaning' => 'Нічим не примітний, невиразний.'],
+            ['text' => 'Гра не варта свічок', 'meaning' => 'Справа не виправдовує зусиль.'],
+            ['text' => 'Шукати вітра в полі', 'meaning' => 'Марно шукати те, що зникло.'],
+            ['text' => 'Ведмідь на вухо наступив', 'meaning' => 'Немає музичного слуху.'],
         ],
     ];
 }

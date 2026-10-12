@@ -77,6 +77,8 @@ Route::middleware(['auth', 'verified.play'])->group(function () {
     Route::post('games/song', [SongController::class, 'store'])->name('song.store');
     Route::get('games/finish', [DashboardController::class, 'finish'])->name('games.finish');
     Route::post('games/finish', [FinishController::class, 'store'])->name('finish.store');
+    Route::get('games/meaning', [DashboardController::class, 'meaning'])->name('games.meaning');
+    Route::post('games/meaning', [FinishController::class, 'storeMeaning'])->name('meaning.store');
     Route::post('games/phrase', [PhraseController::class, 'store'])->name('phrase.store');
     Route::get('games/{code}', [GameController::class, 'show'])->name('games.show');
     Route::delete('games/{game}', [LobbyController::class, 'close'])->name('games.close');

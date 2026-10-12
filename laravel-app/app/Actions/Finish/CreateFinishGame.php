@@ -14,14 +14,16 @@ class CreateFinishGame
     /**
      * @param  array<string, mixed>  $attributes  Expected keys: title, phrase_language, max_players
      */
-    public function handle(User $host, array $attributes): Game
+    public function handle(User $host, array $attributes, GameType $type = GameType::Finish): Game
     {
-        return DB::transaction(function () use ($host, $attributes) {
+        abort_unless($type->isWritten(), 422);
+
+        return DB::transaction(function () use ($host, $attributes, $type) {
             $game = Game::create([
                 ...$attributes,
                 'code' => Game::generateUniqueCode(),
                 'host_id' => $host->id,
-                'game_type' => GameType::Finish,
+                'game_type' => $type,
             ]);
 
             GamePlayer::create([

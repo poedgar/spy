@@ -48,6 +48,8 @@ Route::prefix('v1')->group(function () {
             Route::post('games/song', [SongController::class, 'store']);
             Route::get('games/finish', [FinishController::class, 'home']);
             Route::post('games/finish', [FinishController::class, 'store']);
+            Route::get('games/meaning', [FinishController::class, 'meaningHome']);
+            Route::post('games/meaning', [FinishController::class, 'storeMeaning']);
             Route::post('games', [GameController::class, 'store']);
             Route::get('games/{code}', [GameController::class, 'show']);
             Route::get('games/{code}/voice', [VoiceController::class, 'showByCode'])->middleware('throttle:30,1');
