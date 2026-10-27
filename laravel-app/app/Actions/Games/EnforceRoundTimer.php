@@ -22,7 +22,7 @@ class EnforceRoundTimer
     public function handle(Game $game): void
     {
         // Sing It Out has no round timer.
-        if ($game->status !== GameStatus::Active || $game->round_seconds === null || $game->game_type === GameType::Song || $game->game_type->isWritten()) {
+        if ($game->status !== GameStatus::Active || $game->round_seconds === null || $game->game_type === GameType::Song || $game->game_type === GameType::Emotion || $game->game_type->isWritten()) {
             return;
         }
 

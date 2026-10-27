@@ -11,6 +11,7 @@ import { applyServerErrors } from '@/forms/applyServerErrors';
 import { useI18n } from '@/i18n/I18nProvider';
 import { useTheme } from '@/theme/useTheme';
 import { modeLabels, tierLabels } from './labels';
+import { emotionLevelLabels } from '@/emotion/labels';
 
 /** Games looking for players: ask the host for a seat, no code needed. */
 export function OpenGames({ games, loading }: { games: OpenGame[] | undefined; loading: boolean }) {
@@ -20,7 +21,9 @@ export function OpenGames({ games, loading }: { games: OpenGame[] | undefined; l
   const joinRequest = useJoinRequest();
 
   const details = (game: OpenGame) =>
-    game.game_type === 'meaning'
+    game.game_type === 'emotion'
+      ? `${t('Name the Emotion')} · ${emotionLevelLabels(t)[game.emotion_level ?? 1].label}`
+      : game.game_type === 'meaning'
       ? game.phrase_language === 'uk'
         ? t('Interpret the Phrase · Українська')
         : t('Interpret the Phrase · English')

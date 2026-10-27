@@ -10,7 +10,7 @@ import type { OpenGame } from '@/types/game';
 defineProps<{ games: OpenGame[] }>();
 
 const { t } = useTrans();
-const { modes, tiers } = useGameLabels();
+const { modes, tiers, emotionLevels } = useGameLabels();
 const busyCode = ref<string | null>(null);
 
 function send(method: 'post' | 'delete', game: OpenGame) {
@@ -27,6 +27,13 @@ function send(method: 'post' | 'delete', game: OpenGame) {
 function details(game: OpenGame): string {
     if (game.game_type === 'song') {
         return t('Sing It Out');
+    }
+
+    if (game.game_type === 'emotion') {
+        return [
+            t('Name the Emotion'),
+            emotionLevels.value[game.emotion_level ?? 1].label,
+        ].join(' · ');
     }
 
     if (game.game_type === 'meaning') {

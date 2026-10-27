@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\FaceController as AdminFaceController;
 use App\Http\Controllers\Admin\FeedbackController as AdminFeedbackController;
 use App\Http\Controllers\Admin\GameController as AdminGameController;
 use App\Http\Controllers\Admin\LocationController as AdminLocationController;
@@ -10,6 +11,7 @@ use App\Http\Controllers\Admin\UserController as AdminUserController;
 use App\Http\Controllers\ChatController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\EmailVerificationLinkController;
+use App\Http\Controllers\EmotionController;
 use App\Http\Controllers\FeedbackController;
 use App\Http\Controllers\FinishController;
 use App\Http\Controllers\FirebaseSignInController;
@@ -48,6 +50,8 @@ Route::middleware(['auth', 'can:admin'])->prefix('admin')->name('admin.')->group
     Route::post('prompts', [AdminPromptController::class, 'store'])->name('prompts.store');
     Route::put('prompts/{prompt}', [AdminPromptController::class, 'update'])->name('prompts.update');
     Route::delete('prompts/{prompt}', [AdminPromptController::class, 'destroy'])->name('prompts.destroy');
+    Route::get('faces', [AdminFaceController::class, 'index'])->name('faces.index');
+    Route::put('faces/{face}', [AdminFaceController::class, 'update'])->name('faces.update');
     Route::get('feedback', [AdminFeedbackController::class, 'index'])->name('feedback.index');
     Route::put('feedback/{feedback}', [AdminFeedbackController::class, 'update'])->name('feedback.update');
     Route::delete('feedback/{feedback}', [AdminFeedbackController::class, 'destroy'])->name('feedback.destroy');
@@ -79,6 +83,8 @@ Route::middleware(['auth', 'verified.play'])->group(function () {
     Route::post('games/finish', [FinishController::class, 'store'])->name('finish.store');
     Route::get('games/meaning', [DashboardController::class, 'meaning'])->name('games.meaning');
     Route::post('games/meaning', [FinishController::class, 'storeMeaning'])->name('meaning.store');
+    Route::get('games/emotion', [DashboardController::class, 'emotion'])->name('games.emotion');
+    Route::post('games/emotion', [EmotionController::class, 'store'])->name('emotion.store');
     Route::post('games/phrase', [PhraseController::class, 'store'])->name('phrase.store');
     Route::get('games/{code}', [GameController::class, 'show'])->name('games.show');
     Route::delete('games/{game}', [LobbyController::class, 'close'])->name('games.close');
@@ -105,6 +111,9 @@ Route::middleware(['auth', 'verified.play'])->group(function () {
     Route::post('games/{game}/finish/voting', [FinishController::class, 'voting'])->name('finish.voting');
     Route::post('games/{game}/finish/vote', [FinishController::class, 'vote'])->name('finish.vote');
     Route::post('games/{game}/finish/close', [FinishController::class, 'close'])->name('finish.close');
+    Route::post('games/{game}/emotion/start', [EmotionController::class, 'start'])->name('emotion.start');
+    Route::post('games/{game}/emotion/answer', [EmotionController::class, 'answer'])->name('emotion.answer');
+    Route::post('games/{game}/emotion/reveal', [EmotionController::class, 'reveal'])->name('emotion.reveal');
     Route::post('games/{game}/settings', [LobbyController::class, 'settings'])->name('games.settings');
     Route::delete('games/{game}/players/{user}', [LobbyController::class, 'removePlayer'])->name('games.players.remove');
     Route::post('games/{game}/host', [LobbyController::class, 'transferHost'])->name('games.host');

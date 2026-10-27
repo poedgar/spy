@@ -54,6 +54,12 @@ class GameController extends Controller
             ]);
         }
 
+        if ($game->game_type === GameType::Emotion) {
+            return inertia('games/EmotionLobby', [
+                'game' => GameResource::make($game)->resolve($request),
+            ]);
+        }
+
         if ($game->game_type->isWritten()) {
             return inertia('games/FinishLobby', [
                 'game' => GameResource::make($game)->resolve($request),
@@ -107,6 +113,7 @@ class GameController extends Controller
             GameType::Song => 'games.song',
             GameType::Finish => 'games.finish',
             GameType::Meaning => 'games.meaning',
+            GameType::Emotion => 'games.emotion',
             default => 'games.spy',
         };
     }

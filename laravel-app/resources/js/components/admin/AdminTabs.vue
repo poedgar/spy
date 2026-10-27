@@ -11,6 +11,7 @@ const tabs = [
     { label: 'Phrases', href: '/admin/phrases' },
     { label: 'Songs', href: '/admin/songs' },
     { label: 'Written games', href: '/admin/prompts' },
+    { label: 'Faces', href: '/admin/faces' },
     { label: 'Feedback', href: '/admin/feedback' },
 ];
 </script>

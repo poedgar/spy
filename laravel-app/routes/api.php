@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\EmotionController;
 use App\Http\Controllers\Api\FinishController;
 use App\Http\Controllers\Api\GameController;
 use App\Http\Controllers\Api\InvitationController;
@@ -50,6 +51,8 @@ Route::prefix('v1')->group(function () {
             Route::post('games/finish', [FinishController::class, 'store']);
             Route::get('games/meaning', [FinishController::class, 'meaningHome']);
             Route::post('games/meaning', [FinishController::class, 'storeMeaning']);
+            Route::get('games/emotion', [EmotionController::class, 'home']);
+            Route::post('games/emotion', [EmotionController::class, 'store']);
             Route::post('games', [GameController::class, 'store']);
             Route::get('games/{code}', [GameController::class, 'show']);
             Route::get('games/{code}/voice', [VoiceController::class, 'showByCode'])->middleware('throttle:30,1');
@@ -78,6 +81,9 @@ Route::prefix('v1')->group(function () {
             Route::post('games/{code}/finish/voting', [FinishController::class, 'voting']);
             Route::post('games/{code}/finish/vote', [FinishController::class, 'vote']);
             Route::post('games/{code}/finish/close', [FinishController::class, 'close']);
+            Route::post('games/{code}/emotion/start', [EmotionController::class, 'start']);
+            Route::post('games/{code}/emotion/answer', [EmotionController::class, 'answer']);
+            Route::post('games/{code}/emotion/reveal', [EmotionController::class, 'reveal']);
 
             Route::get('locations', [LocationController::class, 'index']);
 

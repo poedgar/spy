@@ -15,7 +15,7 @@ use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Support\Collection;
 
 /**
- * @phpstan-type OpenGame array{id: int, code: string, title: string, game_type: GameType, game_mode: GameMode|null, age_tier: AgeTier, phrase_language: Locale|null, player_count: int|null, max_players: int, host_codename: string, my_request: InvitationStatus|null}
+ * @phpstan-type OpenGame array{id: int, code: string, title: string, game_type: GameType, game_mode: GameMode|null, age_tier: AgeTier, phrase_language: Locale|null, emotion_level: int|null, player_count: int|null, max_players: int, host_codename: string, my_request: InvitationStatus|null}
  *
  * What a game's home screen lists: the user's games of that type, newest
  * first, and the invitations to them still waiting for an answer.
@@ -74,6 +74,7 @@ class GameHomeQuery
             'game_mode' => $game->game_mode,
             'age_tier' => $game->age_tier,
             'phrase_language' => $game->phrase_language,
+            'emotion_level' => $game->emotion_level,
             'player_count' => $game->players_count,
             'max_players' => $game->max_players,
             'host_codename' => $game->host->codename,

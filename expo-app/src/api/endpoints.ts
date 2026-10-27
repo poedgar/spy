@@ -8,6 +8,8 @@ import type {
   CreatePhraseGameInput,
   CreateSongGameInput,
   CreateFinishGameInput,
+  CreateEmotionGameInput,
+  Emotion,
   Game,
   InvitableUser,
   Invitation,
@@ -96,6 +98,12 @@ export const gamesApi = {
   voteForEnding: (code: string, position: number) =>
     request<Game>('POST', `/games/${enc(code)}/finish/vote`, { answer: position }),
   closeFinishVoting: (code: string) => request<Game>('POST', `/games/${enc(code)}/finish/close`),
+  emotionHome: () => request<SpyHome>('GET', '/games/emotion'),
+  createEmotion: (input: CreateEmotionGameInput) => request<Game>('POST', '/games/emotion', input),
+  startEmotion: (code: string) => request<Game>('POST', `/games/${enc(code)}/emotion/start`),
+  answerEmotion: (code: string, emotion: Emotion) =>
+    request<Game>('POST', `/games/${enc(code)}/emotion/answer`, { emotion }),
+  revealEmotion: (code: string) => request<Game>('POST', `/games/${enc(code)}/emotion/reveal`),
   startPhrase: (code: string) => request<Game>('POST', `/games/${enc(code)}/phrase/start`),
   passTurn: (code: string) => request<Game>('POST', `/games/${enc(code)}/phrase/turn`),
   revealPhrase: (code: string) => request<Game>('POST', `/games/${enc(code)}/phrase/reveal`),

@@ -37,7 +37,7 @@ class GameController extends Controller
 
         $games = Game::query()
             ->with(['host:id,codename,name', 'players.user:id,codename'])
-            ->withCount(['players', 'rounds', 'phraseRounds', 'songRounds', 'finishRounds'])
+            ->withCount(['players', 'rounds', 'phraseRounds', 'songRounds', 'finishRounds', 'emotionRounds'])
             ->when(mb_strlen($search) >= 2, function ($query) use ($search) {
                 $like = '%'.addcslashes(mb_strtolower($search), '%_\\').'%';
                 $query->where(fn ($query) => $query
@@ -64,7 +64,7 @@ class GameController extends Controller
                 'players_count' => (int) $game->getAttribute('players_count'),
                 'max_players' => $game->max_players,
                 'rounds_count' => $rounds = (int) $game->getAttribute('rounds_count') + (int) $game->getAttribute('phrase_rounds_count')
-                    + (int) $game->getAttribute('song_rounds_count') + (int) $game->getAttribute('finish_rounds_count'),
+                    + (int) $game->getAttribute('song_rounds_count') + (int) $game->getAttribute('finish_rounds_count') + (int) $game->getAttribute('emotion_rounds_count'),
                 'abandoned' => $game->status === GameStatus::Recruiting
                     && $rounds === 0
                     && $game->created_at?->lte(now()->subHours(Game::ABANDONED_AFTER_HOURS)),

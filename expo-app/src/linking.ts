@@ -9,13 +9,14 @@ export function isInviteCode(value: string): boolean {
 }
 
 /** The game's home screen, where its pending invitations are listed. */
-export type HomePath = '/spy' | '/phrase' | '/song' | '/finish' | '/meaning';
+export type HomePath = '/spy' | '/phrase' | '/song' | '/finish' | '/meaning' | '/emotion';
 
 export function homePathFor(gameType: unknown): HomePath {
   if (gameType === 'phrase') return '/phrase';
   if (gameType === 'song') return '/song';
   if (gameType === 'finish') return '/finish';
   if (gameType === 'meaning') return '/meaning';
+  if (gameType === 'emotion') return '/emotion';
   return '/spy';
 }
 
@@ -55,12 +56,13 @@ export function pushHrefFrom(data: unknown) {
   return invitationHrefFrom(data) ?? roundHrefFrom(data) ?? homeHrefFrom(data);
 }
 
-/** The app screen for a notification's web link (/games/spy, /games/phrase, /games/song, /games/finish, /games/meaning, /games/SPY-XXXX). */
+/** The app screen for a notification's web link (/games/spy, /games/phrase, /games/song, /games/finish, /games/meaning, /games/emotion, /games/SPY-XXXX). */
 export function notificationHref(link: string): HomePath | `/games/${string}` {
   if (link === '/games/phrase') return '/phrase';
   if (link === '/games/song') return '/song';
   if (link === '/games/finish') return '/finish';
   if (link === '/games/meaning') return '/meaning';
+  if (link === '/games/emotion') return '/emotion';
   const code = link.replace(/^\/games\//, '');
   return isInviteCode(code) ? `/games/${code}` : '/spy';
 }

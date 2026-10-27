@@ -13,7 +13,7 @@ class RoundEnded extends GameNotification
     private array $params;
 
     /**
-     * @param  array{number: int, winning_team?: string|null, phrase_ending?: string|null, winner_codename?: string|null, song_winners?: string|null, finish_winners?: string|null}  $outcome
+     * @param  array{number: int, winning_team?: string|null, phrase_ending?: string|null, winner_codename?: string|null, song_winners?: string|null, finish_winners?: string|null, emotion_winners?: string|null}  $outcome
      */
     public function __construct(Game $game, array $outcome)
     {
@@ -29,6 +29,7 @@ class RoundEnded extends GameNotification
             'winner_codename' => $outcome['winner_codename'] ?? null,
             'song_winners' => $outcome['song_winners'] ?? null,
             'finish_winners' => $outcome['finish_winners'] ?? null,
+            'emotion_winners' => $outcome['emotion_winners'] ?? null,
         ];
     }
 

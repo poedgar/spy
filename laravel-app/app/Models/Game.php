@@ -24,6 +24,7 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
  * @property GameType $game_type
  * @property GameMode|null $game_mode
  * @property Locale|null $phrase_language
+ * @property int|null $emotion_level Name the Emotion: 1 easy, 2 medium, 3 hard
  * @property AgeTier $age_tier
  * @property GameStatus $status
  * @property int $host_id
@@ -33,7 +34,7 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
  * @property int|null $round_seconds
  * @property int|null $players_count
  */
-#[Fillable(['title', 'game_mode', 'age_tier', 'phrase_language', 'code', 'host_id', 'max_players', 'mission_briefing', 'status', 'game_type', 'requires_approval', 'is_listed', 'round_seconds'])]
+#[Fillable(['title', 'game_mode', 'age_tier', 'phrase_language', 'emotion_level', 'code', 'host_id', 'max_players', 'mission_briefing', 'status', 'game_type', 'requires_approval', 'is_listed', 'round_seconds'])]
 class Game extends Model
 {
     /** @use HasFactory<GameFactory> */
@@ -41,8 +42,8 @@ class Game extends Model
 
     /** Everything a lobby shows, for eager loading. */
     public const LOBBY_RELATIONS = [
-        'host', 'players.user', 'currentRound.votes', 'currentPhraseRound.guesses', 'currentSongRound.song', 'currentFinishRound',
-        'joinRequests.user', 'invitations.toUser', 'pastRounds', 'pastPhraseRounds', 'pastSongRounds.song', 'pastFinishRounds',
+        'host', 'players.user', 'currentRound.votes', 'currentPhraseRound.guesses', 'currentSongRound.song', 'currentFinishRound', 'currentEmotionRound.face',
+        'joinRequests.user', 'invitations.toUser', 'pastRounds', 'pastPhraseRounds', 'pastSongRounds.song', 'pastFinishRounds', 'pastEmotionRounds.face',
     ];
 
     /** Round lengths a host can pick, in seconds (0 = no timer). */
@@ -69,6 +70,7 @@ class Game extends Model
             'game_type' => GameType::class,
             'game_mode' => GameMode::class,
             'phrase_language' => Locale::class,
+            'emotion_level' => 'integer',
             'requires_approval' => 'boolean',
             'is_listed' => 'boolean',
             'age_tier' => AgeTier::class,
@@ -161,7 +163,8 @@ class Game extends Model
             && ! $this->rounds()->exists()
             && ! $this->phraseRounds()->exists()
             && ! $this->songRounds()->exists()
-            && ! $this->finishRounds()->exists();
+            && ! $this->finishRounds()->exists()
+            && ! $this->emotionRounds()->exists();
     }
 
     /** A game still recruiting this long after creation, never started, is abandoned. */
@@ -181,7 +184,8 @@ class Game extends Model
             ->whereDoesntHave('rounds')
             ->whereDoesntHave('phraseRounds')
             ->whereDoesntHave('songRounds')
-            ->whereDoesntHave('finishRounds');
+            ->whereDoesntHave('finishRounds')
+            ->whereDoesntHave('emotionRounds');
     }
 
     /**
@@ -324,5 +328,33 @@ class Game extends Model
     public function pastFinishRounds(): HasMany
     {
         return $this->hasMany(FinishRound::class)->whereNotNull('ended_at')->latest('number')->limit(10);
+    }
+
+    /**
+     * @return HasMany<EmotionRound, $this>
+     */
+    public function emotionRounds(): HasMany
+    {
+        return $this->hasMany(EmotionRound::class);
+    }
+
+    /**
+     * The latest Name the Emotion round, finished or not.
+     *
+     * @return HasOne<EmotionRound, $this>
+     */
+    public function currentEmotionRound(): HasOne
+    {
+        return $this->hasOne(EmotionRound::class)->latestOfMany('number');
+    }
+
+    /**
+     * Finished Name the Emotion rounds, newest first, for the lobby's history.
+     *
+     * @return HasMany<EmotionRound, $this>
+     */
+    public function pastEmotionRounds(): HasMany
+    {
+        return $this->hasMany(EmotionRound::class)->whereNotNull('ended_at')->latest('number')->limit(10);
     }
 }

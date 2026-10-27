@@ -40,6 +40,13 @@ const meaningRules = [
     'The interpretations are shown without names, and everyone votes for the best (not their own). The most votes win a point, and then you see what the phrase really means.',
 ];
 
+const emotionRules = [
+    'The host picks a level and shows a face; everyone sees the same one.',
+    'Everyone secretly picks the emotion it shows: joy, sadness, anger, fear, surprise, disgust or neutral.',
+    'When everyone has picked, the answer is shown. Each right pick wins a point.',
+    'Easy shows clear expressions with 4 options, medium subtler ones with 6, hard the subtlest with all 7. Faces move between levels by how often players actually name them right.',
+];
+
 const rules = [
     'The host creates an operation and shares the invite code; 3 to 12 operatives can play.',
     'When the round starts, everyone secretly reveals their role. Loyal operatives see the location; spies do not.',
@@ -118,6 +125,21 @@ const rules = [
             </Link>
 
             <Link
+                id="tile-emotion"
+                href="/games/emotion"
+                class="rounded-xl border border-sidebar-border/70 p-4 hover:border-primary dark:border-sidebar-border"
+            >
+                <h2 class="font-semibold">{{ t('Name the Emotion') }}</h2>
+                <p class="mt-1 text-sm text-muted-foreground">
+                    {{
+                        t(
+                            'Everyone sees the same face and picks the emotion it shows. Three levels, from clear expressions to the subtlest.',
+                        )
+                    }}
+                </p>
+            </Link>
+
+            <Link
                 id="tile-meaning"
                 href="/games/meaning"
                 class="rounded-xl border border-sidebar-border/70 p-4 hover:border-primary dark:border-sidebar-border"
@@ -162,6 +184,12 @@ const rules = [
             </h2>
             <ol class="mt-2 list-decimal space-y-1 pl-5 text-sm">
                 <li v-for="rule in meaningRules" :key="rule">{{ t(rule) }}</li>
+            </ol>
+            <h2 class="mt-4 font-semibold">
+                {{ t('How to play Name the Emotion') }}
+            </h2>
+            <ol class="mt-2 list-decimal space-y-1 pl-5 text-sm">
+                <li v-for="rule in emotionRules" :key="rule">{{ t(rule) }}</li>
             </ol>
         </section>
     </div>

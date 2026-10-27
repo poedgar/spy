@@ -5,6 +5,7 @@ namespace App\Http\Resources;
 use App\Enums\GameStatus;
 use App\Enums\GameType;
 use App\Enums\InvitationStatus;
+use App\Models\EmotionRound;
 use App\Models\FinishRound;
 use App\Models\Game;
 use App\Models\GameRound;
@@ -42,6 +43,7 @@ class GameResource extends JsonResource
             'game_mode' => $this->game_mode,
             'age_tier' => $this->age_tier,
             'phrase_language' => $this->phrase_language,
+            'emotion_level' => $this->emotion_level,
             'max_players' => $this->max_players,
             'max_allowed_players' => $this->game_type->maxPlayers(),
             'round_seconds' => $this->round_seconds,
@@ -92,7 +94,7 @@ class GameResource extends JsonResource
             // Earlier rounds, newest first. The one shown as the current
             // result is left out so it isn't listed twice.
             'history' => $this->when(
-                $this->relationLoaded('pastRounds') || $this->relationLoaded('pastPhraseRounds') || $this->relationLoaded('pastSongRounds') || $this->relationLoaded('pastFinishRounds'),
+                $this->relationLoaded('pastRounds') || $this->relationLoaded('pastPhraseRounds') || $this->relationLoaded('pastSongRounds') || $this->relationLoaded('pastFinishRounds') || $this->relationLoaded('pastEmotionRounds'),
                 fn () => $this->history(),
             ),
             'phrase' => $this->when(
@@ -106,6 +108,12 @@ class GameResource extends JsonResource
                 fn () => $this->status === GameStatus::Recruiting || $this->currentSongRound === null
                     ? null
                     : SongRoundResource::make($this->currentSongRound),
+            ),
+            'emotion' => $this->when(
+                $this->game_type === GameType::Emotion && $this->relationLoaded('currentEmotionRound'),
+                fn () => $this->status === GameStatus::Recruiting || $this->currentEmotionRound === null
+                    ? null
+                    : EmotionRoundResource::make($this->currentEmotionRound),
             ),
             'finish' => $this->when(
                 $this->game_type->isWritten() && $this->relationLoaded('currentFinishRound'),
@@ -122,6 +130,19 @@ class GameResource extends JsonResource
     private function history(): array
     {
         $shown = $this->status === GameStatus::Completed ? $this->currentRoundNumber() : null;
+
+        if ($this->game_type === GameType::Emotion) {
+            return array_values($this->pastEmotionRounds
+                ->reject(fn (EmotionRound $round) => $round->number === $shown)
+                ->map(fn (EmotionRound $round) => [
+                    'number' => $round->number,
+                    'ending' => $round->ending,
+                    'emotion' => $round->face->emotion,
+                    'image_url' => $round->face->imageUrl(),
+                    'winner_user_ids' => $round->correctUserIds(),
+                    'ended_at' => $round->ended_at?->toIso8601String(),
+                ])->all());
+        }
 
         if ($this->game_type->isWritten()) {
             return array_values($this->pastFinishRounds
@@ -183,6 +204,7 @@ class GameResource extends JsonResource
             GameType::Phrase => $this->resource->currentPhraseRound,
             GameType::Song => $this->resource->currentSongRound,
             GameType::Finish, GameType::Meaning => $this->resource->currentFinishRound,
+            GameType::Emotion => $this->resource->currentEmotionRound,
             default => $this->resource->currentRound,
         };
 

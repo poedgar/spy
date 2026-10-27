@@ -5,6 +5,7 @@ import { AppText } from '@/components/AppText';
 import { Card } from '@/components/Card';
 import { useI18n } from '@/i18n/I18nProvider';
 import { operativeName } from './labels';
+import { emotionLabels } from '@/emotion/labels';
 
 /** Earlier rounds of this game, collapsed until tapped. */
 export function RoundHistory({ game }: { game: Game }) {
@@ -17,6 +18,10 @@ export function RoundHistory({ game }: { game: Game }) {
 
   const outcome = (entry: HistoryEntry) => {
     if (entry.ending === 'abandoned') return t('Abandoned');
+    if (game.game_type === 'emotion') {
+      const winners = entry.winner_user_ids ?? [];
+      return winners.length ? t('Named by :names', { names: winners.map((id) => name(id)).join(', ') }) : t('Nobody named it');
+    }
     if (game.game_type === 'song' || game.game_type === 'finish' || game.game_type === 'meaning') {
       const winners = entry.winner_user_ids ?? [];
       return winners.length ? t('Best: :names', { names: winners.map((id) => name(id)).join(', ') }) : t('No votes');
@@ -38,7 +43,9 @@ export function RoundHistory({ game }: { game: Game }) {
         ? history.map((entry) => (
             <AppText key={entry.number} testID={`history-${entry.number}`}>
               {t('Round :number', { number: entry.number })} ·{' '}
-              {game.game_type === 'meaning'
+              {game.game_type === 'emotion'
+                ? (entry.emotion ? emotionLabels(t)[entry.emotion] : '?')
+                : game.game_type === 'meaning'
                 ? `“${entry.prompt ?? ''}”${entry.best_answer ? ` — ${entry.best_answer}` : ''}`
                 : game.game_type === 'finish'
                 ? `${entry.prompt ?? ''}${entry.best_answer ? ` ${entry.best_answer}` : ''}`

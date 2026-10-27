@@ -40,6 +40,8 @@ class GameNameGenerator
             [GameType::Finish, 'uk'] => "Вечір дотепів «{$name}»",
             [GameType::Meaning, 'en'] => "Riddle Club: {$name}",
             [GameType::Meaning, 'uk'] => "Клуб тлумачів «{$name}»",
+            [GameType::Emotion, 'en'] => "Face Reading: {$name}",
+            [GameType::Emotion, 'uk'] => "Читання облич «{$name}»",
         };
     }
 }

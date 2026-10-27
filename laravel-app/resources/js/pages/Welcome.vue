@@ -5,6 +5,7 @@ import {
     MessageSquareQuote,
     Mic,
     PenLine,
+    Smile,
     VenetianMask,
 } from '@lucide/vue';
 import FeedbackForm from '@/components/FeedbackForm.vue';
@@ -79,6 +80,19 @@ const games = [
         ],
         play: 'Play Interpret the Phrase',
         path: '/games/meaning',
+    },
+    {
+        id: 'emotion',
+        icon: Smile,
+        name: 'Name the Emotion',
+        intro: 'Everyone sees the same face and picks the emotion it shows. Three levels, from clear expressions to the subtlest.',
+        steps: [
+            'The host picks a level and shows a face; everyone sees the same one.',
+            'Everyone secretly picks the emotion it shows: joy, sadness, anger, fear, surprise, disgust or neutral.',
+            'When everyone has picked, the answer is shown. Each right pick wins a point.',
+        ],
+        play: 'Play Name the Emotion',
+        path: '/games/emotion',
     },
 ];
 </script>

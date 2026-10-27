@@ -1,5 +1,4 @@
 Next games:
-interprete a phrase, continue a phrase
 
 # Marvelous Games
 
@@ -10,7 +9,15 @@ sings how it goes on in turns, then votes for the best), **Finish the
 Phrase** / Продовж фразу (everyone writes an ending to the same beginning,
 then votes for the best without names) and **Interpret the Phrase** /
 Розтлумач фразу (everyone explains the same idiom, votes for the best
-explanation, then sees the real meaning). English and Ukrainian.
+explanation, then sees the real meaning) and **Name the Emotion** / Вгадай
+емоцію (everyone names the emotion on the same face, at three levels).
+English and Ukrainian.
+
+Name the Emotion's faces are the UIBVFED set (M. Mascaró Oliver, E. Amengual
+Alcover, Universitat de les Illes Balears, *PLOS ONE* 2020, CC BY): virtual
+people whose expressions are built from the Facial Action Coding System. They
+ship in `laravel-app/public/emotions`; the game credits them wherever they
+appear, and players' answers re-sort them into levels by measured hit rate.
 
 | Folder         | What it is                                                                 |
 | -------------- | -------------------------------------------------------------------------- |

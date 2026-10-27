@@ -1,6 +1,6 @@
 import { computed } from 'vue';
 import { useTrans } from '@/composables/useTrans';
-import type { AgeTier, GameMode } from '@/types/game';
+import type { AgeTier, Emotion, EmotionLevel, GameMode } from '@/types/game';
 
 /** Display names for the game's enum values, in the current language. */
 export function useGameLabels() {
@@ -44,5 +44,32 @@ export function useGameLabels() {
         },
     }));
 
-    return { modes, tiers };
+    const emotions = computed<Record<Emotion, string>>(() => ({
+        joy: t('Joy'),
+        sadness: t('Sadness'),
+        anger: t('Anger'),
+        fear: t('Fear'),
+        surprise: t('Surprise'),
+        disgust: t('Disgust'),
+        neutral: t('Neutral'),
+    }));
+
+    const emotionLevels = computed<
+        Record<EmotionLevel, { label: string; description: string }>
+    >(() => ({
+        1: {
+            label: t('Easy'),
+            description: t('Clear expressions, 4 options'),
+        },
+        2: {
+            label: t('Medium'),
+            description: t('Subtler expressions, 6 options'),
+        },
+        3: {
+            label: t('Hard'),
+            description: t('The subtlest expressions, all 7 options'),
+        },
+    }));
+
+    return { modes, tiers, emotions, emotionLevels };
 }

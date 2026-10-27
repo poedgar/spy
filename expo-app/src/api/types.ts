@@ -61,7 +61,36 @@ export interface Round {
   result: RoundResult | null;
 }
 
-export type GameType = 'spy' | 'phrase' | 'song' | 'finish' | 'meaning';
+export type GameType = 'spy' | 'phrase' | 'song' | 'finish' | 'meaning' | 'emotion';
+
+/** The six basic emotions, plus neutral. */
+export type Emotion = 'joy' | 'sadness' | 'anger' | 'fear' | 'surprise' | 'disgust' | 'neutral';
+
+/** Name the Emotion's levels: 1 easy, 2 medium, 3 hard. */
+export type EmotionLevel = 1 | 2 | 3;
+
+/** The signed-in player's view of a Name the Emotion round. */
+export interface EmotionRound {
+  number: number;
+  level: EmotionLevel;
+  image_url: string;
+  options: Emotion[];
+  answered_user_ids: number[];
+  my_answer: Emotion | null;
+  scoring: { win: number };
+  started_at: string;
+  ended_at: string | null;
+  /** The right emotion and everyone's picks, after the reveal. */
+  result: {
+    ending: 'revealed' | 'abandoned';
+    emotion: Emotion;
+    variant: string;
+    answers: { user_id: number; emotion: Emotion; correct: boolean }[];
+    /** Across all games so far: share of answers naming this face right. */
+    hit_rate: number | null;
+    answers_so_far: number;
+  } | null;
+}
 /** Games where everyone writes an answer to the same phrase, then votes. */
 export type WrittenGameType = 'finish' | 'meaning';
 
@@ -80,6 +109,9 @@ export interface HistoryEntry {
   song?: string | null;
   artist?: string | null;
   winner_user_ids?: number[];
+  // Name the Emotion rounds
+  emotion?: Emotion;
+  image_url?: string;
   // Finish the Phrase rounds
   prompt?: string;
   best_answer?: string | null;
@@ -175,6 +207,7 @@ export interface Game {
   game_mode: GameMode | null;
   age_tier?: AgeTier;
   phrase_language?: Locale | null;
+  emotion_level?: EmotionLevel | null;
   max_allowed_players?: number;
   max_players: number;
   min_players?: number;
@@ -196,6 +229,7 @@ export interface Game {
   phrase?: PhraseRound | null;
   song?: SongRound | null;
   finish?: FinishRound | null;
+  emotion?: EmotionRound | null;
   /** Seconds per round, or null for no timer. */
   round_seconds?: number | null;
   /** Earlier rounds, newest first (the one on show is left out). */
@@ -253,6 +287,7 @@ export interface OpenGame {
   game_mode: GameMode | null;
   age_tier: AgeTier;
   phrase_language: Locale | null;
+  emotion_level?: EmotionLevel | null;
   player_count: number;
   max_players: number;
   host_codename: string;
@@ -302,6 +337,12 @@ export interface CreatePhraseGameInput {
 
 export interface CreateSongGameInput {
   title: string;
+  max_players: number;
+}
+
+export interface CreateEmotionGameInput {
+  title: string;
+  emotion_level: EmotionLevel;
   max_players: number;
 }
 

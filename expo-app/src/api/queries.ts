@@ -4,6 +4,8 @@ import { useCallback, useRef } from 'react';
 import { gamesApi, notificationsApi } from './endpoints';
 import {
   type AgeTier,
+  type CreateEmotionGameInput,
+  type Emotion,
   type CreateFinishGameInput,
   type CreateGameInput,
   type CreatePhraseGameInput,
@@ -19,6 +21,7 @@ export const queryKeys = {
   songHome: ['songHome'] as const,
   finishHome: ['finishHome'] as const,
   meaningHome: ['meaningHome'] as const,
+  emotionHome: ['emotionHome'] as const,
   notifications: ['notifications'] as const,
   game: (code: string) => ['game', code] as const,
   invitable: (code: string, search = '') => ['invitable', code, search] as const,
@@ -31,6 +34,10 @@ export function useSpyHome() {
 
 export function useFinishHome() {
   return useQuery({ queryKey: queryKeys.finishHome, queryFn: gamesApi.finishHome });
+}
+
+export function useEmotionHome() {
+  return useQuery({ queryKey: queryKeys.emotionHome, queryFn: gamesApi.emotionHome });
 }
 
 export function useMeaningHome() {
@@ -85,6 +92,7 @@ function useCacheLobby() {
     void queryClient.invalidateQueries({ queryKey: queryKeys.songHome });
     void queryClient.invalidateQueries({ queryKey: queryKeys.finishHome });
     void queryClient.invalidateQueries({ queryKey: queryKeys.meaningHome });
+    void queryClient.invalidateQueries({ queryKey: queryKeys.emotionHome });
   };
 }
 
@@ -95,6 +103,13 @@ export function useCreateGame() {
 export function useCreateSongGame() {
   return useMutation({
     mutationFn: (input: CreateSongGameInput) => gamesApi.createSong(input),
+    onSuccess: useCacheLobby(),
+  });
+}
+
+export function useCreateEmotionGame() {
+  return useMutation({
+    mutationFn: (input: CreateEmotionGameInput) => gamesApi.createEmotion(input),
     onSuccess: useCacheLobby(),
   });
 }
@@ -151,6 +166,7 @@ export function useJoinRequest() {
       void queryClient.invalidateQueries({ queryKey: queryKeys.songHome });
       void queryClient.invalidateQueries({ queryKey: queryKeys.finishHome });
       void queryClient.invalidateQueries({ queryKey: queryKeys.meaningHome });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.emotionHome });
     },
   });
 }
@@ -170,6 +186,8 @@ type LobbyAction =
   | { type: 'finish-start' | 'finish-voting' | 'finish-close' }
   | { type: 'finish-answer'; ending: string }
   | { type: 'finish-vote'; position: number }
+  | { type: 'emotion-start' | 'emotion-reveal' }
+  | { type: 'emotion-answer'; emotion: Emotion }
   | { type: 'vote'; suspectId: number }
   | { type: 'approval'; requiresApproval: boolean }
   | { type: 'rename'; title: string }
@@ -220,6 +238,12 @@ export function useLobbyAction(code: string) {
           return gamesApi.voteForEnding(code, action.position);
         case 'finish-close':
           return gamesApi.closeFinishVoting(code);
+        case 'emotion-start':
+          return gamesApi.startEmotion(code);
+        case 'emotion-answer':
+          return gamesApi.answerEmotion(code, action.emotion);
+        case 'emotion-reveal':
+          return gamesApi.revealEmotion(code);
         case 'approval':
           return gamesApi.updateSettings(code, { requires_approval: action.requiresApproval });
         case 'rename':
@@ -271,6 +295,7 @@ export function useLeaveGame(code: string, options: { close?: boolean } = {}) {
       void queryClient.invalidateQueries({ queryKey: queryKeys.songHome });
       void queryClient.invalidateQueries({ queryKey: queryKeys.finishHome });
       void queryClient.invalidateQueries({ queryKey: queryKeys.meaningHome });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.emotionHome });
     },
   });
 }

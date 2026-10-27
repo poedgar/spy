@@ -57,6 +57,16 @@ export default function GamePicker() {
           </AppText>
         </Card>
       </Pressable>
+      <Pressable testID="tile-emotion" accessibilityRole="button" onPress={() => router.push('/emotion')}>
+        <Card>
+          <AppText variant="heading">{t('Name the Emotion')}</AppText>
+          <AppText variant="muted">
+            {t(
+              'Everyone sees the same face and picks the emotion it shows. Three levels, from clear expressions to the subtlest.',
+            )}
+          </AppText>
+        </Card>
+      </Pressable>
       <Pressable testID="tile-meaning" accessibilityRole="button" onPress={() => router.push('/meaning')}>
         <Card>
           <AppText variant="heading">{t('Interpret the Phrase')}</AppText>

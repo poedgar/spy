@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { History } from '@lucide/vue';
+import { useGameLabels } from '@/composables/useGameLabels';
 import { useLobby } from '@/composables/useLobby';
 import { useTrans } from '@/composables/useTrans';
 import type { Game } from '@/types/game';
@@ -8,6 +9,7 @@ const props = defineProps<{ game: Game }>();
 
 const { t, pick } = useTrans();
 const { playerName } = useLobby(() => props.game);
+const { emotions } = useGameLabels();
 
 function spyOutcome(entry: NonNullable<Game['history']>[number]): string {
     if (entry.ending === 'abandoned') {
@@ -60,7 +62,21 @@ function phraseOutcome(entry: NonNullable<Game['history']>[number]): string {
                     t('Round :number', { number: entry.number })
                 }}</span>
                 ·
-                <template v-if="game.game_type === 'meaning'">
+                <template v-if="game.game_type === 'emotion'">
+                    {{ entry.emotion ? emotions[entry.emotion] : '?' }} ·
+                    {{
+                        entry.ending === 'abandoned'
+                            ? t('Abandoned')
+                            : (entry.winner_user_ids ?? []).length
+                              ? t('Named by :names', {
+                                    names: (entry.winner_user_ids ?? [])
+                                        .map((id) => playerName(id))
+                                        .join(', '),
+                                })
+                              : t('Nobody named it')
+                    }}
+                </template>
+                <template v-else-if="game.game_type === 'meaning'">
                     “{{ entry.prompt }}”
                     <span v-if="entry.best_answer" class="italic"
                         >— {{ entry.best_answer }}</span

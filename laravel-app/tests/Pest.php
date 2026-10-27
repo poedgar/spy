@@ -1,6 +1,7 @@
 <?php
 
 use App\Enums\GameType;
+use App\Models\Face;
 use App\Models\Game;
 use App\Models\GamePlayer;
 use App\Models\GameRound;
@@ -154,6 +155,25 @@ function finishGame(int $count, string $language = 'en'): array
 function meaningGame(int $count, string $language = 'en'): array
 {
     return gameWithPlayers($count, ['game_type' => GameType::Meaning, 'game_mode' => null, 'mission_briefing' => null, 'max_players' => 10, 'phrase_language' => $language]);
+}
+
+/**
+ * A Name the Emotion game: the host plus $count - 1 players.
+ *
+ * @return array{0: Game, 1: User, 2: list<User>}
+ */
+function emotionGame(int $count, int $level = 1): array
+{
+    return gameWithPlayers($count, ['game_type' => GameType::Emotion, 'game_mode' => null, 'mission_briefing' => null, 'max_players' => 10, 'emotion_level' => $level]);
+}
+
+/** A face showing $emotion, starting at $level. */
+function face(string $emotion = 'joy', int $level = 1, array $attributes = []): Face
+{
+    static $n = 0;
+    $n++;
+
+    return Face::create(['image' => "emotions/test-{$n}.jpg", 'emotion' => $emotion, 'variant' => 'Test', 'base_level' => $level, ...$attributes]);
 }
 
 /** A clip: a stretch of a YouTube video. */
