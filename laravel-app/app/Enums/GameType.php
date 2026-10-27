@@ -10,6 +10,7 @@ enum GameType: string
     case Finish = 'finish';
     case Meaning = 'meaning';
     case Emotion = 'emotion';
+    case Meme = 'meme';
 
     /**
      * The fewest players a round can start with, and the size a new game's
@@ -18,7 +19,7 @@ enum GameType: string
     public function minPlayers(): int
     {
         return match ($this) {
-            self::Spy, self::Phrase, self::Song, self::Finish, self::Meaning, self::Emotion => 3,
+            self::Spy, self::Phrase, self::Song, self::Finish, self::Meaning, self::Emotion, self::Meme => 3,
         };
     }
 
@@ -30,16 +31,17 @@ enum GameType: string
     {
         return match ($this) {
             self::Spy => 12,
-            self::Phrase, self::Song, self::Finish, self::Meaning, self::Emotion => 10,
+            self::Phrase, self::Song, self::Finish, self::Meaning, self::Emotion, self::Meme => 10,
         };
     }
 
     /**
-     * Games where everyone writes an answer to the same phrase and votes on
+     * Games where everyone writes an answer to the same prompt (a phrase, or
+     * a picture to caption in Meme It) and votes on
      * the answers without names. They share one engine and rounds table.
      */
     public function isWritten(): bool
     {
-        return $this === self::Finish || $this === self::Meaning;
+        return $this === self::Finish || $this === self::Meaning || $this === self::Meme;
     }
 }

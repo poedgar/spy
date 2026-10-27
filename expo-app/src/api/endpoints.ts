@@ -90,7 +90,8 @@ export const gamesApi = {
   closeSongVoting: (code: string) => request<Game>('POST', `/games/${enc(code)}/song/close`),
   finishHome: () => request<SpyHome>('GET', '/games/finish'),
   meaningHome: () => request<SpyHome>('GET', '/games/meaning'),
-  /** Creates a Finish the Phrase or an Interpret the Phrase game. */
+  memeHome: () => request<SpyHome>('GET', '/games/meme'),
+  /** Creates a Finish the Phrase, Interpret the Phrase or Meme It game. */
   createWritten: (type: WrittenGameType, input: CreateFinishGameInput) => request<Game>('POST', `/games/${type}`, input),
   startFinish: (code: string) => request<Game>('POST', `/games/${enc(code)}/finish/start`),
   submitEnding: (code: string, ending: string) => request<Game>('POST', `/games/${enc(code)}/finish/answer`, { ending }),

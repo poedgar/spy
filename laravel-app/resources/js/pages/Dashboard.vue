@@ -47,6 +47,12 @@ const emotionRules = [
     'Easy shows clear expressions with 4 options, medium subtler ones with 6, hard the subtlest with all 7. Faces move between levels by how often players actually name them right.',
 ];
 
+const memeRules = [
+    'The host deals a funny picture; everyone gets the same one.',
+    'Everyone writes a caption for it, which shows on the picture like a real meme. Nobody sees the others yet.',
+    'The memes are shown without names, and everyone votes for the best (not their own). The most votes win a point.',
+];
+
 const rules = [
     'The host creates an operation and shares the invite code; 3 to 12 operatives can play.',
     'When the round starts, everyone secretly reveals their role. Loyal operatives see the location; spies do not.',
@@ -125,6 +131,21 @@ const rules = [
             </Link>
 
             <Link
+                id="tile-meme"
+                href="/games/meme"
+                class="rounded-xl border border-sidebar-border/70 p-4 hover:border-primary dark:border-sidebar-border"
+            >
+                <h2 class="font-semibold">{{ t('Meme It') }}</h2>
+                <p class="mt-1 text-sm text-muted-foreground">
+                    {{
+                        t(
+                            'Everyone gets the same funny picture and writes a caption. Vote for the best meme, without knowing whose it is.',
+                        )
+                    }}
+                </p>
+            </Link>
+
+            <Link
                 id="tile-emotion"
                 href="/games/emotion"
                 class="rounded-xl border border-sidebar-border/70 p-4 hover:border-primary dark:border-sidebar-border"
@@ -190,6 +211,10 @@ const rules = [
             </h2>
             <ol class="mt-2 list-decimal space-y-1 pl-5 text-sm">
                 <li v-for="rule in emotionRules" :key="rule">{{ t(rule) }}</li>
+            </ol>
+            <h2 class="mt-4 font-semibold">{{ t('How to play Meme It') }}</h2>
+            <ol class="mt-2 list-decimal space-y-1 pl-5 text-sm">
+                <li v-for="rule in memeRules" :key="rule">{{ t(rule) }}</li>
             </ol>
         </section>
     </div>

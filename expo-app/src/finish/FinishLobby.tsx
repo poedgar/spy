@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Pressable, View } from 'react-native';
+import { Linking, Pressable, View } from 'react-native';
 import type { FinishRound, Game } from '@/api/types';
 import { AppText } from '@/components/AppText';
 import { Badge } from '@/components/Badge';
@@ -15,6 +15,7 @@ import { Roster } from '@/game/Roster';
 import { useLobbyControls } from '@/game/useLobbyControls';
 import { useTheme } from '@/theme/useTheme';
 import { VoicePanel } from '@/voice/VoicePanel';
+import { MemeImage } from './MemeImage';
 
 interface Props {
   game: Game;
@@ -45,7 +46,24 @@ export function FinishLobby({ game, refreshing, onRefresh }: Props) {
   const setEnding = (text: string) => finish && setDraft({ round: finish.number, text });
 
   const interpreting = game.game_type === 'meaning';
-  const copy = interpreting
+  // Meme It captions a picture; everything else is the same game.
+  const memeing = game.game_type === 'meme';
+  const meme = memeing && finish?.image_url ? finish : null;
+  const copy = memeing
+    ? {
+        game: t('Meme It'),
+        write: t('Write your caption'),
+        progress: t(':done of :total wrote. Nobody sees the captions until the vote, and then without names.', {
+          done: answered,
+          total: game.player_count,
+        }),
+        placeholder: t('Your caption…'),
+        send: t('Send my caption'),
+        update: t('Update my caption'),
+        which: t('Which meme is the best?'),
+        winners: (names: string) => t(':names made the best meme!', { names }),
+      }
+    : interpreting
     ? {
         game: t('Interpret the Phrase'),
         write: t('Write your interpretation'),
@@ -73,7 +91,8 @@ export function FinishLobby({ game, refreshing, onRefresh }: Props) {
         winners: (names: string) => t(':names wrote the best ending!', { names }),
       };
   // Endings read on from the beginning; interpretations stand alone.
-  const lead = interpreting ? '' : `${finish?.prompt ?? ''} `;
+  const lead = interpreting || meme ? '' : `${finish?.prompt ?? ''} `;
+  const credit = meme?.credit ? `${t('Photo:')} ${meme.credit}` : null;
 
   const ranked = [...(finish?.answers ?? [])].sort((a, b) => (b.votes ?? 0) - (a.votes ?? 0));
 
@@ -84,15 +103,15 @@ export function FinishLobby({ game, refreshing, onRefresh }: Props) {
         inRound={inRound}
         meta={
           <AppText variant="muted" testID="lobby-meta">
-            {t(':count / :max players', { count: game.player_count, max: game.max_players })} · {copy.game}{' '}
-            · {game.phrase_language === 'uk' ? 'Українська' : 'English'}
+            {t(':count / :max players', { count: game.player_count, max: game.max_players })} · {copy.game}
+            {memeing ? '' : ` · ${game.phrase_language === 'uk' ? 'Українська' : 'English'}`}
           </AppText>
         }
       >
         {isHost && !inRound ? (
           <Button
             testID="btn-start-finish"
-            label={game.status === 'completed' ? t('Next phrase') : t('Start the game')}
+            label={game.status !== 'completed' ? t('Start the game') : memeing ? t('Next picture') : t('Next phrase')}
             loading={busy && pending?.type === 'finish-start'}
             disabled={!canStart || busy}
             onPress={() => run({ type: 'finish-start' })}
@@ -128,10 +147,29 @@ export function FinishLobby({ game, refreshing, onRefresh }: Props) {
 
       {finish && game.status !== 'recruiting' ? (
         <Card testID="prompt-card" style={{ borderWidth: 2, borderColor: colors.primary }}>
-          <AppText variant="muted">{t('Phrase :number', { number: finish.number })}</AppText>
-          <AppText testID="prompt-text" variant="title">
-            {finish.prompt}
+          <AppText variant="muted">
+            {meme ? t('Picture :number', { number: finish.number }) : t('Phrase :number', { number: finish.number })}
           </AppText>
+          {meme?.image_url ? (
+            <>
+              {/* Your caption appears on the picture as you type it. */}
+              <MemeImage testID="meme-picture" uri={meme.image_url} alt={meme.prompt} caption={writing ? ending : null} />
+              {credit ? (
+                <AppText
+                  testID="meme-credit"
+                  variant="muted"
+                  style={{ fontSize: 12 }}
+                  onPress={meme.source_url ? () => void Linking.openURL(meme.source_url as string) : undefined}
+                >
+                  {credit}
+                </AppText>
+              ) : null}
+            </>
+          ) : (
+            <AppText testID="prompt-text" variant="title">
+              {finish.prompt}
+            </AppText>
+          )}
         </Card>
       ) : null}
 
@@ -194,12 +232,23 @@ export function FinishLobby({ game, refreshing, onRefresh }: Props) {
                     opacity: answer.mine ? 0.6 : 1,
                   }}
                 >
-                  <AppText>
-                    {chosen ? '✓ ' : ''}
-                    {lead ? <AppText variant="muted">{lead}</AppText> : null}
-                    {answer.text}
-                    {answer.mine ? ` (${t('yours')})` : ''}
-                  </AppText>
+                  {meme?.image_url ? (
+                    <>
+                      <MemeImage uri={meme.image_url} alt={meme.prompt} caption={answer.text} />
+                      {chosen || answer.mine ? (
+                        <AppText variant="muted">
+                          {chosen ? `✓ ${t('Your vote')}` : t('yours')}
+                        </AppText>
+                      ) : null}
+                    </>
+                  ) : (
+                    <AppText>
+                      {chosen ? '✓ ' : ''}
+                      {lead ? <AppText variant="muted">{lead}</AppText> : null}
+                      {answer.text}
+                      {answer.mine ? ` (${t('yours')})` : ''}
+                    </AppText>
+                  )}
                 </Pressable>
               );
             })}
@@ -222,16 +271,24 @@ export function FinishLobby({ game, refreshing, onRefresh }: Props) {
               <AppText style={{ fontWeight: '600' }}>{t('What it really means:')}</AppText> {result.meaning}
             </AppText>
           ) : null}
-          {ranked.map((answer) => (
-            <AppText
-              key={answer.position}
-              variant={answer.user_id !== null && result.winner_user_ids.includes(answer.user_id) ? 'body' : 'muted'}
-            >
-              {lead}
-              {answer.text} — {name(answer.user_id)} ·{' '}
-              {t(':count votes', { count: answer.votes ?? 0 })}
-            </AppText>
-          ))}
+          {ranked.map((answer) =>
+            meme?.image_url ? (
+              <View key={answer.position} style={{ gap: spacing.xs }}>
+                <MemeImage uri={meme.image_url} alt={meme.prompt} caption={answer.text} />
+                <AppText variant={answer.user_id !== null && result.winner_user_ids.includes(answer.user_id) ? 'body' : 'muted'}>
+                  {name(answer.user_id)} · {t(':count votes', { count: answer.votes ?? 0 })}
+                </AppText>
+              </View>
+            ) : (
+              <AppText
+                key={answer.position}
+                variant={answer.user_id !== null && result.winner_user_ids.includes(answer.user_id) ? 'body' : 'muted'}
+              >
+                {lead}
+                {answer.text} — {name(answer.user_id)} · {t(':count votes', { count: answer.votes ?? 0 })}
+              </AppText>
+            ),
+          )}
         </Card>
       ) : null}
 

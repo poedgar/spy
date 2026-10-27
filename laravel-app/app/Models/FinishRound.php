@@ -18,6 +18,8 @@ use Illuminate\Support\Carbon;
  * @property int $prompt_id
  * @property string $text
  * @property string|null $meaning what an interpreted phrase really means
+ * @property string|null $image Meme It's picture (see Prompt::urlFor)
+ * @property-read Prompt|null $prompt
  * @property array<int|string, string>|null $answers author id => ending
  * @property list<int>|null $answer_order authors, in the order shown for voting
  * @property array<int|string, int>|null $votes voter id => chosen author id
@@ -27,7 +29,7 @@ use Illuminate\Support\Carbon;
  * @property Carbon|null $voting_started_at
  * @property Carbon|null $ended_at
  */
-#[Fillable(['game_id', 'number', 'prompt_id', 'text', 'meaning', 'answers', 'answer_order', 'votes', 'winner_user_ids', 'ending', 'started_at', 'voting_started_at', 'ended_at'])]
+#[Fillable(['game_id', 'number', 'prompt_id', 'text', 'meaning', 'image', 'answers', 'answer_order', 'votes', 'winner_user_ids', 'ending', 'started_at', 'voting_started_at', 'ended_at'])]
 class FinishRound extends Model
 {
     public const ENDING_VOTED = 'voted';

@@ -61,7 +61,7 @@ export interface Round {
   result: RoundResult | null;
 }
 
-export type GameType = 'spy' | 'phrase' | 'song' | 'finish' | 'meaning' | 'emotion';
+export type GameType = 'spy' | 'phrase' | 'song' | 'finish' | 'meaning' | 'emotion' | 'meme';
 
 /** The six basic emotions, plus neutral. */
 export type Emotion = 'joy' | 'sadness' | 'anger' | 'fear' | 'surprise' | 'disgust' | 'neutral';
@@ -91,8 +91,8 @@ export interface EmotionRound {
     answers_so_far: number;
   } | null;
 }
-/** Games where everyone writes an answer to the same phrase, then votes. */
-export type WrittenGameType = 'finish' | 'meaning';
+/** Games where everyone writes an answer to the same prompt (a phrase, or a picture to caption), then votes. */
+export type WrittenGameType = 'finish' | 'meaning' | 'meme';
 
 export interface HistoryEntry {
   number: number;
@@ -155,6 +155,10 @@ export interface FinishRound {
   prompt: string;
   max_length: number;
   min_answers: number;
+  /** Meme It: the picture to caption, and the credit its licence asks for. */
+  image_url: string | null;
+  credit: string | null;
+  source_url: string | null;
   answered_user_ids: number[];
   my_answer: string | null;
   /** Shuffled, once the vote opens. */
@@ -348,7 +352,8 @@ export interface CreateEmotionGameInput {
 
 export interface CreateFinishGameInput {
   title: string;
-  phrase_language: Locale;
+  /** Not for Meme It: pictures have no language. */
+  phrase_language?: Locale;
   max_players: number;
 }
 

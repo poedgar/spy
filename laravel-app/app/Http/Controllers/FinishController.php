@@ -10,6 +10,7 @@ use App\Actions\Finish\SubmitEnding;
 use App\Actions\Finish\VoteForEnding;
 use App\Http\Requests\StoreFinishGameRequest;
 use App\Http\Requests\StoreMeaningGameRequest;
+use App\Http\Requests\StoreMemeGameRequest;
 use App\Models\FinishRound;
 use App\Models\Game;
 use Illuminate\Http\RedirectResponse;
@@ -18,7 +19,7 @@ use Illuminate\Http\Request;
 class FinishController extends Controller
 {
     /**
-     * Finish the Phrase and Interpret the Phrase share these actions.
+     * Finish the Phrase, Interpret the Phrase and Meme It share these actions.
      */
     public function store(StoreFinishGameRequest $request, CreateFinishGame $createGame): RedirectResponse
     {
@@ -28,6 +29,11 @@ class FinishController extends Controller
     }
 
     public function storeMeaning(StoreMeaningGameRequest $request, CreateFinishGame $createGame): RedirectResponse
+    {
+        return $this->store($request, $createGame);
+    }
+
+    public function storeMeme(StoreMemeGameRequest $request, CreateFinishGame $createGame): RedirectResponse
     {
         return $this->store($request, $createGame);
     }

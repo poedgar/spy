@@ -22,7 +22,7 @@ const LANGUAGES: { value: Locale; label: string }[] = [
 const MIN_PLAYERS = 3;
 const MAX_PLAYERS = 10;
 
-/** Finish the Phrase and Interpret the Phrase create games the same way. */
+/** The written games create games the same way; Meme It needs no language. */
 export function CreateWrittenGame({ type }: { type: WrittenGameType }) {
   const router = useRouter();
   const { t, locale } = useI18n();
@@ -38,7 +38,13 @@ export function CreateWrittenGame({ type }: { type: WrittenGameType }) {
   const onSubmit = handleSubmit(async (input) => {
     setFormError(null);
     try {
-      const game = await createGame.mutateAsync({ ...input, title: input.title.trim() });
+      // Meme It's pictures have no language.
+      const { phrase_language: language, ...rest } = input;
+      const game = await createGame.mutateAsync({
+        ...rest,
+        title: input.title.trim(),
+        ...(type === 'meme' ? {} : { phrase_language: language }),
+      });
       router.replace(`/games/${game.code}`);
     } catch (error) {
       setFormError(applyServerErrors(error, setError, ['title', 'phrase_language', 'max_players']));
@@ -48,7 +54,14 @@ export function CreateWrittenGame({ type }: { type: WrittenGameType }) {
   return (
     <Screen>
       <Stack.Screen
-        options={{ title: type === 'meaning' ? t('New Interpret the Phrase game') : t('New Finish the Phrase game') }}
+        options={{
+          title:
+            type === 'meme'
+              ? t('New Meme It game')
+              : type === 'meaning'
+                ? t('New Interpret the Phrase game')
+                : t('New Finish the Phrase game'),
+        }}
       />
       <FormTextField control={control} name="title" label={t('Game title')} testID={`input-${type}-title`} />
       <Button
@@ -59,36 +72,38 @@ export function CreateWrittenGame({ type }: { type: WrittenGameType }) {
         onPress={name.roll}
       />
 
-      <Controller
-        control={control}
-        name="phrase_language"
-        render={({ field: { value, onChange } }) => (
-          <View style={{ gap: spacing.xs }}>
-            <AppText variant="muted">{t('Language of the phrases')}</AppText>
-            <View style={{ flexDirection: 'row', gap: spacing.sm }}>
-              {LANGUAGES.map((language) => (
-                <Pressable
-                  key={language.value}
-                  testID={`phrase-language-${language.value}`}
-                  accessibilityRole="radio"
-                  accessibilityState={{ selected: value === language.value }}
-                  onPress={() => onChange(language.value)}
-                  style={{
-                    flex: 1,
-                    padding: spacing.sm,
-                    borderRadius: radius.md,
-                    borderWidth: 1,
-                    borderColor: value === language.value ? colors.primary : colors.border,
-                    alignItems: 'center',
-                  }}
-                >
-                  <AppText>{language.label}</AppText>
-                </Pressable>
-              ))}
+      {type === 'meme' ? null : (
+        <Controller
+          control={control}
+          name="phrase_language"
+          render={({ field: { value, onChange } }) => (
+            <View style={{ gap: spacing.xs }}>
+              <AppText variant="muted">{t('Language of the phrases')}</AppText>
+              <View style={{ flexDirection: 'row', gap: spacing.sm }}>
+                {LANGUAGES.map((language) => (
+                  <Pressable
+                    key={language.value}
+                    testID={`phrase-language-${language.value}`}
+                    accessibilityRole="radio"
+                    accessibilityState={{ selected: value === language.value }}
+                    onPress={() => onChange(language.value)}
+                    style={{
+                      flex: 1,
+                      padding: spacing.sm,
+                      borderRadius: radius.md,
+                      borderWidth: 1,
+                      borderColor: value === language.value ? colors.primary : colors.border,
+                      alignItems: 'center',
+                    }}
+                  >
+                    <AppText>{language.label}</AppText>
+                  </Pressable>
+                ))}
+              </View>
             </View>
-          </View>
-        )}
-      />
+          )}
+        />
+      )}
 
       <Controller
         control={control}

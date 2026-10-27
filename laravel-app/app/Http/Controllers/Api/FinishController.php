@@ -12,6 +12,7 @@ use App\Enums\GameType;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreFinishGameRequest;
 use App\Http\Requests\StoreMeaningGameRequest;
+use App\Http\Requests\StoreMemeGameRequest;
 use App\Http\Resources\GameResource;
 use App\Http\Resources\InvitationResource;
 use App\Models\FinishRound;
@@ -22,7 +23,7 @@ use Illuminate\Http\Request;
 class FinishController extends Controller
 {
     /**
-     * Finish the Phrase and Interpret the Phrase share these actions.
+     * Finish the Phrase, Interpret the Phrase and Meme It share these actions.
      */
     public function home(Request $request, GameHomeQuery $home, GameType $type = GameType::Finish): JsonResponse
     {
@@ -38,6 +39,11 @@ class FinishController extends Controller
         return $this->home($request, $home, GameType::Meaning);
     }
 
+    public function memeHome(Request $request, GameHomeQuery $home): JsonResponse
+    {
+        return $this->home($request, $home, GameType::Meme);
+    }
+
     public function store(StoreFinishGameRequest $request, CreateFinishGame $createGame): JsonResponse
     {
         $game = $createGame->handle($request->user(), $request->validated(), $request->gameType());
@@ -46,6 +52,11 @@ class FinishController extends Controller
     }
 
     public function storeMeaning(StoreMeaningGameRequest $request, CreateFinishGame $createGame): JsonResponse
+    {
+        return $this->store($request, $createGame);
+    }
+
+    public function storeMeme(StoreMemeGameRequest $request, CreateFinishGame $createGame): JsonResponse
     {
         return $this->store($request, $createGame);
     }

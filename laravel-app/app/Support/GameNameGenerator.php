@@ -42,6 +42,8 @@ class GameNameGenerator
             [GameType::Meaning, 'uk'] => "Клуб тлумачів «{$name}»",
             [GameType::Emotion, 'en'] => "Face Reading: {$name}",
             [GameType::Emotion, 'uk'] => "Читання облич «{$name}»",
+            [GameType::Meme, 'en'] => "Meme Lab: {$name}",
+            [GameType::Meme, 'uk'] => "Мемна майстерня «{$name}»",
         };
     }
 }

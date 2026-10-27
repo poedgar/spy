@@ -22,6 +22,7 @@ export const queryKeys = {
   finishHome: ['finishHome'] as const,
   meaningHome: ['meaningHome'] as const,
   emotionHome: ['emotionHome'] as const,
+  memeHome: ['memeHome'] as const,
   notifications: ['notifications'] as const,
   game: (code: string) => ['game', code] as const,
   invitable: (code: string, search = '') => ['invitable', code, search] as const,
@@ -34,6 +35,10 @@ export function useSpyHome() {
 
 export function useFinishHome() {
   return useQuery({ queryKey: queryKeys.finishHome, queryFn: gamesApi.finishHome });
+}
+
+export function useMemeHome() {
+  return useQuery({ queryKey: queryKeys.memeHome, queryFn: gamesApi.memeHome });
 }
 
 export function useEmotionHome() {
@@ -93,6 +98,7 @@ function useCacheLobby() {
     void queryClient.invalidateQueries({ queryKey: queryKeys.finishHome });
     void queryClient.invalidateQueries({ queryKey: queryKeys.meaningHome });
     void queryClient.invalidateQueries({ queryKey: queryKeys.emotionHome });
+    void queryClient.invalidateQueries({ queryKey: queryKeys.memeHome });
   };
 }
 
@@ -114,7 +120,7 @@ export function useCreateEmotionGame() {
   });
 }
 
-/** Creates a Finish the Phrase or an Interpret the Phrase game. */
+/** Creates a Finish the Phrase, Interpret the Phrase or Meme It game. */
 export function useCreateFinishGame(type: WrittenGameType) {
   return useMutation({
     mutationFn: (input: CreateFinishGameInput) => gamesApi.createWritten(type, input),
@@ -167,6 +173,7 @@ export function useJoinRequest() {
       void queryClient.invalidateQueries({ queryKey: queryKeys.finishHome });
       void queryClient.invalidateQueries({ queryKey: queryKeys.meaningHome });
       void queryClient.invalidateQueries({ queryKey: queryKeys.emotionHome });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.memeHome });
     },
   });
 }
@@ -296,6 +303,7 @@ export function useLeaveGame(code: string, options: { close?: boolean } = {}) {
       void queryClient.invalidateQueries({ queryKey: queryKeys.finishHome });
       void queryClient.invalidateQueries({ queryKey: queryKeys.meaningHome });
       void queryClient.invalidateQueries({ queryKey: queryKeys.emotionHome });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.memeHome });
     },
   });
 }

@@ -42,7 +42,7 @@ class Game extends Model
 
     /** Everything a lobby shows, for eager loading. */
     public const LOBBY_RELATIONS = [
-        'host', 'players.user', 'currentRound.votes', 'currentPhraseRound.guesses', 'currentSongRound.song', 'currentFinishRound', 'currentEmotionRound.face',
+        'host', 'players.user', 'currentRound.votes', 'currentPhraseRound.guesses', 'currentSongRound.song', 'currentFinishRound.prompt', 'currentEmotionRound.face',
         'joinRequests.user', 'invitations.toUser', 'pastRounds', 'pastPhraseRounds', 'pastSongRounds.song', 'pastFinishRounds', 'pastEmotionRounds.face',
     ];
 

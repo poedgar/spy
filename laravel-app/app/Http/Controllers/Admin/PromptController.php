@@ -14,10 +14,11 @@ use Inertia\Inertia;
 use Inertia\Response;
 
 /**
- * The written games' phrases, for site administrators: Finish the Phrase
- * beginnings and Interpret the Phrase idioms (with their real meaning). A
- * round keeps the text it was dealt, so edits only affect new rounds;
- * removing one only hides it.
+ * The written games' prompts, for site administrators: Finish the Phrase
+ * beginnings, Interpret the Phrase idioms (with their real meaning) and
+ * Meme It pictures (a link, a description and the credit their licence
+ * asks for). A round keeps what it was dealt, so edits only affect new
+ * rounds; removing one only hides it.
  */
 class PromptController extends Controller
 {
@@ -53,6 +54,10 @@ class PromptController extends Controller
                 'language' => $prompt->language,
                 'text' => $prompt->text,
                 'meaning' => $prompt->meaning,
+                'image_url' => $prompt->imageUrl(),
+                'image' => $prompt->image,
+                'credit' => $prompt->credit,
+                'source_url' => $prompt->source_url,
                 'rounds' => (int) $prompt->getAttribute('rounds_count'),
             ]);
 
@@ -60,9 +65,12 @@ class PromptController extends Controller
             'prompts' => $prompts,
             'filters' => ['q' => $search, 'language' => $filters['language'] ?? null, 'game' => $filters['game'] ?? null],
             'counts' => collect(self::games())->mapWithKeys(fn (string $game) => [
-                $game => collect(Locale::cases())->mapWithKeys(fn (Locale $language) => [
-                    $language->value => Prompt::where('game_type', $game)->where('language', $language->value)->count(),
-                ]),
+                $game => [
+                    ...collect(Locale::cases())->mapWithKeys(fn (Locale $language) => [
+                        $language->value => Prompt::where('game_type', $game)->where('language', $language->value)->count(),
+                    ])->all(),
+                    'total' => Prompt::where('game_type', $game)->count(),
+                ],
             ]),
         ]);
     }
@@ -103,23 +111,40 @@ class PromptController extends Controller
     }
 
     /**
-     * The same phrase only once per game and language. Only Interpret the
-     * Phrase keeps a real meaning.
+     * The same phrase only once per game and language; the same picture
+     * only once. Only Interpret the Phrase keeps a real meaning, and only
+     * Meme It a picture (with no language: the text describes it).
      *
-     * @return array{game_type: string, language: string, text: string, meaning: string|null}
+     * @return array{game_type: string, language: string|null, text: string, meaning: string|null, image: string|null, credit: string|null, source_url: string|null}
      */
     private function validated(Request $request, ?Prompt $current = null): array
     {
         $language = (string) $request->input('language', $current?->language);
         $game = (string) $request->input('game', $current?->game_type);
+        $meme = $game === GameType::Meme->value;
 
         $data = $request->validate([
             'game' => ['required', Rule::in(self::games())],
-            'language' => ['required', Rule::enum(Locale::class)],
+            'language' => [$meme ? 'nullable' : 'required', Rule::enum(Locale::class)],
             'meaning' => ['nullable', 'string', 'max:255'],
+            'image' => [$meme ? 'required' : 'nullable', 'string', 'max:500', 'regex:~^(https://\S+|memes/[\w.-]+)$~',
+                function (string $attribute, mixed $value, Closure $fail) use ($meme, $current) {
+                    $taken = $meme && Prompt::where('game_type', GameType::Meme->value)->where('image', trim((string) $value))
+                        ->when($current, fn ($query) => $query->whereKeyNot($current?->id))->exists();
+
+                    if ($taken) {
+                        $fail(__('That picture is already in the list.'));
+                    }
+                }],
+            'credit' => ['nullable', 'string', 'max:255'],
+            'source_url' => ['nullable', 'url', 'max:500'],
             'text' => [
                 'required', 'string', 'min:3', 'max:255',
-                function (string $attribute, mixed $value, Closure $fail) use ($game, $language, $current) {
+                function (string $attribute, mixed $value, Closure $fail) use ($game, $meme, $language, $current) {
+                    if ($meme) {
+                        return;
+                    }
+
                     $normalized = mb_strtolower(trim((string) $value));
                     $duplicate = Prompt::where('game_type', $game)
                         ->where('language', $language)
@@ -136,11 +161,16 @@ class PromptController extends Controller
 
         $meaning = trim((string) ($data['meaning'] ?? ''));
 
+        $optional = fn (string $key) => $meme && filled($data[$key] ?? null) ? trim((string) $data[$key]) : null;
+
         return [
             'game_type' => (string) $data['game'],
-            'language' => (string) $data['language'],
+            'language' => $meme ? null : (string) $data['language'],
             'text' => trim((string) $data['text']),
             'meaning' => $data['game'] === GameType::Meaning->value && $meaning !== '' ? $meaning : null,
+            'image' => $optional('image'),
+            'credit' => $optional('credit'),
+            'source_url' => $optional('source_url'),
         ];
     }
 }

@@ -3,10 +3,11 @@ import { useForm } from '@inertiajs/vue3';
 import GameNameInput from '@/components/GameNameInput.vue';
 import { useTrans, type Locale } from '@/composables/useTrans';
 
-/** Finish the Phrase and Interpret the Phrase create games the same way. */
-const props = withDefaults(defineProps<{ type?: 'finish' | 'meaning' }>(), {
-    type: 'finish',
-});
+/** The written games create games the same way; Meme It needs no language. */
+const props = withDefaults(
+    defineProps<{ type?: 'finish' | 'meaning' | 'meme' }>(),
+    { type: 'finish' },
+);
 
 const { t, locale } = useTrans();
 
@@ -24,7 +25,9 @@ const form = useForm({
 });
 
 function submit() {
-    form.post(`/games/${props.type}`);
+    form.transform((data) =>
+        props.type === 'meme' ? { ...data, phrase_language: undefined } : data,
+    ).post(`/games/${props.type}`);
 }
 </script>
 
@@ -36,9 +39,11 @@ function submit() {
     >
         <h2 class="font-semibold">
             {{
-                type === 'meaning'
-                    ? t('New Interpret the Phrase game')
-                    : t('New Finish the Phrase game')
+                type === 'meme'
+                    ? t('New Meme It game')
+                    : type === 'meaning'
+                      ? t('New Interpret the Phrase game')
+                      : t('New Finish the Phrase game')
             }}
         </h2>
 
@@ -54,7 +59,7 @@ function submit() {
             </p>
         </div>
 
-        <fieldset>
+        <fieldset v-if="type !== 'meme'">
             <legend class="mb-1 text-sm font-medium">
                 {{ t('Language of the phrases') }}
             </legend>

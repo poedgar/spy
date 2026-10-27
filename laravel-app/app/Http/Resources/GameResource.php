@@ -12,6 +12,7 @@ use App\Models\GameRound;
 use App\Models\Invitation;
 use App\Models\JoinRequest;
 use App\Models\PhraseRound;
+use App\Models\Prompt;
 use App\Models\SongRound;
 use App\Support\LiveKit;
 use App\Support\LocationCatalog;
@@ -154,6 +155,7 @@ class GameResource extends JsonResource
                         'number' => $round->number,
                         'ending' => $round->ending,
                         'prompt' => $round->text,
+                        'image_url' => Prompt::urlFor($round->image),
                         'best_answer' => $winner === null ? null : ($round->answers[$winner] ?? null),
                         'winner_user_ids' => $round->winner_user_ids ?? [],
                         'ended_at' => $round->ended_at?->toIso8601String(),

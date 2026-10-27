@@ -28,6 +28,7 @@ class NotificationPresenter
             'finish' => '/games/finish',
             'meaning' => '/games/meaning',
             'emotion' => '/games/emotion',
+            'meme' => '/games/meme',
             default => '/games/spy',
         };
         $lobby = $code ? "/games/{$code}" : $home;
@@ -80,6 +81,8 @@ class NotificationPresenter
                     $type === 'finish' => $t('Nobody got a vote in :title.', ['title' => $title]),
                     $type === 'meaning' && filled($data['finish_winners'] ?? null) => $t(':names gave the best interpretation in :title!', ['names' => $data['finish_winners'], 'title' => $title]),
                     $type === 'meaning' => $t('Nobody got a vote in :title.', ['title' => $title]),
+                    $type === 'meme' && filled($data['finish_winners'] ?? null) => $t(':names made the best meme in :title!', ['names' => $data['finish_winners'], 'title' => $title]),
+                    $type === 'meme' => $t('Nobody got a vote in :title.', ['title' => $title]),
                     $type === 'emotion' && filled($data['emotion_winners'] ?? null) => $t(':names named the emotion in :title.', ['names' => $data['emotion_winners'], 'title' => $title]),
                     $type === 'emotion' => $t('Nobody named the emotion in :title.', ['title' => $title]),
                     ($data['winning_team'] ?? null) === 'spies' => $t('The spies won in :title.', ['title' => $title]),
@@ -117,6 +120,7 @@ class NotificationPresenter
                     'finish' => $t('Open :title and finish the phrase.', ['title' => $title]),
                     'meaning' => $t('Open :title and interpret the phrase.', ['title' => $title]),
                     'emotion' => $t('Open :title and name the emotion.', ['title' => $title]),
+                    'meme' => $t('Open :title and caption the picture.', ['title' => $title]),
                     default => $t('Open :title to see your role.', ['title' => $title]),
                 },
                 $lobby,

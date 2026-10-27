@@ -5,6 +5,8 @@ import { computed, watch } from 'vue';
 import ChatPanel from '@/components/game/ChatPanel.vue';
 import HostPanel from '@/components/game/HostPanel.vue';
 import LobbyHeader from '@/components/game/LobbyHeader.vue';
+import MemeCredit from '@/components/game/MemeCredit.vue';
+import MemeImage from '@/components/game/MemeImage.vue';
 import Roster from '@/components/game/Roster.vue';
 import RoundHistory from '@/components/game/RoundHistory.vue';
 import VoicePanel from '@/components/game/VoicePanel.vue';
@@ -22,45 +24,64 @@ const { t, isHost, canStart, busy, playerName, act, me } = useLobby(
 );
 
 const finish = computed(() => props.game.finish ?? null);
-// Interpret the Phrase plays on the same lobby: answers explain the phrase
-// instead of finishing it.
+// Interpret the Phrase and Meme It play on the same lobby: answers explain
+// the phrase, or caption a picture, instead of finishing it.
 const interpreting = computed(() => props.game.game_type === 'meaning');
+const memeing = computed(() => props.game.game_type === 'meme');
 const copy = computed(() =>
-    interpreting.value
+    memeing.value
         ? {
-              game: t('Interpret the Phrase'),
-              write: t('Write your interpretation'),
+              game: t('Meme It'),
+              write: t('Write your caption'),
               progress: t(
-                  ':done of :total wrote. Nobody sees the interpretations until the vote, and then without names.',
+                  ':done of :total wrote. Nobody sees the captions until the vote, and then without names.',
                   {
                       done: answeredCount.value,
                       total: props.game.players.length,
                   },
               ),
-              placeholder: t('It means…'),
-              send: t('Send my interpretation'),
-              update: t('Update my interpretation'),
-              which: t('Which interpretation is the best?'),
+              placeholder: t('Your caption…'),
+              send: t('Send my caption'),
+              update: t('Update my caption'),
+              which: t('Which meme is the best?'),
               winners: (names: string) =>
-                  t(':names gave the best interpretation!', { names }),
+                  t(':names made the best meme!', { names }),
           }
-        : {
-              game: t('Finish the Phrase'),
-              write: t('Write your ending'),
-              progress: t(
-                  ':done of :total wrote. Nobody sees the endings until the vote, and then without names.',
-                  {
-                      done: answeredCount.value,
-                      total: props.game.players.length,
-                  },
-              ),
-              placeholder: t('…and here is how it ends'),
-              send: t('Send my ending'),
-              update: t('Update my ending'),
-              which: t('Which ending is the best?'),
-              winners: (names: string) =>
-                  t(':names wrote the best ending!', { names }),
-          },
+        : interpreting.value
+          ? {
+                game: t('Interpret the Phrase'),
+                write: t('Write your interpretation'),
+                progress: t(
+                    ':done of :total wrote. Nobody sees the interpretations until the vote, and then without names.',
+                    {
+                        done: answeredCount.value,
+                        total: props.game.players.length,
+                    },
+                ),
+                placeholder: t('It means…'),
+                send: t('Send my interpretation'),
+                update: t('Update my interpretation'),
+                which: t('Which interpretation is the best?'),
+                winners: (names: string) =>
+                    t(':names gave the best interpretation!', { names }),
+            }
+          : {
+                game: t('Finish the Phrase'),
+                write: t('Write your ending'),
+                progress: t(
+                    ':done of :total wrote. Nobody sees the endings until the vote, and then without names.',
+                    {
+                        done: answeredCount.value,
+                        total: props.game.players.length,
+                    },
+                ),
+                placeholder: t('…and here is how it ends'),
+                send: t('Send my ending'),
+                update: t('Update my ending'),
+                which: t('Which ending is the best?'),
+                winners: (names: string) =>
+                    t(':names wrote the best ending!', { names }),
+            },
 );
 const writing = computed(() => props.game.status === 'active');
 const voting = computed(() => props.game.status === 'voting');
@@ -116,10 +137,15 @@ function vote(position: number) {
                             max: game.max_players,
                         })
                     }}
-                    · {{ copy.game }} ·
-                    {{
-                        game.phrase_language === 'uk' ? 'Українська' : 'English'
-                    }}
+                    · {{ copy.game }}
+                    <template v-if="!memeing">
+                        ·
+                        {{
+                            game.phrase_language === 'uk'
+                                ? 'Українська'
+                                : 'English'
+                        }}
+                    </template>
                 </p>
             </template>
             <template #actions>
@@ -132,9 +158,11 @@ function vote(position: number) {
                     >
                         <Play />
                         {{
-                            game.status === 'completed'
-                                ? t('Next phrase')
-                                : t('Start the game')
+                            game.status !== 'completed'
+                                ? t('Start the game')
+                                : memeing
+                                  ? t('Next picture')
+                                  : t('Next phrase')
                         }}
                     </Button>
                     <Button
@@ -186,9 +214,29 @@ function vote(position: number) {
                 class="flex items-center gap-2 text-sm font-semibold text-muted-foreground"
             >
                 <Quote class="size-4" />
-                {{ t('Phrase :number', { number: finish.number }) }}
+                {{
+                    memeing
+                        ? t('Picture :number', { number: finish.number })
+                        : t('Phrase :number', { number: finish.number })
+                }}
             </h2>
-            <p id="prompt-text" class="mt-2 text-2xl font-semibold">
+            <div
+                v-if="memeing && finish.image_url"
+                id="meme-picture"
+                class="mt-2 max-w-xl space-y-1"
+            >
+                <!-- Your caption appears on the picture as you type it. -->
+                <MemeImage
+                    :src="finish.image_url"
+                    :alt="finish.prompt"
+                    :caption="writing ? form.ending : null"
+                />
+                <MemeCredit
+                    :credit="finish.credit"
+                    :source-url="finish.source_url"
+                />
+            </div>
+            <p v-else id="prompt-text" class="mt-2 text-2xl font-semibold">
                 {{ finish.prompt }}
             </p>
         </div>
@@ -259,7 +307,38 @@ function vote(position: number) {
                     )
                 }}
             </p>
-            <div class="mt-3 grid gap-2">
+            <div
+                v-if="memeing && finish.image_url"
+                class="mt-3 grid gap-3 sm:grid-cols-2"
+            >
+                <button
+                    v-for="answer in finish.answers"
+                    :key="answer.position"
+                    type="button"
+                    :data-answer="answer.position"
+                    class="rounded-xl border-2 p-1 text-left transition"
+                    :class="[
+                        finish.my_vote === answer.position
+                            ? 'border-primary'
+                            : 'border-transparent hover:border-primary/60',
+                        answer.mine ? 'cursor-default opacity-60' : '',
+                    ]"
+                    :disabled="busy || answer.mine || !me"
+                    @click="vote(answer.position)"
+                >
+                    <MemeImage
+                        :src="finish.image_url"
+                        :alt="finish.prompt"
+                        :caption="answer.text"
+                    />
+                    <span
+                        v-if="answer.mine"
+                        class="mt-1 block text-center text-xs text-muted-foreground"
+                        >{{ t('yours') }}</span
+                    >
+                </button>
+            </div>
+            <div v-else class="mt-3 grid gap-2">
                 <button
                     v-for="answer in finish.answers"
                     :key="answer.position"
@@ -318,7 +397,37 @@ function vote(position: number) {
                 }}</span>
                 {{ finish.result.meaning }}
             </p>
-            <ul class="mt-3 space-y-2 text-sm">
+            <ul
+                v-if="memeing && finish.image_url"
+                class="mt-3 grid gap-3 sm:grid-cols-2"
+            >
+                <li
+                    v-for="answer in results"
+                    :key="answer.position"
+                    class="space-y-1 text-sm"
+                >
+                    <MemeImage
+                        :src="finish.image_url"
+                        :alt="finish.prompt"
+                        :caption="answer.text"
+                    />
+                    <div
+                        class="flex justify-between gap-2"
+                        :class="
+                            answer.user_id !== null &&
+                            winners.includes(answer.user_id)
+                                ? 'font-semibold'
+                                : ''
+                        "
+                    >
+                        <span>{{ playerName(answer.user_id) }}</span>
+                        <span class="tabular-nums">{{
+                            t(':count votes', { count: answer.votes ?? 0 })
+                        }}</span>
+                    </div>
+                </li>
+            </ul>
+            <ul v-else class="mt-3 space-y-2 text-sm">
                 <li
                     v-for="answer in results"
                     :key="answer.position"

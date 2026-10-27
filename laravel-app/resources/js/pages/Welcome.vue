@@ -2,6 +2,7 @@
 import { Head, Link } from '@inertiajs/vue3';
 import {
     BookOpen,
+    Image,
     MessageSquareQuote,
     Mic,
     PenLine,
@@ -93,6 +94,19 @@ const games = [
         ],
         play: 'Play Name the Emotion',
         path: '/games/emotion',
+    },
+    {
+        id: 'meme',
+        icon: Image,
+        name: 'Meme It',
+        intro: 'Everyone gets the same funny picture and writes a caption. Vote for the best meme, without knowing whose it is.',
+        steps: [
+            'The host deals a funny picture; everyone gets the same one.',
+            'Everyone writes a caption for it, which shows on the picture like a real meme. Nobody sees the others yet.',
+            'The memes are shown without names, and everyone votes for the best (not their own). The most votes win a point.',
+        ],
+        play: 'Play Meme It',
+        path: '/games/meme',
     },
 ];
 </script>

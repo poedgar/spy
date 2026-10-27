@@ -21,7 +21,9 @@ export function OpenGames({ games, loading }: { games: OpenGame[] | undefined; l
   const joinRequest = useJoinRequest();
 
   const details = (game: OpenGame) =>
-    game.game_type === 'emotion'
+    game.game_type === 'meme'
+      ? t('Meme It')
+      : game.game_type === 'emotion'
       ? `${t('Name the Emotion')} · ${emotionLevelLabels(t)[game.emotion_level ?? 1].label}`
       : game.game_type === 'meaning'
       ? game.phrase_language === 'uk'

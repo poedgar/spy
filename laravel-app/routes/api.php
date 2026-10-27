@@ -51,6 +51,8 @@ Route::prefix('v1')->group(function () {
             Route::post('games/finish', [FinishController::class, 'store']);
             Route::get('games/meaning', [FinishController::class, 'meaningHome']);
             Route::post('games/meaning', [FinishController::class, 'storeMeaning']);
+            Route::get('games/meme', [FinishController::class, 'memeHome']);
+            Route::post('games/meme', [FinishController::class, 'storeMeme']);
             Route::get('games/emotion', [EmotionController::class, 'home']);
             Route::post('games/emotion', [EmotionController::class, 'store']);
             Route::post('games', [GameController::class, 'store']);

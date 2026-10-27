@@ -22,7 +22,7 @@ export function RoundHistory({ game }: { game: Game }) {
       const winners = entry.winner_user_ids ?? [];
       return winners.length ? t('Named by :names', { names: winners.map((id) => name(id)).join(', ') }) : t('Nobody named it');
     }
-    if (game.game_type === 'song' || game.game_type === 'finish' || game.game_type === 'meaning') {
+    if (game.game_type === 'song' || game.game_type === 'finish' || game.game_type === 'meaning' || game.game_type === 'meme') {
       const winners = entry.winner_user_ids ?? [];
       return winners.length ? t('Best: :names', { names: winners.map((id) => name(id)).join(', ') }) : t('No votes');
     }
@@ -43,7 +43,9 @@ export function RoundHistory({ game }: { game: Game }) {
         ? history.map((entry) => (
             <AppText key={entry.number} testID={`history-${entry.number}`}>
               {t('Round :number', { number: entry.number })} ·{' '}
-              {game.game_type === 'emotion'
+              {game.game_type === 'meme'
+                ? `“${entry.best_answer ?? '…'}”`
+                : game.game_type === 'emotion'
                 ? (entry.emotion ? emotionLabels(t)[entry.emotion] : '?')
                 : game.game_type === 'meaning'
                 ? `“${entry.prompt ?? ''}”${entry.best_answer ? ` — ${entry.best_answer}` : ''}`

@@ -24,6 +24,9 @@ function round(overrides: Partial<FinishRound> = {}): FinishRound {
     prompt: 'Break the ice',
     max_length: 150,
     min_answers: 2,
+    image_url: null,
+    credit: null,
+    source_url: null,
     answered_user_ids: [1, 2, 3],
     my_answer: 'smash a frozen lake',
     answers: [

@@ -3,6 +3,7 @@
 namespace App\Actions\Finish;
 
 use App\Enums\GameStatus;
+use App\Enums\GameType;
 use App\Enums\Locale;
 use App\Events\GameUpdated;
 use App\Events\RoundStarted;
@@ -40,8 +41,10 @@ class StartFinishRound
                 throw new GameRuleException('game', __('At least :count operatives are required to start.', ['count' => $game->game_type->minPlayers()]));
             }
 
+            // Meme It's pictures have no language.
             $pool = Prompt::where('game_type', $game->game_type->value)
-                ->where('language', ($game->phrase_language ?? Locale::English)->value);
+                ->when($game->game_type !== GameType::Meme, fn ($query) => $query
+                    ->where('language', ($game->phrase_language ?? Locale::English)->value));
             $used = $game->finishRounds()->pluck('prompt_id');
             $prompt = (clone $pool)->whereNotIn('id', $used)->inRandomOrder()->first()
                 ?? (clone $pool)->inRandomOrder()->first();
@@ -55,6 +58,7 @@ class StartFinishRound
                 'prompt_id' => $prompt->id,
                 'text' => $prompt->text,
                 'meaning' => $prompt->meaning,
+                'image' => $prompt->image,
                 'answers' => [],
                 'votes' => [],
                 'started_at' => now(),

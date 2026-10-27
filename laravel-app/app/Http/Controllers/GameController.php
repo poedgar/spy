@@ -114,6 +114,7 @@ class GameController extends Controller
             GameType::Finish => 'games.finish',
             GameType::Meaning => 'games.meaning',
             GameType::Emotion => 'games.emotion',
+            GameType::Meme => 'games.meme',
             default => 'games.spy',
         };
     }

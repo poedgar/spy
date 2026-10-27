@@ -57,6 +57,16 @@ export default function GamePicker() {
           </AppText>
         </Card>
       </Pressable>
+      <Pressable testID="tile-meme" accessibilityRole="button" onPress={() => router.push('/meme')}>
+        <Card>
+          <AppText variant="heading">{t('Meme It')}</AppText>
+          <AppText variant="muted">
+            {t(
+              'Everyone gets the same funny picture and writes a caption. Vote for the best meme, without knowing whose it is.',
+            )}
+          </AppText>
+        </Card>
+      </Pressable>
       <Pressable testID="tile-emotion" accessibilityRole="button" onPress={() => router.push('/emotion')}>
         <Card>
           <AppText variant="heading">{t('Name the Emotion')}</AppText>

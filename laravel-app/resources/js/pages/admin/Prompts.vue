@@ -22,22 +22,29 @@ import { Label } from '@/components/ui/label';
 import { confirmAction } from '@/composables/useConfirm';
 import { useTrans } from '@/composables/useTrans';
 
-type WrittenGame = 'finish' | 'meaning';
+type WrittenGame = 'finish' | 'meaning' | 'meme';
 
 interface AdminPrompt {
     id: number;
     game: WrittenGame;
-    language: 'en' | 'uk';
+    /** None for Meme It's pictures. */
+    language: 'en' | 'uk' | null;
+    /** A picture's description, for Meme It. */
     text: string;
     /** Interpret the Phrase only: what the phrase really means. */
     meaning: string | null;
+    /** Meme It only: the picture, and the credit its licence asks for. */
+    image: string | null;
+    image_url: string | null;
+    credit: string | null;
+    source_url: string | null;
     rounds: number;
 }
 
 const props = defineProps<{
     prompts: Paginated<AdminPrompt>;
     filters: { q: string; language: string | null; game: string | null };
-    counts: Record<WrittenGame, Record<'en' | 'uk', number>>;
+    counts: Record<WrittenGame, Record<'en' | 'uk' | 'total', number>>;
 }>();
 
 defineOptions({
@@ -48,7 +55,10 @@ defineOptions({
 
 const { t } = useTrans();
 const gameName = (game: string) =>
-    game === 'meaning' ? t('Interpret the Phrase') : t('Finish the Phrase');
+    ({
+        meaning: t('Interpret the Phrase'),
+        meme: t('Meme It'),
+    })[game] ?? t('Finish the Phrase');
 
 // --- Filters ------------------------------------------------------------------
 
@@ -94,7 +104,15 @@ watch(() => [filter.language, filter.game], apply);
 
 const editing = ref<AdminPrompt | null>(null);
 const open = ref(false);
-const form = useForm({ game: 'finish', language: 'en', text: '', meaning: '' });
+const form = useForm({
+    game: 'finish',
+    language: 'en',
+    text: '',
+    meaning: '',
+    image: '',
+    credit: '',
+    source_url: '',
+});
 
 function openForm(prompt: AdminPrompt | null) {
     editing.value = prompt;
@@ -104,6 +122,9 @@ function openForm(prompt: AdminPrompt | null) {
         language: prompt?.language ?? (filter.language || 'en'),
         text: prompt?.text ?? '',
         meaning: prompt?.meaning ?? '',
+        image: prompt?.image ?? '',
+        credit: prompt?.credit ?? '',
+        source_url: prompt?.source_url ?? '',
     });
     form.reset();
     open.value = true;
@@ -145,11 +166,16 @@ async function remove(prompt: AdminPrompt) {
             <ul id="prompt-counts" class="text-sm text-muted-foreground">
                 <li v-for="(count, game) in counts" :key="game">
                     {{
-                        t(':game: :en in English, :uk in Ukrainian', {
-                            game: gameName(String(game)),
-                            en: count.en,
-                            uk: count.uk,
-                        })
+                        game === 'meme'
+                            ? t(':game: :count pictures', {
+                                  game: gameName(String(game)),
+                                  count: count.total,
+                              })
+                            : t(':game: :en in English, :uk in Ukrainian', {
+                                  game: gameName(String(game)),
+                                  en: count.en,
+                                  uk: count.uk,
+                              })
                     }}
                 </li>
             </ul>
@@ -168,9 +194,10 @@ async function remove(prompt: AdminPrompt) {
                 :placeholder="t('Search phrases')"
             />
             <FilterSelect id="select-admin-prompt-game" v-model="filter.game">
-                <option value="">{{ t('Both games') }}</option>
+                <option value="">{{ t('All games') }}</option>
                 <option value="finish">{{ t('Finish the Phrase') }}</option>
                 <option value="meaning">{{ t('Interpret the Phrase') }}</option>
+                <option value="meme">{{ t('Meme It') }}</option>
             </FilterSelect>
             <FilterSelect
                 id="select-admin-prompt-language"
@@ -215,9 +242,19 @@ async function remove(prompt: AdminPrompt) {
                         class="border-t border-sidebar-border/70 dark:border-sidebar-border"
                     >
                         <td class="px-3 py-2">
-                            <Badge variant="outline" class="mr-2">{{
-                                prompt.language.toUpperCase()
-                            }}</Badge>
+                            <img
+                                v-if="prompt.image_url"
+                                :src="prompt.image_url"
+                                :alt="prompt.text"
+                                loading="lazy"
+                                class="mb-1 h-20 rounded object-cover"
+                            />
+                            <Badge
+                                v-if="prompt.language"
+                                variant="outline"
+                                class="mr-2"
+                                >{{ prompt.language.toUpperCase() }}</Badge
+                            >
                             <Badge variant="secondary" class="mr-2">{{
                                 gameName(prompt.game)
                             }}</Badge>
@@ -227,6 +264,12 @@ async function remove(prompt: AdminPrompt) {
                                 class="mt-1 text-muted-foreground"
                             >
                                 {{ prompt.meaning }}
+                            </div>
+                            <div
+                                v-if="prompt.credit"
+                                class="mt-1 text-xs text-muted-foreground"
+                            >
+                                {{ t('Photo:') }} {{ prompt.credit }}
                             </div>
                         </td>
                         <td class="px-3 py-2 text-right tabular-nums">
@@ -271,13 +314,17 @@ async function remove(prompt: AdminPrompt) {
                 }}</DialogTitle>
                 <DialogDescription>
                     {{
-                        form.game === 'meaning'
+                        form.game === 'meme'
                             ? t(
-                                  'An idiom or a saying that players interpret ("Break the ice"), and what it really means, shown after the vote. Games in progress keep the text they were dealt.',
+                                  'A funny picture players caption. Use only pictures you may share: public domain, CC0 or CC BY (avoid share-alike), and give the credit the licence asks for. Paste an https link to the image file.',
                               )
-                            : t(
-                                  'The start of a phrase that players finish: half of a saying ("Better late than…") or an open prompt ("The worst excuse for being late is…"). Games in progress keep the text they were dealt.',
-                              )
+                            : form.game === 'meaning'
+                              ? t(
+                                    'An idiom or a saying that players interpret ("Break the ice"), and what it really means, shown after the vote. Games in progress keep the text they were dealt.',
+                                )
+                              : t(
+                                    'The start of a phrase that players finish: half of a saying ("Better late than…") or an open prompt ("The worst excuse for being late is…"). Games in progress keep the text they were dealt.',
+                                )
                     }}
                 </DialogDescription>
             </DialogHeader>
@@ -291,10 +338,11 @@ async function remove(prompt: AdminPrompt) {
                         <option value="meaning">
                             {{ t('Interpret the Phrase') }}
                         </option>
+                        <option value="meme">{{ t('Meme It') }}</option>
                     </FilterSelect>
                     <InputError :message="form.errors.game" />
                 </div>
-                <div class="grid gap-2">
+                <div v-if="form.game !== 'meme'" class="grid gap-2">
                     <Label for="prompt-language">{{ t('Language') }}</Label>
                     <FilterSelect id="prompt-language" v-model="form.language">
                         <option value="en">English</option>
@@ -303,7 +351,11 @@ async function remove(prompt: AdminPrompt) {
                     <InputError :message="form.errors.language" />
                 </div>
                 <div class="grid gap-2">
-                    <Label for="prompt-text">{{ t('Phrase') }}</Label>
+                    <Label for="prompt-text">{{
+                        form.game === 'meme'
+                            ? t('What the picture shows (for screen readers)')
+                            : t('Phrase')
+                    }}</Label>
                     <textarea
                         id="prompt-text"
                         v-model="form.text"
@@ -313,6 +365,44 @@ async function remove(prompt: AdminPrompt) {
                     />
                     <InputError :message="form.errors.text" />
                 </div>
+                <template v-if="form.game === 'meme'">
+                    <div class="grid gap-2">
+                        <Label for="prompt-image">{{
+                            t('Link to the picture')
+                        }}</Label>
+                        <Input
+                            id="prompt-image"
+                            v-model="form.image"
+                            maxlength="500"
+                            placeholder="https://upload.wikimedia.org/…"
+                        />
+                        <InputError :message="form.errors.image" />
+                    </div>
+                    <div class="grid gap-2">
+                        <Label for="prompt-credit">{{
+                            t('Credit (author, licence)')
+                        }}</Label>
+                        <Input
+                            id="prompt-credit"
+                            v-model="form.credit"
+                            maxlength="255"
+                            placeholder="Jane Doe, CC BY 4.0"
+                        />
+                        <InputError :message="form.errors.credit" />
+                    </div>
+                    <div class="grid gap-2">
+                        <Label for="prompt-source">{{
+                            t('Source page (optional)')
+                        }}</Label>
+                        <Input
+                            id="prompt-source"
+                            v-model="form.source_url"
+                            type="url"
+                            maxlength="500"
+                        />
+                        <InputError :message="form.errors.source_url" />
+                    </div>
+                </template>
                 <div v-if="form.game === 'meaning'" class="grid gap-2">
                     <Label for="prompt-meaning">{{
                         t('What it really means (optional)')

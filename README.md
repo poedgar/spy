@@ -10,14 +10,21 @@ Phrase** / Продовж фразу (everyone writes an ending to the same begi
 then votes for the best without names) and **Interpret the Phrase** /
 Розтлумач фразу (everyone explains the same idiom, votes for the best
 explanation, then sees the real meaning) and **Name the Emotion** / Вгадай
-емоцію (everyone names the emotion on the same face, at three levels).
-English and Ukrainian.
+емоцію (everyone names the emotion on the same face, at three levels) and **Meme It** / Зроби мем
+(everyone captions the same funny picture, then votes for the best meme
+without names). English and Ukrainian.
 
 Name the Emotion's faces are the UIBVFED set (M. Mascaró Oliver, E. Amengual
 Alcover, Universitat de les Illes Balears, *PLOS ONE* 2020, CC BY): virtual
 people whose expressions are built from the Facial Action Coding System. They
 ship in `laravel-app/public/emotions`; the game credits them wherever they
 appear, and players' answers re-sort them into levels by measured hit rate.
+
+Meme It's starter pictures are animal photos from Wikimedia Commons, each
+public domain, CC0 or CC BY (no share-alike, since a caption on top can count
+as an adaptation). They ship in `laravel-app/public/memes`; each one's author
+and licence are shown under the picture. Admins can add more by link under
+Admin → Written games.
 
 | Folder         | What it is                                                                 |
 | -------------- | -------------------------------------------------------------------------- |

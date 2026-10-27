@@ -29,6 +29,10 @@ function details(game: OpenGame): string {
         return t('Sing It Out');
     }
 
+    if (game.game_type === 'meme') {
+        return t('Meme It');
+    }
+
     if (game.game_type === 'emotion') {
         return [
             t('Name the Emotion'),

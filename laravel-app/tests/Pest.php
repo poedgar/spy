@@ -176,6 +176,16 @@ function face(string $emotion = 'joy', int $level = 1, array $attributes = []): 
     return Face::create(['image' => "emotions/test-{$n}.jpg", 'emotion' => $emotion, 'variant' => 'Test', 'base_level' => $level, ...$attributes]);
 }
 
+/**
+ * A Meme It game: the host plus $count - 1 players.
+ *
+ * @return array{0: Game, 1: User, 2: list<User>}
+ */
+function memeGame(int $count): array
+{
+    return gameWithPlayers($count, ['game_type' => GameType::Meme, 'game_mode' => null, 'mission_briefing' => null, 'max_players' => 10, 'phrase_language' => null]);
+}
+
 /** A clip: a stretch of a YouTube video. */
 function songClip(string $title = 'Bohemian Rhapsody', ?string $artist = 'Queen'): Song
 {

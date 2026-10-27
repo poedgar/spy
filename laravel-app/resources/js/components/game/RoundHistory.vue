@@ -62,7 +62,19 @@ function phraseOutcome(entry: NonNullable<Game['history']>[number]): string {
                     t('Round :number', { number: entry.number })
                 }}</span>
                 ·
-                <template v-if="game.game_type === 'emotion'">
+                <template v-if="game.game_type === 'meme'">
+                    <img
+                        v-if="entry.image_url"
+                        :src="entry.image_url"
+                        :alt="entry.prompt ?? ''"
+                        class="inline-block h-8 w-8 rounded object-cover align-middle"
+                    />
+                    <span v-if="entry.best_answer" class="italic">
+                        “{{ entry.best_answer }}”</span
+                    >
+                    · {{ votedOutcome(entry) }}
+                </template>
+                <template v-else-if="game.game_type === 'emotion'">
                     {{ entry.emotion ? emotions[entry.emotion] : '?' }} ·
                     {{
                         entry.ending === 'abandoned'

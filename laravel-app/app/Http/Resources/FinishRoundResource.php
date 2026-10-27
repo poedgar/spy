@@ -5,6 +5,7 @@ namespace App\Http\Resources;
 use App\Actions\Finish\CloseFinishVoting;
 use App\Actions\Finish\OpenFinishVoting;
 use App\Models\FinishRound;
+use App\Models\Prompt;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -35,6 +36,10 @@ class FinishRoundResource extends JsonResource
         return [
             'number' => $this->number,
             'prompt' => $this->text,
+            // Meme It: the picture to caption, and the credit its licence asks for.
+            'image_url' => Prompt::urlFor($this->image),
+            'credit' => $this->image === null ? null : $this->prompt?->credit,
+            'source_url' => $this->image === null ? null : $this->prompt?->source_url,
             'max_length' => FinishRound::MAX_ANSWER_LENGTH,
             'min_answers' => OpenFinishVoting::MIN_ANSWERS,
             'answered_user_ids' => $this->authorIds(),

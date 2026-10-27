@@ -79,7 +79,8 @@ export type GameType =
     | 'song'
     | 'finish'
     | 'meaning'
-    | 'emotion';
+    | 'emotion'
+    | 'meme';
 
 /** The six basic emotions, plus neutral. */
 export type Emotion =
@@ -156,6 +157,10 @@ export interface FinishRound {
     prompt: string;
     max_length: number;
     min_answers: number;
+    /** Meme It: the picture to caption, and the credit its licence asks for. */
+    image_url: string | null;
+    credit: string | null;
+    source_url: string | null;
     answered_user_ids: number[];
     my_answer: string | null;
     /** Shuffled, once the vote opens. */

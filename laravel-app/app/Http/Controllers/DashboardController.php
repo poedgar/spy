@@ -41,6 +41,11 @@ class DashboardController extends Controller
         return inertia('games/Emotion', $this->homeProps($request, $home, GameType::Emotion));
     }
 
+    public function meme(Request $request, GameHomeQuery $home): Response
+    {
+        return inertia('games/Meme', $this->homeProps($request, $home, GameType::Meme));
+    }
+
     public function meaning(Request $request, GameHomeQuery $home): Response
     {
         return inertia('games/Meaning', $this->homeProps($request, $home, GameType::Meaning));

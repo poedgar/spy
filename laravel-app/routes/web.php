@@ -83,6 +83,8 @@ Route::middleware(['auth', 'verified.play'])->group(function () {
     Route::post('games/finish', [FinishController::class, 'store'])->name('finish.store');
     Route::get('games/meaning', [DashboardController::class, 'meaning'])->name('games.meaning');
     Route::post('games/meaning', [FinishController::class, 'storeMeaning'])->name('meaning.store');
+    Route::get('games/meme', [DashboardController::class, 'meme'])->name('games.meme');
+    Route::post('games/meme', [FinishController::class, 'storeMeme'])->name('meme.store');
     Route::get('games/emotion', [DashboardController::class, 'emotion'])->name('games.emotion');
     Route::post('games/emotion', [EmotionController::class, 'store'])->name('emotion.store');
     Route::post('games/phrase', [PhraseController::class, 'store'])->name('phrase.store');
