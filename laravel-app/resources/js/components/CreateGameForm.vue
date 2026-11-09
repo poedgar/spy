@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import PlayerLimitsInput from '@/components/PlayerLimitsInput.vue';
+import { playerLimits } from '@/lib/playerLimits';
 import GameNameInput from '@/components/GameNameInput.vue';
 import { useForm } from '@inertiajs/vue3';
 import RoundTimerSelect from '@/components/game/RoundTimerSelect.vue';
@@ -10,14 +12,14 @@ import type { AgeTier, GameMode } from '@/types/game';
 const { t } = useTrans();
 const { modes, tiers } = useGameLabels();
 
-const MIN_PLAYERS = 3;
+const limits = playerLimits('spy');
 
 const form = useForm({
     title: '',
     game_mode: 'mole' as GameMode,
     age_tier: 'adults' as AgeTier,
-    // Tables start at the minimum; the host raises it for bigger groups.
-    max_players: MIN_PLAYERS,
+    min_players: limits.min,
+    max_players: limits.defaultMax,
     mission_briefing: '',
     requires_approval: false,
     is_listed: true,
@@ -121,12 +123,18 @@ function submit() {
             </div>
         </fieldset>
 
-        <div>
-            <label
-                for="input-max-players"
-                class="mb-1 block text-sm font-medium"
-            >
-                {{ t('Operatives') }}: {{ form.max_players }} ·
+        <PlayerLimitsInput
+            v-model:min="form.min_players"
+            v-model:max="form.max_players"
+            id-prefix="input"
+            :min-allowed="limits.min"
+            :max-allowed="limits.max"
+            :label="t('Operatives')"
+            :min-error="form.errors.min_players"
+            :max-error="form.errors.max_players"
+        >
+            <template #hint>
+                ·
                 {{
                     spiesAtCapacity === 1
                         ? t('1 spy when full')
@@ -134,19 +142,8 @@ function submit() {
                               count: spiesAtCapacity,
                           })
                 }}
-            </label>
-            <input
-                id="input-max-players"
-                v-model.number="form.max_players"
-                type="number"
-                :min="MIN_PLAYERS"
-                max="12"
-                class="w-full rounded border px-2 py-1"
-            />
-            <p v-if="form.errors.max_players" class="mt-1 text-sm text-red-600">
-                {{ form.errors.max_players }}
-            </p>
-        </div>
+            </template>
+        </PlayerLimitsInput>
 
         <div>
             <label

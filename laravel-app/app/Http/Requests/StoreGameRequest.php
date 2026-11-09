@@ -5,6 +5,7 @@ namespace App\Http\Requests;
 use App\Enums\AgeTier;
 use App\Enums\GameMode;
 use App\Enums\GameType;
+use App\Http\Requests\Concerns\ValidatesPlayerLimits;
 use App\Models\Game;
 use App\Support\GameNameGenerator;
 use Illuminate\Foundation\Http\FormRequest;
@@ -12,6 +13,8 @@ use Illuminate\Validation\Rule;
 
 class StoreGameRequest extends FormRequest
 {
+    use ValidatesPlayerLimits;
+
     public function authorize(): bool
     {
         return true;
@@ -57,7 +60,7 @@ class StoreGameRequest extends FormRequest
             'title' => ['nullable', 'string', 'max:255'],
             'game_mode' => ['required', 'string', Rule::enum(GameMode::class)],
             'age_tier' => ['required', 'string', Rule::enum(AgeTier::class)],
-            'max_players' => ['required', 'integer', 'min:'.GameType::Spy->minPlayers(), 'max:'.GameType::Spy->maxPlayers()],
+            ...$this->playerLimitRules(GameType::Spy),
             'mission_briefing' => ['nullable', 'string', 'max:2000'],
             'requires_approval' => ['sometimes', 'boolean'],
             'is_listed' => ['sometimes', 'boolean'],

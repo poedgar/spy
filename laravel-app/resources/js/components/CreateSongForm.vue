@@ -1,17 +1,18 @@
 <script setup lang="ts">
+import PlayerLimitsInput from '@/components/PlayerLimitsInput.vue';
+import { playerLimits } from '@/lib/playerLimits';
 import { useForm } from '@inertiajs/vue3';
 import GameNameInput from '@/components/GameNameInput.vue';
 import { useTrans } from '@/composables/useTrans';
 
 const { t } = useTrans();
 
-const MAX_PLAYERS = 10;
-const MIN_PLAYERS = 3;
+const limits = playerLimits('song');
 
 const form = useForm({
     title: '',
-    // Tables start at the minimum; the host raises it for bigger groups.
-    max_players: MIN_PLAYERS,
+    min_players: limits.min,
+    max_players: limits.defaultMax,
     requires_approval: false,
     is_listed: true,
 });
@@ -41,24 +42,15 @@ function submit() {
             </p>
         </div>
 
-        <div>
-            <label
-                for="input-song-max-players"
-                class="mb-1 block text-sm font-medium"
-                >{{ t('Players') }}: {{ form.max_players }}</label
-            >
-            <input
-                id="input-song-max-players"
-                v-model.number="form.max_players"
-                type="number"
-                :min="MIN_PLAYERS"
-                :max="MAX_PLAYERS"
-                class="w-full rounded border px-2 py-1"
-            />
-            <p v-if="form.errors.max_players" class="mt-1 text-sm text-red-600">
-                {{ form.errors.max_players }}
-            </p>
-        </div>
+        <PlayerLimitsInput
+            v-model:min="form.min_players"
+            v-model:max="form.max_players"
+            id-prefix="input-song"
+            :min-allowed="limits.min"
+            :max-allowed="limits.max"
+            :min-error="form.errors.min_players"
+            :max-error="form.errors.max_players"
+        />
 
         <label class="flex items-center gap-2 text-sm">
             <input

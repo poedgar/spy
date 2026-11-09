@@ -3,11 +3,14 @@
 namespace App\Http\Requests;
 
 use App\Enums\GameType;
+use App\Http\Requests\Concerns\ValidatesPlayerLimits;
 use App\Support\GameNameGenerator;
 use Illuminate\Foundation\Http\FormRequest;
 
 class StoreSongGameRequest extends FormRequest
 {
+    use ValidatesPlayerLimits;
+
     public function authorize(): bool
     {
         return true;
@@ -36,7 +39,7 @@ class StoreSongGameRequest extends FormRequest
     {
         return [
             'title' => ['nullable', 'string', 'max:255'],
-            'max_players' => ['required', 'integer', 'min:'.GameType::Song->minPlayers(), 'max:'.GameType::Song->maxPlayers()],
+            ...$this->playerLimitRules(GameType::Song),
             'requires_approval' => ['sometimes', 'boolean'],
             'is_listed' => ['sometimes', 'boolean'],
         ];

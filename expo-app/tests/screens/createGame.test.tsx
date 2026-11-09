@@ -22,7 +22,8 @@ test('creates an operation with the chosen settings and opens the lobby', async 
   fireEvent.changeText(await screen.findByTestId('input-game-title'), 'Operation Nightfall');
   fireEvent.press(screen.getByTestId('mode-codebreaker'));
   fireEvent.press(screen.getByTestId('tier-children'));
-  fireEvent.press(screen.getByTestId('btn-players-plus'));
+  fireEvent.press(screen.getByTestId('btn-min-players-plus'));
+  fireEvent.press(screen.getByTestId('btn-players-minus'));
   fireEvent.changeText(screen.getByTestId('input-mission-briefing'), 'Find the mole.');
   await act(async () => {
     fireEvent.press(screen.getByTestId('btn-create-game'));
@@ -32,7 +33,8 @@ test('creates an operation with the chosen settings and opens the lobby', async 
     title: 'Operation Nightfall',
     game_mode: 'codebreaker',
     age_tier: 'children',
-    max_players: 4,
+    min_players: 4,
+    max_players: 11,
     // Choosing Codebreaker suggested an 8-minute timer.
     round_seconds: 480,
     mission_briefing: 'Find the mole.',
@@ -40,15 +42,21 @@ test('creates an operation with the chosen settings and opens the lobby', async 
   await waitFor(() => expect(screen).toHavePathname('/games/SPY-AB3D'));
 });
 
-test('player count stays within 3 to 12', async () => {
+test('player counts start at 3 to 12, stay within 3 to 20, and min never exceeds max', async () => {
   await renderApp(routes, { initialUrl: '/spy/create', user: fakeUser });
-  await screen.findByTestId('players-count');
+  expect(await screen.findByTestId('players-count')).toHaveTextContent('12');
+  expect(screen.getByTestId('min-players-count')).toHaveTextContent('3');
 
-  for (let i = 0; i < 10; i++) fireEvent.press(screen.getByTestId('btn-players-plus'));
-  expect(screen.getByTestId('players-count')).toHaveTextContent('12');
+  for (let i = 0; i < 15; i++) fireEvent.press(screen.getByTestId('btn-players-plus'));
+  expect(screen.getByTestId('players-count')).toHaveTextContent('20');
 
-  for (let i = 0; i < 15; i++) fireEvent.press(screen.getByTestId('btn-players-minus'));
+  for (let i = 0; i < 25; i++) fireEvent.press(screen.getByTestId('btn-min-players-plus'));
+  expect(screen.getByTestId('min-players-count')).toHaveTextContent('20');
+
+  // Lowering the maximum pulls the minimum down with it.
+  for (let i = 0; i < 25; i++) fireEvent.press(screen.getByTestId('btn-players-minus'));
   expect(screen.getByTestId('players-count')).toHaveTextContent('3');
+  expect(screen.getByTestId('min-players-count')).toHaveTextContent('3');
 });
 
 test('server field errors show on the form', async () => {

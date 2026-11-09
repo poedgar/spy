@@ -4,6 +4,7 @@ namespace App\Http\Requests;
 
 use App\Enums\GameType;
 use App\Enums\Locale;
+use App\Http\Requests\Concerns\ValidatesPlayerLimits;
 use App\Support\GameNameGenerator;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -14,6 +15,8 @@ use Illuminate\Validation\Rule;
  */
 class StoreFinishGameRequest extends FormRequest
 {
+    use ValidatesPlayerLimits;
+
     public function gameType(): GameType
     {
         return GameType::Finish;
@@ -49,7 +52,7 @@ class StoreFinishGameRequest extends FormRequest
             'title' => ['nullable', 'string', 'max:255'],
             // The language of the phrases dealt.
             'phrase_language' => ['required', 'string', Rule::enum(Locale::class)],
-            'max_players' => ['required', 'integer', 'min:'.$this->gameType()->minPlayers(), 'max:'.$this->gameType()->maxPlayers()],
+            ...$this->playerLimitRules($this->gameType()),
             'requires_approval' => ['sometimes', 'boolean'],
             'is_listed' => ['sometimes', 'boolean'],
         ];

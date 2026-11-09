@@ -9,10 +9,11 @@ for the full design and phase roadmap.
 
 Spy is played in rounds, with the same rules on the web and in the Expo app:
 
-1. The host creates an operation (mode, age group, 3–12 operatives) and
-   shares its code. Players join while it is **recruiting**, can mark
+1. The host creates an operation (mode, age group, and how many operatives:
+   the minimum a round needs, at least 3, and the table size, up to 20,
+   12 by default) and shares its code. Players join while it is **recruiting**, can mark
    themselves ready, and can leave between rounds.
-2. **Starting a round** (host, at least 3 players) draws a secret location
+2. **Starting a round** (host, at least the game's minimum of players) draws a secret location
    from the age group's pool and secretly picks the spies (1 for 3–4
    players, 2 for 5–7, then one more per 3 players). Each player sees only
    their own role; loyalists also see the location.
@@ -25,6 +26,11 @@ Spy is played in rounds, with the same rules on the web and in the Expo app:
 5. Everyone on the winning side scores a point. The host can start the
    next round (scores carry over) or send the game **back to recruiting**,
    which abandons a round in progress without points.
+
+Every game type works the same way on player counts: the host sets
+`min_players` (rounds wait for it; older clients that don't send it get 3)
+and `max_players` (12 by default), within `GameType::minPlayers()` and
+`maxPlayers()` — 3 to 20, or 3 to 12 for Phrase.
 
 Rules live in `app/Actions/Games`. Role secrecy is enforced by
 `RoundResource`, which shapes each round for the requesting player.
@@ -41,7 +47,8 @@ machinery (`games.game_type` is `spy` or `phrase`; Spy-only and Phrase-only
 actions refuse the other game):
 
 1. The host creates a game, picks the phrase language (English or
-   Ukrainian pool) and a table of 3–10 players.
+   Ukrainian pool), a minimum of players to start (at least 3) and a table
+   of up to 12 players.
 2. **Dealing** picks a well-known phrase with at least as many words as
    players (preferring ones this game hasn't played) and gives every player
    a different word of it, with its position; the rest stay hidden.

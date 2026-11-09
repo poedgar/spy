@@ -214,7 +214,9 @@ export interface Game {
   emotion_level?: EmotionLevel | null;
   max_allowed_players?: number;
   max_players: number;
+  /** Players a round needs to start, picked by the host. */
   min_players?: number;
+  min_allowed_players?: number;
   mission_briefing: string | null;
   status: GameStatus;
   host_id: number;
@@ -323,6 +325,7 @@ export interface CreateGameInput {
   round_seconds?: number;
   game_mode: GameMode;
   age_tier: AgeTier;
+  min_players: number;
   max_players: number;
   mission_briefing: string;
 }
@@ -336,17 +339,20 @@ export interface CreatePhraseGameInput {
   title: string;
   round_seconds?: number;
   phrase_language: Locale;
+  min_players: number;
   max_players: number;
 }
 
 export interface CreateSongGameInput {
   title: string;
+  min_players: number;
   max_players: number;
 }
 
 export interface CreateEmotionGameInput {
   title: string;
   emotion_level: EmotionLevel;
+  min_players: number;
   max_players: number;
 }
 
@@ -354,6 +360,7 @@ export interface CreateFinishGameInput {
   title: string;
   /** Not for Meme It: pictures have no language. */
   phrase_language?: Locale;
+  min_players: number;
   max_players: number;
 }
 

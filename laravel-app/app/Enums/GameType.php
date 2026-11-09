@@ -13,8 +13,7 @@ enum GameType: string
     case Meme = 'meme';
 
     /**
-     * The fewest players a round can start with, and the size a new game's
-     * table defaults to.
+     * The lowest minimum a host can set: no round works with fewer players.
      */
     public function minPlayers(): int
     {
@@ -24,15 +23,23 @@ enum GameType: string
     }
 
     /**
-     * Phrase games are capped by the longest phrases in the pools: every
-     * player needs a word of their own.
+     * The largest table a host can set. Phrase games are capped by the
+     * longest phrases in the pools: every player needs a word of their own.
      */
     public function maxPlayers(): int
     {
         return match ($this) {
-            self::Spy => 12,
-            self::Phrase, self::Song, self::Finish, self::Meaning, self::Emotion, self::Meme => 10,
+            self::Phrase => 12,
+            self::Spy, self::Song, self::Finish, self::Meaning, self::Emotion, self::Meme => 20,
         };
+    }
+
+    /**
+     * The table size a new game's form starts at.
+     */
+    public function defaultMaxPlayers(): int
+    {
+        return min(12, $this->maxPlayers());
     }
 
     /**

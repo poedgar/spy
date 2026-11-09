@@ -15,7 +15,7 @@ test('creating an Interpret the Phrase game, with a suggested name when none is 
         ->assertCreated()
         ->assertJsonPath('game_type', 'meaning')
         ->assertJsonPath('title', fn (string $title) => str_starts_with($title, 'Riddle Club:'));
-    $this->postJson('/api/v1/games/meaning', ['max_players' => 11, 'phrase_language' => 'en'])->assertJsonValidationErrors('max_players');
+    $this->postJson('/api/v1/games/meaning', ['max_players' => 21, 'phrase_language' => 'en'])->assertJsonValidationErrors('max_players');
 
     $this->getJson('/api/v1/games/meaning')->assertOk()->assertJsonCount(1, 'games');
     $this->getJson('/api/v1/games/finish')->assertOk()->assertJsonCount(0, 'games');

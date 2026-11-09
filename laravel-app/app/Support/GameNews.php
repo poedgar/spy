@@ -37,7 +37,7 @@ class GameNews
         $game->refresh();
         $count = $game->players()->count();
 
-        if ($game->status === GameStatus::Recruiting && $count === $game->game_type->minPlayers()) {
+        if ($game->status === GameStatus::Recruiting && $count === $game->min_players) {
             $game->host?->notify(new ReadyToStart($game, $count));
         }
     }

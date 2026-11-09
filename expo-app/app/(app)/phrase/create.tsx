@@ -12,6 +12,8 @@ import { useGameNameSuggestion } from '@/game/useGameNameSuggestion';
 import { Screen } from '@/components/Screen';
 import { applyServerErrors } from '@/forms/applyServerErrors';
 import { RoundTimerPicker } from '@/game/RoundTimerPicker';
+import { PlayerLimitsField } from '@/game/PlayerLimitsField';
+import { playerLimits } from '@/game/playerLimits';
 import { useI18n } from '@/i18n/I18nProvider';
 import { useTheme } from '@/theme/useTheme';
 
@@ -19,10 +21,6 @@ const LANGUAGES: { value: Locale; label: string }[] = [
   { value: 'en', label: 'English' },
   { value: 'uk', label: 'Українська' },
 ];
-// Tables start at the minimum; the host raises it for bigger groups.
-const MIN_PLAYERS = 3;
-// Every player needs a word of their own, and the pools' longest phrases cap this.
-const MAX_PLAYERS = 10;
 
 export default function CreatePhraseGame() {
   const router = useRouter();
@@ -31,7 +29,7 @@ export default function CreatePhraseGame() {
   const createGame = useCreatePhraseGame();
   const [formError, setFormError] = useState<string | null>(null);
   const { control, handleSubmit, setError, getValues, setValue } = useForm<CreatePhraseGameInput>({
-    defaultValues: { title: '', phrase_language: locale, max_players: MIN_PLAYERS, round_seconds: 0 },
+    defaultValues: { title: '', phrase_language: locale, min_players: playerLimits('phrase').min, max_players: playerLimits('phrase').defaultMax, round_seconds: 0 },
   });
 
   const name = useGameNameSuggestion('phrase', () => getValues('title'), (title) => setValue('title', title));
@@ -42,7 +40,7 @@ export default function CreatePhraseGame() {
       const game = await createGame.mutateAsync({ ...input, title: input.title.trim() });
       router.replace(`/games/${game.code}`);
     } catch (error) {
-      setFormError(applyServerErrors(error, setError, ['title', 'phrase_language', 'max_players', 'round_seconds']));
+      setFormError(applyServerErrors(error, setError, ['title', 'phrase_language', 'min_players', 'max_players', 'round_seconds']));
     }
   });
 
@@ -89,33 +87,7 @@ export default function CreatePhraseGame() {
         )}
       />
 
-      <Controller
-        control={control}
-        name="max_players"
-        render={({ field: { value, onChange }, fieldState: { error } }) => (
-          <View style={{ gap: spacing.xs }}>
-            <AppText variant="muted">{t('Players')}</AppText>
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.lg }}>
-              <Button
-                testID="btn-players-minus"
-                label="−"
-                variant="secondary"
-                onPress={() => onChange(Math.max(MIN_PLAYERS, value - 1))}
-              />
-              <AppText testID="players-count" variant="heading">
-                {String(value)}
-              </AppText>
-              <Button
-                testID="btn-players-plus"
-                label="+"
-                variant="secondary"
-                onPress={() => onChange(Math.min(MAX_PLAYERS, value + 1))}
-              />
-            </View>
-            {error ? <AppText style={{ color: colors.destructive }}>{error.message}</AppText> : null}
-          </View>
-        )}
-      />
+      <PlayerLimitsField control={control} type='phrase' />
 
       <Controller
         control={control}

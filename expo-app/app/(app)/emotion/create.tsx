@@ -12,12 +12,11 @@ import { Screen } from '@/components/Screen';
 import { applyServerErrors } from '@/forms/applyServerErrors';
 import { useGameNameSuggestion } from '@/game/useGameNameSuggestion';
 import { emotionLevelLabels } from '@/emotion/labels';
+import { PlayerLimitsField } from '@/game/PlayerLimitsField';
+import { playerLimits } from '@/game/playerLimits';
 import { useI18n } from '@/i18n/I18nProvider';
 import { useTheme } from '@/theme/useTheme';
 
-// Tables start at the minimum; the host raises it for bigger groups.
-const MIN_PLAYERS = 3;
-const MAX_PLAYERS = 10;
 
 export default function CreateEmotionGame() {
   const router = useRouter();
@@ -27,7 +26,7 @@ export default function CreateEmotionGame() {
   const createGame = useCreateEmotionGame();
   const [formError, setFormError] = useState<string | null>(null);
   const { control, handleSubmit, setError, getValues, setValue } = useForm<CreateEmotionGameInput>({
-    defaultValues: { title: '', emotion_level: 1, max_players: MIN_PLAYERS },
+    defaultValues: { title: '', emotion_level: 1, min_players: playerLimits('emotion').min, max_players: playerLimits('emotion').defaultMax },
   });
 
   const name = useGameNameSuggestion('emotion', () => getValues('title'), (title) => setValue('title', title));
@@ -38,7 +37,7 @@ export default function CreateEmotionGame() {
       const game = await createGame.mutateAsync({ ...input, title: input.title.trim() });
       router.replace(`/games/${game.code}`);
     } catch (error) {
-      setFormError(applyServerErrors(error, setError, ['title', 'emotion_level', 'max_players']));
+      setFormError(applyServerErrors(error, setError, ['title', 'emotion_level', 'min_players', 'max_players']));
     }
   });
 
@@ -82,33 +81,7 @@ export default function CreateEmotionGame() {
         )}
       />
 
-      <Controller
-        control={control}
-        name="max_players"
-        render={({ field: { value, onChange }, fieldState: { error } }) => (
-          <View style={{ gap: spacing.xs }}>
-            <AppText variant="muted">{t('Players')}</AppText>
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.lg }}>
-              <Button
-                testID="btn-players-minus"
-                label="−"
-                variant="secondary"
-                onPress={() => onChange(Math.max(MIN_PLAYERS, value - 1))}
-              />
-              <AppText testID="players-count" variant="heading">
-                {String(value)}
-              </AppText>
-              <Button
-                testID="btn-players-plus"
-                label="+"
-                variant="secondary"
-                onPress={() => onChange(Math.min(MAX_PLAYERS, value + 1))}
-              />
-            </View>
-            {error ? <AppText style={{ color: colors.destructive }}>{error.message}</AppText> : null}
-          </View>
-        )}
-      />
+      <PlayerLimitsField control={control} type='emotion' />
 
       <FormError message={formError} />
       <Button testID="btn-create-emotion" label={t('Create')} loading={createGame.isPending} onPress={onSubmit} />

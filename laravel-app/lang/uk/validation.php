@@ -174,6 +174,7 @@ return [
         'game_mode' => 'режим гри',
         'age_tier' => 'вікова група',
         'max_players' => 'кількість гравців',
+        'min_players' => 'мінімум гравців',
         'mission_briefing' => 'брифінг місії',
         'code' => 'код',
         'locale' => 'мова',

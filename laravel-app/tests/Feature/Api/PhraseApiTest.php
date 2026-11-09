@@ -20,10 +20,10 @@ test('creating a phrase game sets its type and language', function () {
         ->assertCreated()
         ->assertJsonPath('game_type', 'phrase')
         ->assertJsonPath('phrase_language', 'uk')
-        ->assertJsonPath('max_allowed_players', 10)
+        ->assertJsonPath('max_allowed_players', 12)
         ->assertJsonPath('phrase', null);
 
-    $this->postJson('/api/v1/games/phrase', ['title' => 'Too big', 'phrase_language' => 'en', 'max_players' => 11])
+    $this->postJson('/api/v1/games/phrase', ['title' => 'Too big', 'phrase_language' => 'en', 'max_players' => 13])
         ->assertUnprocessable()
         ->assertJsonValidationErrors('max_players');
 });

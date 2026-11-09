@@ -36,8 +36,8 @@ class StartEmotionRound
                 throw new GameRuleException('game', __('A round is already in progress.'));
             }
 
-            if ($game->players()->count() < $game->game_type->minPlayers()) {
-                throw new GameRuleException('game', __('At least :count operatives are required to start.', ['count' => $game->game_type->minPlayers()]));
+            if ($game->players()->count() < $game->min_players) {
+                throw new GameRuleException('game', __('At least :count operatives are required to start.', ['count' => $game->min_players]));
             }
 
             $face = $this->pickFace($game, $game->emotion_level ?? EmotionCatalog::LEVEL_EASY);

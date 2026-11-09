@@ -4,6 +4,7 @@ namespace App\Http\Requests;
 
 use App\Enums\GameType;
 use App\Enums\Locale;
+use App\Http\Requests\Concerns\ValidatesPlayerLimits;
 use App\Models\Game;
 use App\Support\GameNameGenerator;
 use Illuminate\Foundation\Http\FormRequest;
@@ -11,6 +12,8 @@ use Illuminate\Validation\Rule;
 
 class StorePhraseGameRequest extends FormRequest
 {
+    use ValidatesPlayerLimits;
+
     public function authorize(): bool
     {
         return true;
@@ -45,7 +48,7 @@ class StorePhraseGameRequest extends FormRequest
         return [
             'title' => ['nullable', 'string', 'max:255'],
             'phrase_language' => ['required', 'string', Rule::enum(Locale::class)],
-            'max_players' => ['required', 'integer', 'min:'.GameType::Phrase->minPlayers(), 'max:'.GameType::Phrase->maxPlayers()],
+            ...$this->playerLimitRules(GameType::Phrase),
             'requires_approval' => ['sometimes', 'boolean'],
             'is_listed' => ['sometimes', 'boolean'],
             // Seconds per round; empty or 0 means no timer.

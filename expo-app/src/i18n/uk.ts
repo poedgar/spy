@@ -244,6 +244,8 @@ export const uk: Record<string, string> = {
   "Picture :number": "Картинка :number",
   "Player age group": "Вікова група гравців",
   "Players": "Гравці",
+  "Maximum": "Максимум",
+  "Minimum to start": "Мінімум для старту",
   "Players online now and people you have played with appear here. Search to find anyone else.": "Тут зʼявляються гравці, які зараз онлайн, і ті, з ким ви вже грали. Скористайтеся пошуком, щоб знайти інших.",
   "Please check the form.": "Перевірте форму.",
   "Previous rounds": "Попередні раунди",

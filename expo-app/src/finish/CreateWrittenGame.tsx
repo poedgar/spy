@@ -11,6 +11,8 @@ import { FormTextField } from '@/components/FormTextField';
 import { useGameNameSuggestion } from '@/game/useGameNameSuggestion';
 import { Screen } from '@/components/Screen';
 import { applyServerErrors } from '@/forms/applyServerErrors';
+import { PlayerLimitsField } from '@/game/PlayerLimitsField';
+import { playerLimits } from '@/game/playerLimits';
 import { useI18n } from '@/i18n/I18nProvider';
 import { useTheme } from '@/theme/useTheme';
 
@@ -18,9 +20,6 @@ const LANGUAGES: { value: Locale; label: string }[] = [
   { value: 'en', label: 'English' },
   { value: 'uk', label: 'Українська' },
 ];
-// Tables start at the minimum; the host raises it for bigger groups.
-const MIN_PLAYERS = 3;
-const MAX_PLAYERS = 10;
 
 /** The written games create games the same way; Meme It needs no language. */
 export function CreateWrittenGame({ type }: { type: WrittenGameType }) {
@@ -30,7 +29,7 @@ export function CreateWrittenGame({ type }: { type: WrittenGameType }) {
   const createGame = useCreateFinishGame(type);
   const [formError, setFormError] = useState<string | null>(null);
   const { control, handleSubmit, setError, getValues, setValue } = useForm<CreateFinishGameInput>({
-    defaultValues: { title: '', phrase_language: locale, max_players: MIN_PLAYERS },
+    defaultValues: { title: '', phrase_language: locale, min_players: playerLimits(type).min, max_players: playerLimits(type).defaultMax },
   });
 
   const name = useGameNameSuggestion(type, () => getValues('title'), (title) => setValue('title', title));
@@ -47,7 +46,7 @@ export function CreateWrittenGame({ type }: { type: WrittenGameType }) {
       });
       router.replace(`/games/${game.code}`);
     } catch (error) {
-      setFormError(applyServerErrors(error, setError, ['title', 'phrase_language', 'max_players']));
+      setFormError(applyServerErrors(error, setError, ['title', 'phrase_language', 'min_players', 'max_players']));
     }
   });
 
@@ -105,33 +104,7 @@ export function CreateWrittenGame({ type }: { type: WrittenGameType }) {
         />
       )}
 
-      <Controller
-        control={control}
-        name="max_players"
-        render={({ field: { value, onChange }, fieldState: { error } }) => (
-          <View style={{ gap: spacing.xs }}>
-            <AppText variant="muted">{t('Players')}</AppText>
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.lg }}>
-              <Button
-                testID="btn-players-minus"
-                label="−"
-                variant="secondary"
-                onPress={() => onChange(Math.max(MIN_PLAYERS, value - 1))}
-              />
-              <AppText testID="players-count" variant="heading">
-                {String(value)}
-              </AppText>
-              <Button
-                testID="btn-players-plus"
-                label="+"
-                variant="secondary"
-                onPress={() => onChange(Math.min(MAX_PLAYERS, value + 1))}
-              />
-            </View>
-            {error ? <AppText style={{ color: colors.destructive }}>{error.message}</AppText> : null}
-          </View>
-        )}
-      />
+      <PlayerLimitsField control={control} type={type} />
 
       <FormError message={formError} />
       <Button testID={`btn-create-${type}`} label={t('Create')} loading={createGame.isPending} onPress={onSubmit} />

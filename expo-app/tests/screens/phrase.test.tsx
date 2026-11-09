@@ -75,8 +75,11 @@ test('creating a phrase game sends the language and table size', async () => {
 
   fireEvent.changeText(await screen.findByTestId('input-phrase-title'), 'Word Play');
   fireEvent.press(screen.getByTestId('phrase-language-uk'));
-  for (let i = 0; i < 10; i++) fireEvent.press(screen.getByTestId('btn-players-plus'));
-  expect(screen.getByTestId('players-count')).toHaveTextContent('10');
+  // Starts at 12, which is also Phrase's cap (the longest phrases).
+  expect(screen.getByTestId('players-count')).toHaveTextContent('12');
+  fireEvent.press(screen.getByTestId('btn-players-plus'));
+  expect(screen.getByTestId('players-count')).toHaveTextContent('12');
+  fireEvent.press(screen.getByTestId('btn-min-players-plus'));
 
   await act(async () => {
     fireEvent.press(screen.getByTestId('btn-create-phrase'));
@@ -85,7 +88,8 @@ test('creating a phrase game sends the language and table size', async () => {
   expect(gamesApi.createPhrase).toHaveBeenCalledWith({
     title: 'Word Play',
     phrase_language: 'uk',
-    max_players: 10,
+    min_players: 4,
+    max_players: 12,
     round_seconds: 0,
   });
   await waitFor(() => expect(screen).toHavePathname('/games/SPY-AB3D'));

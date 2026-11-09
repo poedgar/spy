@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use App\Enums\GameType;
+use App\Http\Requests\Concerns\ValidatesPlayerLimits;
 use App\Support\EmotionCatalog;
 use App\Support\GameNameGenerator;
 use Illuminate\Foundation\Http\FormRequest;
@@ -10,6 +11,8 @@ use Illuminate\Validation\Rule;
 
 class StoreEmotionGameRequest extends FormRequest
 {
+    use ValidatesPlayerLimits;
+
     public function authorize(): bool
     {
         return true;
@@ -39,7 +42,7 @@ class StoreEmotionGameRequest extends FormRequest
         return [
             'title' => ['nullable', 'string', 'max:255'],
             'emotion_level' => ['required', 'integer', Rule::in(EmotionCatalog::LEVELS)],
-            'max_players' => ['required', 'integer', 'min:'.GameType::Emotion->minPlayers(), 'max:'.GameType::Emotion->maxPlayers()],
+            ...$this->playerLimitRules(GameType::Emotion),
             'requires_approval' => ['sometimes', 'boolean'],
             'is_listed' => ['sometimes', 'boolean'],
         ];
